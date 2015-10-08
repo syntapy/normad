@@ -4,22 +4,14 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-__init__	lif-rcv.py	/^    def __init__(self, **args): $/;"	m	class:network
 __init__	lif.py	/^    def __init__(self):$/;"	m	class:neuron
-_hidden	lif-rcv.py	/^    def _hidden(self, **args):$/;"	m	class:network
-_input	lif-rcv.py	/^    def _input(self, **args):$/;"	m	class:network
-input	lif-rcv.py	/^    def input(self, **args):$/;"	m	class:network
-input_output	lif.py	/^    def input_output(self, inputs=[[0, 1], [6, 2]], desired=[12]):$/;"	m	class:neuron
-network	lif-rcv.py	/^class network:$/;"	c
+i	driver.py	/^i = 0$/;"	v
+input_output	lif.py	/^    def input_output(self, inputs=[[0, 1], [6, 9]], desired=[18]):$/;"	m	class:neuron
 neuron	lif.py	/^class neuron:$/;"	c
 nn	driver.py	/^nn = lif.neuron()$/;"	v
-output	lif-rcv.py	/^    def output(self, **args):$/;"	m	class:network
-plot	lif-rcv.py	/^    def plot(self, **args):$/;"	m	class:network
-plot	lif.py	/^    def plot(self):$/;"	m	class:neuron
-reset	lif-rcv.py	/^    def reset(self, **args):$/;"	m	class:network
+plot	lif.py	/^    def plot(self, i=None, show=True):$/;"	m	class:neuron
 restore	lif.py	/^    def restore(self):$/;"	m	class:neuron
-run	lif-rcv.py	/^    def run(self, **args):$/;"	m	class:network
 run	lif.py	/^    def run(self):$/;"	m	class:neuron
-setup	lif.py	/^    def setup(self):$/;"	m	class:neuron
-setup_plot	lif-rcv.py	/^    def setup_plot(self, **args):$/;"	m	class:network
-train	lif-rcv.py	/^    def train(self, **args):$/;"	m	class:network
+spiking	lif.py	/^    def spiking(self, t):$/;"	m	class:neuron
+supervised_update	lif.py	/^    def supervised_update(self):$/;"	m	class:neuron
+untrained	lif.py	/^    def untrained(self):$/;"	m	class:neuron

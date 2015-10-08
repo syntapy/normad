@@ -3,13 +3,22 @@ import pudb
 
 #pudb.set_trace()
 nn = lif.neuron()
-nn.setup()
 nn.input_output()
-for i in range(5):
+#nn.run()
+#nn.plot(i=1, show=False)
+i = 0
+while True:
+    print "i = ", i, "\t\t",
     nn.run()
-    nn.plot()
+    nn.plot(i=i, show=False)
+    print "\n",
+    if nn.untrained() == False:
+        nn.restore()
+        break
     nn.restore()
+    i += 1
 
+pudb.set_trace()
 #How to set arbitrary events in NeurongGroup to be used by Synapse object?
 #
 #Hi

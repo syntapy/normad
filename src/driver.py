@@ -8,7 +8,7 @@ nn.input_output()
 #nn.plot(i=1, show=False)
 i = 0
 while True:
-    print "i = ", i, "\t\t",
+    print "i=", i, "",
     nn.run()
     nn.plot(i=i, show=False)
     print "\n",

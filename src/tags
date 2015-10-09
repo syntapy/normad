@@ -13,5 +13,6 @@ plot	lif.py	/^    def plot(self, i=None, show=True):$/;"	m	class:neuron
 restore	lif.py	/^    def restore(self):$/;"	m	class:neuron
 run	lif.py	/^    def run(self):$/;"	m	class:neuron
 spiking	lif.py	/^    def spiking(self, t):$/;"	m	class:neuron
-supervised_update	lif.py	/^    def supervised_update(self):$/;"	m	class:neuron
+supervised_update_apply	lif.py	/^    def supervised_update_apply(self):$/;"	m	class:neuron
+supervised_update_setup	lif.py	/^    def supervised_update_setup(self):$/;"	m	class:neuron
 untrained	lif.py	/^    def untrained(self):$/;"	m	class:neuron

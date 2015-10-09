@@ -5,7 +5,7 @@ import pudb
 class neuron:
 
     def __init__(self):
-        self.r = 10.0
+        self.r = 1.0
         r = self.r
         self.dta = 0.05*br.ms
         self.dtb = 1*br.ms
@@ -40,26 +40,26 @@ class neuron:
 
                             c = (exp((tp - t)/tau1) - exp((tp - t)/tau2))   : 1
                             d = c*ul*up*h                                   : 1
+                            dtilda = c*up*hhat                              : 1
                             D_post = w*d                                    : 1 (summed)
-                            Dtilda_post = w*c*hhat                          : 1 (summed)''',
+                            Dtilda_post = w*dtilda                          : 1 (summed)''',
                    post='tl=t', pre='tp=t', name='synapses', dt=self.dta)
         S.connect('True')
-        S.w[:, :] = '(14000*rand()+1600)'
+        S.w[:, :] = '(8000*rand()+1600)'
         S.tl[:, :] = '-10000*second'
         S.tp[:, :] = '-10000*second'
         M = br.StateMonitor(Nh, 'V', record=True, name='monitor')
-        N = br.StateMonitor(S, 'd', record=True, name='monitor2')
-        O = br.StateMonitor(S, 'c', record=True, name='monitor3')
+        N = br.StateMonitor(S, 'dtilda', record=True, name='monitor2')
+        #O = br.StateMonitor(S, 'c', record=True, name='monitor3')
         T = br.SpikeMonitor(Nh, variables='V', name='crossings')
-        self.network_op = br.NetworkOperation(self.supervised_update, dt=self.dtb)
-        self.net = br.Network(Ni, S, Nh, M, N, O, T, self.network_op)
+        self.network_op = br.NetworkOperation(self.supervised_update_setup, dt=self.dtb)
+        self.net = br.Network(Ni, S, Nh, M, N, T, self.network_op)
 
     def spiking(self, t):
         """
             Desides whether t is within self.dtb of one of the spikes 
             issued by self.net['hidden']
         """
-
         spikes = self.net['crossings'].all_values()['t'][0]
         t_tmp = t
 
@@ -69,35 +69,61 @@ class neuron:
                     return True
         return False
 
-    def supervised_update(self):
-        dw_d, dw_a = None, None
+    def supervised_update_setup(self):
+        """
+            Sets the arrays to ultimately define total weight changes
+            to be applied after each run / epoch
+        """
         if self.net['synapses'].t in self.desired:
             print "\tDESIRED",
-            r = self.r
-            dw_d = r*self.net['synapses'].Dtilda / np.sum(self.net['synapses'].Dtilda)
+            if self.dw_d == None:
+                self.dw_d = self.net['synapses'].dtilda / np.sum(self.net['synapses'].dtilda)
+            else:
+                self.dw_d += self.net['synapses'].dtilda / np.sum(self.net['synapses'].dtilda)
 
         t = self.net['hidden'].t
         if self.spiking(t):
             print "\tACTUAL",
-            r = self.r
-            dw_a = r*self.net['synapses'].Dtilda / np.sum(self.net['synapses'].Dtilda)
+            if self.dw_a == None:
+                self.dw_a = self.net['synapses'].dtilda / np.sum(self.net['synapses'].dtilda)
+            else:
+                self.dw_a += self.net['synapses'].dtilda / np.sum(self.net['synapses'].dtilda)
 
-        pudb.set_trace()
-        if dw_d != None and dw_a != None:
-            if False not in dw_d == dw_a:
-                ra = np.rand(dw_d.shape)
+    def supervised_update_apply(self):
+        """
+            Applies all weight change vectors that have been summed and normalized
+            over entire time period.
+
+            Uses basic adaptive learning rate
+        """
+        if self.dw_d != None and self.dw_a != None:
+            #pudb.set_trace()
+            if False not in (self.dw_d == self.dw_a):
+                ra = np.random.rand(self.dw_d.shape)
                 if np.random.rand() > 0.5:
-                    ra *= 2*np.min(dw_d)
-                    dw_d += ra
+                    ra *= 2*np.min(self.dw_d)
+                    self.dw_d += ra
                 else:
-                    ra *= 2*np.min(dw_a)
-                    dw_a += ra
-            self.net['synapses'].w[:, :] += dw_d - dw_a
-        elif dw_d != None:
-            self.net['synapses'].w[:, :] += dw_d
-        elif dw_a != None:
-            self.net['synapses'].w[:, :] -= dw_a
+                    ra *= 2*np.min(self.dw_a)
+                    self.dw_a += ra
+            dw = self.dw_d - self.dw_a
+        elif self.dw_d != None:
+            dw = self.dw_d
+        elif self.dw_a != None:
+            dw = -self.dw_a
 
+        # Adaptive learning rate
+        dw = dw / np.linalg.norm(dw)
+        p = abs(len(self.net['crossings'].all_values()['t'][0]) - len(self.desired))
+        c = 7
+        self.net['synapses'].w[:, :] += self.r*dw*(c**(2*p))
+
+        print "\n\tA: ", self.dw_a,
+        print "\n\tD: ", self.dw_d,
+        print "\n\tdw:", dw,
+        print "\n\tW:", self.net['synapses'].w[:, :],
+        print "\n\tr:", self.r*(c**(2*p)),
+        print "\n",
 
     def input_output(self, inputs=[[0, 1], [6, 9]], desired=[18]):
         indices = np.asarray(inputs[0])
@@ -127,25 +153,32 @@ class neuron:
         return False
 
     def run(self):
+        self.dw_d, self.dw_a = None, None
         desired = self.desired[0]
         r = self.r
         self.net.run(30*br.ms)
+        if self.dw_d == None:
+            print "dw_d == None: ",
+        else:
+            print "dw_d == OBJECT",
+        if self.dw_a == None:
+            print "dw_a == None: ",
+        else:
+            print "dw_a == OBJECT",
+        self.supervised_update_apply()
 
     def plot(self, i=None, show=True):
         a = self.net['monitor2']
-        b = self.net['monitor3']
         br.plot(self.net['monitor'][0].t, self.net['monitor'][0].V)
-        md = a[0].d + a[1].d + a[2].d
-        mc = b[0].c + b[1].c + b[2].c
 
-        br.plot(self.net['monitor2'][0].t, md)
-        br.plot(self.net['monitor3'][0].t, 1.1*mc)
+        for j in range(3):
+            br.plot(self.net['monitor2'][0].t, a[j].dtilda)
+
         if i != None:
             file_name = '../figs/'
-            if i < 10:
-                file_name += '0'
-            if i < 100:
-                file_name += '0'
+            for j in range(4):
+                if i < 10**(j+1):
+                    file_name += '0'
             file_name += str(i) + '.png'
             br.savefig(file_name)
             br.clf()

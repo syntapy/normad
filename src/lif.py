@@ -1,16 +1,19 @@
 import brian2 as br
+import math as ma
 import numpy as np
 import pudb
 
 class neuron:
 
-    def __init__(self):
+    def __init__(self, N=500, T=250):
         self.r = 1.0
         r = self.r
         self.dta = 0.05*br.ms
         self.dtb = 1*br.ms
+        self.N = N
+        self.T = T*br.ms
 
-        Ni = br.SpikeGeneratorGroup(3, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
+        Ni = br.SpikeGeneratorGroup(self.N, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
         Nh = br.NeuronGroup(1, model='''V = El + D                          : 1
                                         D                                   : 1 
                                         Dtilda                              : 1
@@ -51,6 +54,9 @@ class neuron:
         S.w[:, :] = '(0*8000*rand()+15800)'
         S.tl[:, :] = '-10000*second'
         S.tp[:, :] = '-10000*second'
+        self.tau1 = float(S.variables.get(key='tau1').expr)
+        self.tau2 = float(S.variables.get(key='tau2').expr)
+        #pudb.set_trace()
         M = br.StateMonitor(Nh, 'V', record=True, name='monitor')
         N = br.StateMonitor(S, 'dtilda', record=True, name='monitor2')
         #O = br.StateMonitor(S, 'c', record=True, name='monitor3')
@@ -58,10 +64,12 @@ class neuron:
         self.network_op = br.NetworkOperation(self.supervised_update_setup, dt=self.dtb)
         self.net = br.Network(Ni, S, Nh, M, N, T, self.network_op)
 
-    def input_output(self, inputs=[[0, 0], [6, 25]], desired=[12]):
-        indices = np.asarray(inputs[0])
-        times = np.asarray(inputs[1]) * br.ms
-        self.desired = np.asarray(desired) * br.ms
+    def input_output(self):
+        n = np.randint(1, 10)
+        o = np.randint(1, 10)
+        self.indices = np.random.random_integers(0, self.N, n*self.N)
+        self.times = np.random.random_integers(0, self.T, n*self.N)*br.ms
+        self.desired = np.random.random_integers(0, self.T, o)*br.ms
 
         self.net['input'].set_spikes(indices=indices, times=times)
         self.net.store()
@@ -79,6 +87,38 @@ class neuron:
                 if t_tmp - spikes[i] > 0*br.ms and t_tmp - spikes[i] < self.dtb:
                     return True
         return False
+
+    def LSubtractPrevious(self, Smax, Sprev, index):
+
+        tau1, tau2 = self.tau1, self.tau2
+        SC_step = 0
+        i = 0
+        while i < len(Sprev) and Sprev[i] <= Smax[index]:
+            SC_step += (tau1*ma.exp((Sprev[i]-Smax[index])/tau1) - tau2*ma.exp((Sprev[i]-Smax[index])/tau2))
+            i += 1
+
+        return SC_step
+
+    def SCorrelation(self, S1, S2):
+        """
+            S1 and S2 are lists of spike times.
+        """
+
+        pudb.set_trace()
+        S1, S2 = np.sort(S1), np.sort(S2)
+        if S1[-1] > S2[-1]:
+            Smax, Smin = S1, S2
+        else:
+            Smax, Smin = S2, S1
+
+        SC_subtract = 0
+        nmax, nmin = len(Smax), len(Smin)
+        for index in range(nmax):
+            SC_subtract += self.LSubtractPrevious(Smax, Smin, index)
+
+        SC = (nmax + nmin)*(self.tau1 - self.tau2)
+
+        return (SC - SC_subtract) / float(SC)
 
     def supervised_update_setup(self):
         """

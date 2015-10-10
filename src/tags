@@ -4,9 +4,10 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-__init__	lif.py	/^    def __init__(self):$/;"	m	class:neuron
-i	driver.py	/^i = 0$/;"	v
-input_output	lif.py	/^    def input_output(self, inputs=[[0, 0], [6, 25]], desired=[12]):$/;"	m	class:neuron
+LSubtractPrevious	lif.py	/^    def LSubtractPrevious(self, Smax, Sprev, index):$/;"	m	class:neuron
+SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:neuron
+__init__	lif.py	/^    def __init__(self, N=500, T=250):$/;"	m	class:neuron
+input_output	lif.py	/^    def input_output(self):$/;"	m	class:neuron
 neuron	lif.py	/^class neuron:$/;"	c
 nn	driver.py	/^nn = lif.neuron()$/;"	v
 plot	lif.py	/^    def plot(self, i=None, save=False, show=True):$/;"	m	class:neuron

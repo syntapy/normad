@@ -1,23 +1,27 @@
 import lif
-import pudb
+import numpy as np
+#import pudb
 
 #pudb.set_trace()
 nn = lif.neuron()
-nn.input_output()
+S1, S2 = np.asarray([0]), np.asarray([0])
+print nn.SCorrelation(S1, S2)
+#nn.input_output()
 #nn.run()
 #nn.plot(i=1, show=False)
+"""
 i = 0
 while True:
     print "i=", i, "",
     nn.run()
     nn.plot(save=False, show=True)
-    print "\n",
+    #print "\n",
     if nn.untrained() == False or True:
         nn.restore()
         break
     nn.restore()
     i += 1
-
+"""
 #pudb.set_trace()
 #How to set arbitrary events in NeurongGroup to be used by Synapse object?
 #

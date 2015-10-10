@@ -6,13 +6,14 @@
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 __init__	lif.py	/^    def __init__(self):$/;"	m	class:neuron
 i	driver.py	/^i = 0$/;"	v
-input_output	lif.py	/^    def input_output(self, inputs=[[0, 1], [6, 9]], desired=[18]):$/;"	m	class:neuron
+input_output	lif.py	/^    def input_output(self, inputs=[[0, 0], [6, 25]], desired=[12]):$/;"	m	class:neuron
 neuron	lif.py	/^class neuron:$/;"	c
 nn	driver.py	/^nn = lif.neuron()$/;"	v
-plot	lif.py	/^    def plot(self, i=None, show=True):$/;"	m	class:neuron
+plot	lif.py	/^    def plot(self, i=None, save=False, show=True):$/;"	m	class:neuron
 restore	lif.py	/^    def restore(self):$/;"	m	class:neuron
 run	lif.py	/^    def run(self):$/;"	m	class:neuron
 spiking	lif.py	/^    def spiking(self, t):$/;"	m	class:neuron
 supervised_update_apply	lif.py	/^    def supervised_update_apply(self):$/;"	m	class:neuron
 supervised_update_setup	lif.py	/^    def supervised_update_setup(self):$/;"	m	class:neuron
+train	lif.py	/^    def train(self, desired):$/;"	m	class:neuron
 untrained	lif.py	/^    def untrained(self):$/;"	m	class:neuron

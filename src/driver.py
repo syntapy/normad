@@ -10,15 +10,15 @@ i = 0
 while True:
     print "i=", i, "",
     nn.run()
-    nn.plot(i=i, show=False)
+    nn.plot(save=False, show=True)
     print "\n",
-    if nn.untrained() == False:
+    if nn.untrained() == False or True:
         nn.restore()
         break
     nn.restore()
     i += 1
 
-pudb.set_trace()
+#pudb.set_trace()
 #How to set arbitrary events in NeurongGroup to be used by Synapse object?
 #
 #Hi

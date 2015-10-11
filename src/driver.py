@@ -4,7 +4,7 @@ import numpy as np
 
 #pudb.set_trace()
 nn = lif.neuron()
-S1, S2 = np.asarray([0]), np.asarray([0])
+S1, S2 = np.asarray([0]), np.asarray([0.5, 1])
 print nn.SCorrelation(S1, S2)
 #nn.input_output()
 #nn.run()

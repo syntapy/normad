@@ -12,6 +12,7 @@ class neuron:
         self.dtb = 1*br.ms
         self.N = N
         self.T = T*br.ms
+        self.tauLP = 100.0
 
         Ni = br.SpikeGeneratorGroup(self.N, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
         Nh = br.NeuronGroup(1, model='''V = El + D                          : 1
@@ -54,8 +55,6 @@ class neuron:
         S.w[:, :] = '(0*8000*rand()+15800)'
         S.tl[:, :] = '-10000*second'
         S.tp[:, :] = '-10000*second'
-        self.tau1 = float(S.variables.get(key='tau1').expr)
-        self.tau2 = float(S.variables.get(key='tau2').expr)
         #pudb.set_trace()
         M = br.StateMonitor(Nh, 'V', record=True, name='monitor')
         N = br.StateMonitor(S, 'dtilda', record=True, name='monitor2')
@@ -88,37 +87,48 @@ class neuron:
                     return True
         return False
 
-    def LSubtractPrevious(self, Smax, Sprev, index):
+    def LNonOverlap(self, Smax, Smin):
 
-        tau1, tau2 = self.tau1, self.tau2
-        SC_step = 0
-        i = 0
+        nmax, nmin = len(Smax), len(Smin)
+        if Smin[0] > Smax[0]:
+            i = 0
+            while Smin[i] > Smax[0]:
+                i += 1
+
+            return (i+1)
+        return 0
+
+    def LOverlapPrevious(self, Smax, Sprev, index):
+
+        i, SC_overlap = 0, 0
         while i < len(Sprev) and Sprev[i] <= Smax[index]:
-            SC_step += (tau1*ma.exp((Sprev[i]-Smax[index])/tau1) - tau2*ma.exp((Sprev[i]-Smax[index])/tau2))
+            SC_overlap += ma.exp((Sprev[i]-Smax[index])/self.tauLP)
             i += 1
 
-        return SC_step
+        return SC_overlap
 
     def SCorrelation(self, S1, S2):
         """
             S1 and S2 are lists of spike times.
         """
 
-        pudb.set_trace()
-        S1, S2 = np.sort(S1), np.sort(S2)
-        if S1[-1] > S2[-1]:
-            Smax, Smin = S1, S2
+        if len(S1) > 0 and len(S2) > 0:
+            #pudb.set_trace()
+            S1, S2 = np.sort(S1), np.sort(S2)
+            if S1[-1] > S2[-1]:
+                Smax, Smin = S1, S2
+            else:
+                Smax, Smin = S2, S1
+
+            nmax = len(Smax)
+            SC = self.LNonOverlap(Smax, Smin)
+            for index in range(nmax):
+                SC += self.LOverlapPrevious(Smax, Smin, index)
+            return SC / float(len(S1) * len(S2))
+        elif len(S1) > 0 or len(S2) > 0:
+            return 0
         else:
-            Smax, Smin = S2, S1
-
-        SC_subtract = 0
-        nmax, nmin = len(Smax), len(Smin)
-        for index in range(nmax):
-            SC_subtract += self.LSubtractPrevious(Smax, Smin, index)
-
-        SC = (nmax + nmin)*(self.tau1 - self.tau2)
-
-        return (SC - SC_subtract) / float(SC)
+            return 1
 
     def supervised_update_setup(self):
         """

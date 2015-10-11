@@ -12,7 +12,7 @@ class neuron:
         self.dtb = 1*br.ms
         self.N = N
         self.T = T*br.ms
-        self.tauLP = 100.0
+        self.tauLP = 1.0
 
         Ni = br.SpikeGeneratorGroup(self.N, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
         Nh = br.NeuronGroup(1, model='''V = El + D                          : 1
@@ -74,13 +74,10 @@ class neuron:
         self.net.store()
 
     def spiking(self, t):
-        """
-            Desides whether t is within self.dtb of one of the spikes 
-            issued by self.net['hidden']
-        """
+        """ Desides whether t is within self.dtb of one of the spikes 
+            issued by self.net['hidden'] """
         spikes = self.net['crossings'].all_values()['t'][0]
         t_tmp = t
-
         if len(spikes) > 0:
             for i in range(len(spikes)):
                 if t_tmp - spikes[i] > 0*br.ms and t_tmp - spikes[i] < self.dtb:
@@ -88,53 +85,44 @@ class neuron:
         return False
 
     def LNonOverlap(self, Smax, Smin):
-
-        nmax, nmin = len(Smax), len(Smin)
+        """ Finds i in which Smax[i] > Smin[0]"""
+        nmax, nmin, i = len(Smax), len(Smin), 0
         if Smin[0] > Smax[0]:
-            i = 0
-            while Smin[i] > Smax[0]:
+            while Smin[0] > Smax[i]:
                 i += 1
+        return i
 
-            return (i+1)
-        return 0
-
-    def LOverlapPrevious(self, Smax, Sprev, index):
-
+    def LOverlapPrevious(self, Smax, Smin, index):
         i, SC_overlap = 0, 0
-        while i < len(Sprev) and Sprev[i] <= Smax[index]:
-            SC_overlap += ma.exp((Sprev[i]-Smax[index])/self.tauLP)
+        while i < len(Smin) and Smin[i] <= Smax[index]:
+            SC_overlap += ma.exp((Smin[i]-Smax[index])/self.tauLP)
             i += 1
-
         return SC_overlap
 
     def SCorrelation(self, S1, S2):
-        """
-            S1 and S2 are lists of spike times.
-        """
-
-        if len(S1) > 0 and len(S2) > 0:
+        """ S1 and S2 are lists of spike times. """
+        if len(S1) > 0 or len(S2) > 0:
             #pudb.set_trace()
             S1, S2 = np.sort(S1), np.sort(S2)
             if S1[-1] > S2[-1]:
                 Smax, Smin = S1, S2
             else:
                 Smax, Smin = S2, S1
-
+            SC = 0
             nmax = len(Smax)
-            SC = self.LNonOverlap(Smax, Smin)
-            for index in range(nmax):
-                SC += self.LOverlapPrevious(Smax, Smin, index)
-            return SC / float(len(S1) * len(S2))
-        elif len(S1) > 0 or len(S2) > 0:
-            return 0
+            index_min = 0
+            if Smin[0] > Smax[0]:
+                index_min = self.LNonOverlap(Smax, Smin)
+                SC = self.LOverlapPrevious(Smin, Smax, 0)
+            for index_max in range(index_min, nmax):
+                SC += self.LOverlapPrevious(Smax, Smin, index_max)
+            return SC / float(min(len(S2), len(S1)))
         else:
             return 1
 
     def supervised_update_setup(self):
-        """
-            Sets the arrays to ultimately define total weight changes
-            to be applied after each run / epoch
-        """
+        """ Sets the arrays to ultimately define total weight changes
+            to be applied after each run / epoch """
         if self.train == True:
             if self.net['synapses'].t in self.desired:
                 print "\tDESIRED",
@@ -142,7 +130,6 @@ class neuron:
                     self.dw_d = self.net['synapses'].dtilda / np.sum(self.net['synapses'].dtilda)
                 else:
                     self.dw_d += self.net['synapses'].dtilda / np.sum(self.net['synapses'].dtilda)
-
             t = self.net['hidden'].t
             if self.spiking(t):
                 print "\tACTUAL",
@@ -152,12 +139,9 @@ class neuron:
                     self.dw_a += self.net['synapses'].dtilda / np.sum(self.net['synapses'].dtilda)
 
     def supervised_update_apply(self):
-        """
-            Applies all weight change vectors that have been summed and normalized
+        """ Applies all weight change vectors that have been summed and normalized
             over entire time period.
-
-            Uses basic adaptive learning rate
-        """
+            Uses basic adaptive learning rate. """
         dw = None
         if self.dw_d != None and self.dw_a != None:
             if False not in (self.dw_d == self.dw_a):

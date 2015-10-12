@@ -4,6 +4,7 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+L	lif.py	/^    def L(self, t1, t2):$/;"	m	class:neuron
 LNonOverlap	lif.py	/^    def LNonOverlap(self, Smax, Smin):$/;"	m	class:neuron
 LOverlapPrevious	lif.py	/^    def LOverlapPrevious(self, Smax, Smin, index):$/;"	m	class:neuron
 SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:neuron

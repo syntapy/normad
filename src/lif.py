@@ -85,7 +85,7 @@ class neuron:
         return False
 
     def LNonOverlap(self, Smax, Smin):
-        """ Finds i in which Smax[i] > Smin[0]"""
+        """ Finds i in which Smax[i] > Smin[0] """
         nmax, nmin, i = len(Smax), len(Smin), 0
         if Smin[0] > Smax[0]:
             while Smin[0] > Smax[i]:
@@ -99,24 +99,43 @@ class neuron:
             i += 1
         return SC_overlap
 
+    def L(self, t1, t2):
+        if t2 > t1:
+            return ma.exp((t1 - t2) / self.tauLP)
+        return ma.exp((t2 - t1) / self.tauLP)
+
     def SCorrelation(self, S1, S2):
         """ S1 and S2 are lists of spike times. """
-        if len(S1) > 0 or len(S2) > 0:
-            #pudb.set_trace()
-            S1, S2 = np.sort(S1), np.sort(S2)
-            if S1[-1] > S2[-1]:
-                Smax, Smin = S1, S2
-            else:
-                Smax, Smin = S2, S1
-            SC = 0
-            nmax = len(Smax)
-            index_min = 0
-            if Smin[0] > Smax[0]:
-                index_min = self.LNonOverlap(Smax, Smin)
-                SC = self.LOverlapPrevious(Smin, Smax, 0)
-            for index_max in range(index_min, nmax):
-                SC += self.LOverlapPrevious(Smax, Smin, index_max)
-            return SC / float(min(len(S2), len(S1)))
+        S1, S2 = np.sort(S1), np.sort(S2)
+        total, integral1, integral2 = 0, 0, 0
+        i, j, = 0, 0
+        n1, n2 = len(S1), len(S2)
+        i_index, j_index = min(i, n1-1), min(j, n2-1)
+        t1_last, t2_last = -10, -10 
+        if n1 > 0 and n2 > 0:
+            while i < n1 or j < n2:
+                if S1[i_index] < S2[j_index]:
+                    integral1 /= np.exp((S1[i_index] - t1_last) / self.tauLP)
+                    integral1 += 1
+                    total += integral1 / np.exp((S2[j_index] - S1[i_index]) / self.tauLP)
+                    i += 1
+                    i_index = min(i, n1-1)
+                elif S1[i_index] > S2[j_index]:
+                    integral2 /= np.exp((S2[j_index] - t2_last) / self.tauLP)
+                    integral2 += 1
+                    total += integral2 / np.exp((S1[i_index] - S2[j_index]) / self.tauLP)
+                    j += 1
+                    j_index = min(j, n2-1)
+                elif S1[i_index] == S2[j_index]:
+                    integral1 /= np.exp((S1[i_index] - t1_last) / self.tauLP)
+                    integral2 /= np.exp((S2[j_index] - t2_last) / self.tauLP)
+                    integral1, integral2 = integral1 + 1, integral2 + 1
+                    total += integral1*integral2
+                    i, j = i + 1, j + 1
+                    i_index, j_index = min(i, n1 - 1), min(j, n2 - 1)
+            return total / float(n1 * n2)
+        elif n1 > 0 or n2 > 0:
+            return 0
         else:
             return 1
 

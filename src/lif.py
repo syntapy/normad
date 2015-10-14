@@ -8,72 +8,59 @@ class neuron:
     def __init__(self, N=2, T=50):
         self.r = 1.0
         r = self.r
-        self.dta = 0.1*br.ms
-        self.dtb = 1*br.ms
+        self.dta = 0.05*br.ms
+        self.dtb = 0.05*br.ms
         self.N = N
-        self.T = T*br.ms
+        self.T = T
         self.tauLP = 1.0
         np.random.seed(10)
 
         Ni = br.SpikeGeneratorGroup(self.N, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
-        Nh = br.NeuronGroup(1, model='''V = El + D                          : 1
-                                        D                                   : 1 
-                                        Dtilda                              : 1
-                                        El                                  : 1
-                                        ws                                  : 1
-                                        Vt = 20                             : 1''', 
-                                        refractory='V>Vt', threshold='V>Vt', name='hidden', dt=self.dta)
+        Nh = br.NeuronGroup(1, model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
+                                        D                                           : 1 (shared)
+                                        gL = 6.0                                    : 1
+                                        El = -70                                    : 1
+                                        vt = 20                                     : 1
+                                        Cm = 3.0                                    : 1 ''',
+                                        method='rk2', refractory=3*br.ms, threshold='v>=vt', 
+                                        reset='v=El', name='hidden', dt=self.dta)
         S = br.Synapses(Ni, Nh,
-                   model='''
-                            tl                                              : second
+                   model='''tl                                              : second
                             tp                                              : second
-                            tau1 = 0.010                                    : second
-                            tau2 = 0.00250                                  : second
+                            tau1 = 0.005                                    : second
+                            tau2 = 0.00125                                  : second
                             tauL = 0.010                                    : second
                             tauLp = 0.1*tauL                                : second
-                            El_post = -70                                   : 1
-                            Cm = 300.0                                      : 1
 
                             w                                               : 1
 
                             up = (sign(t - tp) + 1.0) / 2                   : 1
-                            ul = (sign(t - tl - 3*ms) + 1.0) / 2            : 1
+                            ul = (sign(t - tl) + 1.0) / 2                   : 1
                             u = (sign(t) + 1.0) / 2                         : 1
 
-                            h = exp((tp - t)/tauL)*u / Cm                   : 1
-                            hhat = exp((tp - t)/tauLp)*up / Cm              : 1
-
-                            c = (exp((tp - t)/tau1) - exp((tp - t)/tau2))   : 1
-                            d = c*ul*up*h                                   : 1
-                            dtildasyn = c*hhat                              : 1
-                            D_post = 100*w*d                                : 1 (summed)
-                            Dtilda_post = 100*w*dtildasyn                   : 1 (summed)''',
-                   post='''
-                            tl=t
-                        ''', pre='tp=t', name='synapses', dt=self.dta)
+                            c = exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
+                            D_post = w*c*100*ul                             : 1 (summed) ''',
+                   post='tl=t+3*ms', pre='tp=t', name='synapses', dt=self.dta)
         S.connect('True')
-        S.w[:, :] = '(8*rand()+100)'
-        S.tl[:, :] = '-10*second'
-        S.tp[:, :] = '-10*second'
-        #pudb.set_trace()
-        M = br.StateMonitor(Nh, 'V', record=True, name='monitor')
-        #N = br.StateMonitor(S, 'dtilda', record=True, name='monitor2')
-        #O = br.StateMonitor(S, 'c', record=True, name='monitor3')
-        T = br.SpikeMonitor(Nh, variables='V', name='crossings', when='after_thresholds', order=0)
+        S.w[:, :] = '(800*rand()+320)'
+        S.tl[:, :] = '-1*second'
+        S.tp[:, :] = '-1*second'
+        Nh.v[:] = -70
+        M = br.StateMonitor(Nh, 'v', record=True, name='monitor')
+        N = br.StateMonitor(Nh, 'D', record=True, name='monitor1')
+        T = br.SpikeMonitor(Nh, variables='v', name='crossings', when='after_thresholds', order=0)
         self.network_op = br.NetworkOperation(self.supervised_update_setup, dt=self.dtb, when='after_thresholds', order=1)
-        self.net = br.Network(Ni, S, Nh, M, T, self.network_op)
+        self.net = br.Network(Ni, S, Nh, M, N, T, self.network_op)
         self.actual = self.net['crossings'].all_values()['t'][0]
         self.w_shape = S.w[:, :].shape
 
     def input_output(self):
-        n = 1#np.random.randint(1, 3) # of spikes per input neuron
-        o = 1#np.random.randint(1, 5)
-        self.times = np.asarray([10, 13])*br.ms#np.unique(np.random.random_integers(0, self.T/br.ms, n*self.N))*br.ms
-        self.indices = np.asarray([0, 1])#np.random.random_integers(0, self.N, len(self.times))
-        #min_time = 3 + self.times.min() / br.ms
-        #self.desired = np.unique(np.random.random_integers(min_time, int(self.T/br.ms), o))*br.ms
-        self.desired = np.asarray([16])*br.ms
-        print "desired times: ", self.desired
+        n = np.random.randint(1, 3) # of spikes per input neuron
+        o = np.random.randint(1, 5)
+        self.times = np.unique(np.random.random_integers(0, self.T, n*self.N))*br.ms
+        self.indices = np.random.random_integers(0, self.N, len(self.times))
+        min_time = 3 + self.times.min() / br.ms
+        self.desired = np.unique(np.random.random_integers(int(min_time), self.T, o))*br.ms
 
         self.net['input'].set_spikes(indices=self.indices, times=self.times)
         self.net.store()
@@ -92,27 +79,23 @@ class neuron:
     def supervised_update_setup(self):
         """ Sets the arrays to ultimately define total weight changes
             to be applied after each run / epoch """
-        if True:
-            #if self.net['synapses'].t >= 11*br.ms:
-            #    pudb.set_trace()
-            if self.net['synapses'].t in self.desired:
-                dw_d = self.net['synapses'].dtildasyn
-                dw_dS = np.sum(dw_d)
-                if dw_dS > 0:
-                    if self.dw_d == None:
-                        self.dw_d =  dw_d / dw_dS
-                    else:
-                        self.dw_d += dw_d / dw_dS
-            t = self.net['hidden'].t
-            if self.spiking(t):
-                #pudb.set_trace()
-                dw_a = self.net['synapses'].dtildasyn
-                dw_aS = np.sum(dw_a)
-                if self.dw_a == None:
-                    if dw_aS > 0:
-                        self.dw_a = dw_a / dw_aS
+        if self.net['synapses'].t in self.desired:
+            dw_d = self.net['synapses'].c
+            dw_dS = np.sum(dw_d)
+            if dw_dS > 0:
+                if self.dw_d == None:
+                    self.dw_d =  dw_d / dw_dS
                 else:
-                    self.dw_a += dw_a / dw_aS
+                    self.dw_d += dw_d / dw_dS
+        t = self.net['hidden'].t
+        if self.spiking(t):
+            dw_a = self.net['synapses'].c
+            dw_aS = np.sum(dw_a)
+            if self.dw_a == None:
+                if dw_aS > 0:
+                    self.dw_a = dw_a / dw_aS
+            else:
+                self.dw_a += dw_a / dw_aS
 
     def supervised_update_apply(self):
         """ Applies all weight change vectors that have been summed and normalized
@@ -231,7 +214,6 @@ class neuron:
         return False
 
     def train(self):
-        #self.train = True
         self.dw_d, self.dw_a = None, None
         r = self.r
         self.run(self.T)
@@ -249,17 +231,16 @@ class neuron:
             print "dw_a == OBJECT",
         self.supervised_update_apply()
 
-    def run(self, T):
-        self.net.run(T)
-        #pudb.set_trace()
+    def run(self, T=None):
+        if T != None:
+            T = T*br.ms
+            self.net.run(T)
+        else:
+            self.net.run(self.T*br.ms)
 
     def plot(self, i=None, save=False, show=True):
-        #a = self.net['monitor2']
-        br.plot(self.net['monitor'][0].t, self.net['monitor'][0].V)
-
-        #for j in range(3):
-        #    br.plot(self.net['monitor2'][0].t, a[j].dtilda)
-
+        br.plot(self.net['monitor'][0].t, 100*self.net['monitor'][0].v)
+        br.plot(self.net['monitor1'][0].t, self.net['monitor1'][0].D / 10.0)
         if i != None and save == True:
             file_name = '../figs/'
             for j in range(4):

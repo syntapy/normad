@@ -17,7 +17,7 @@ neuron	lif.py	/^class neuron:$/;"	c
 nn	driver.py	/^nn = lif.neuron()$/;"	v
 plot	lif.py	/^    def plot(self, i=None, save=False, show=True):$/;"	m	class:neuron
 restore	lif.py	/^    def restore(self):$/;"	m	class:neuron
-run	lif.py	/^    def run(self, T):$/;"	m	class:neuron
+run	lif.py	/^    def run(self, T=None):$/;"	m	class:neuron
 spiking	lif.py	/^    def spiking(self, t):$/;"	m	class:neuron
 supervised_update_apply	lif.py	/^    def supervised_update_apply(self):$/;"	m	class:neuron
 supervised_update_setup	lif.py	/^    def supervised_update_setup(self):$/;"	m	class:neuron

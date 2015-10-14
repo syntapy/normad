@@ -4,8 +4,10 @@ import pudb
 
 nn = lif.neuron()
 nn.input_output()
+nn.train()
+nn.plot()
 i = 0
-while True:
+while False:
     print "i=", i, "",
     nn.train()
     nn.plot(i=i, save=True, show=False)

@@ -1,3 +1,4 @@
+import os.path as op
 import brian2 as br
 import math as ma
 import numpy as np
@@ -6,6 +7,7 @@ import pudb
 class neuron:
 
     def __init__(self, N=2, T=50):
+        self.changes = []
         self.r = 1.0
         r = self.r
         self.dta = 0.05*br.ms
@@ -14,6 +16,8 @@ class neuron:
         self.T = T
         self.tauLP = 1.0
         np.random.seed(10)
+        self.a, self.d = None, None
+        self.a_post, self.d_post = [], []
 
         Ni = br.SpikeGeneratorGroup(self.N, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
         Nh = br.NeuronGroup(1, model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
@@ -63,6 +67,8 @@ class neuron:
         self.desired = np.unique(np.random.random_integers(int(min_time), self.T, o))*br.ms
 
         self.net['input'].set_spikes(indices=self.indices, times=self.times)
+        if op.isfile('weights.txt') == True:
+            self.read_weights('weights.txt')
         self.net.store()
 
     def spiking(self, t):
@@ -79,8 +85,17 @@ class neuron:
     def supervised_update_setup(self):
         """ Sets the arrays to ultimately define total weight changes
             to be applied after each run / epoch """
+        if self.d == 1:
+            self.d_post.append([self.net['synapses'].t, self.net['synapses'].c])
+            self.d = None
+        if self.a == 1:
+            self.a_post.append([self.net['synapses'].t, self.net['synapses'].c])
+            self.a = None
         if self.net['synapses'].t in self.desired:
+            #pudb.set_trace()
             dw_d = self.net['synapses'].c
+            self.changes.append([dw_d, self.net['synapses'].t, "Desired"])
+            self.d = 1
             dw_dS = np.sum(dw_d)
             if dw_dS > 0:
                 if self.dw_d == None:
@@ -89,7 +104,10 @@ class neuron:
                     self.dw_d += dw_d / dw_dS
         t = self.net['hidden'].t
         if self.spiking(t):
+            #pudb.set_trace()
             dw_a = self.net['synapses'].c
+            self.changes.append([dw_a, self.net['synapses'].t, "Actual"])
+            self.a = 1
             dw_aS = np.sum(dw_a)
             if self.dw_a == None:
                 if dw_aS > 0:
@@ -114,8 +132,31 @@ class neuron:
             c = 2
             self.net['synapses'].w[:, :] += self.r*dw*(c**(p))
 
-            print "\tdw:", dw,
-            print "\tr:", self.r*(c**(p)),
+            #print "\tdw:", dw,
+            #if abs(dw[0] + dw[1]) < 0.0001:
+            #    self.save_weights()
+            #    pudb.set_trace()
+            #print "\tw: ", self.net['synapses'].w[:, :],
+            #print "\tr:", self.r*(c**(p)),
+
+    def save_weights(self, fname='weights.txt'):
+        F = open(fname, 'w')
+        s = self.net['synapses']
+        n = len(s.w[:])
+        for i in range(n):
+            F.write(str(s.w[i]))
+            F.write('\n')
+        F.close()
+
+    def read_weights(self, fname='weights.txt'):
+        F = open(fname, 'r')
+        string = F.readlines()
+        n = len(string)
+        weights = np.empty(n, dtype=float)
+        for i in xrange(n):
+            weights[i] = float(string[i][:-1])
+
+        self.net['synapses'].w[:] = weights[:]
 
     def LNonOverlap(self, Smax, Smin):
         """ Finds i in which Smax[i] > Smin[0] """
@@ -218,17 +259,17 @@ class neuron:
         r = self.r
         self.run(self.T)
         self.actual = self.net['crossings'].all_values()['t'][0]
-        print "\tself.actual: ", self.actual,
-        print "\tself.desired: ", self.desired,
-        print "\t",
-        if self.dw_d == None:
-            print "dw_d == None: ",
-        else:
-            print "dw_d == OBJECT",
-        if self.dw_a == None:
-            print "dw_a == None: ",
-        else:
-            print "dw_a == OBJECT",
+        #print "\tself.actual: ", self.actual,
+        #print "\tself.desired: ", self.desired,
+        #print "\t",
+        #if self.dw_d == None:
+        #    print "dw_d == None: ",
+        #else:
+        #    print "dw_d == OBJECT",
+        #if self.dw_a == None:
+        #    print "dw_a == None: ",
+        #else:
+        #    print "dw_a == OBJECT",
         self.supervised_update_apply()
 
     def run(self, T=None):

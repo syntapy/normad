@@ -10,14 +10,17 @@ LOverlapPrevious	lif.py	/^    def LOverlapPrevious(self, Smax, Smin, index):$/;"
 SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:neuron
 SCorrelationSIMPLE	lif.py	/^    def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	m	class:neuron
 __init__	lif.py	/^    def __init__(self, N=2, T=50):$/;"	m	class:neuron
+changes	driver.py	/^changes = nn.changes$/;"	v
 i	driver.py	/^i = 0$/;"	v
 input_output	lif.py	/^    def input_output(self):$/;"	m	class:neuron
 matches	lif.py	/^    def matches(self, S1, S2):$/;"	m	class:neuron
 neuron	lif.py	/^class neuron:$/;"	c
 nn	driver.py	/^nn = lif.neuron()$/;"	v
 plot	lif.py	/^    def plot(self, i=None, save=False, show=True):$/;"	m	class:neuron
+read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:neuron
 restore	lif.py	/^    def restore(self):$/;"	m	class:neuron
 run	lif.py	/^    def run(self, T=None):$/;"	m	class:neuron
+save_weights	lif.py	/^    def save_weights(self, fname='weights.txt'):$/;"	m	class:neuron
 spiking	lif.py	/^    def spiking(self, t):$/;"	m	class:neuron
 supervised_update_apply	lif.py	/^    def supervised_update_apply(self):$/;"	m	class:neuron
 supervised_update_setup	lif.py	/^    def supervised_update_setup(self):$/;"	m	class:neuron

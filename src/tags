@@ -10,22 +10,22 @@ LOverlapPrevious	lif.py	/^    def LOverlapPrevious(self, Smax, Smin, index):$/;"
 SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:neuron
 SCorrelationSIMPLE	lif.py	/^    def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	m	class:neuron
 __init__	lif.py	/^    def __init__(self, N=2, T=30):$/;"	m	class:neuron
-i	driver.py	/^i = 0$/;"	v
+data	lif.py	/^    def data(self):$/;"	m	class:neuron
+i	driver.py	/^    i = 0$/;"	v
 input_output	lif.py	/^    def input_output(self):$/;"	m	class:neuron
 matches	lif.py	/^    def matches(self, S1, S2):$/;"	m	class:neuron
 neuron	lif.py	/^class neuron:$/;"	c
 nn	driver.py	/^nn = lif.neuron()$/;"	v
+once	driver.py	/^once = False$/;"	v
 plot	lif.py	/^    def plot(self, save=False, show=True, i=None):$/;"	m	class:neuron
 plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:neuron
 plot_desired	lif.py	/^    def plot_desired(self):$/;"	m	class:neuron
-print_dw_vec	lif.py	/^    def print_dw_vec(self, dw, c, p):$/;"	m	class:neuron
+print_dw_vec	lif.py	/^    def print_dw_vec(self, dw, r):$/;"	m	class:neuron
 print_dws	lif.py	/^    def print_dws(self):$/;"	m	class:neuron
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:neuron
-restore	lif.py	/^    def restore(self):$/;"	m	class:neuron
 run	lif.py	/^    def run(self, T=None):$/;"	m	class:neuron
 save_weights	lif.py	/^    def save_weights(self, fname='weights.txt'):$/;"	m	class:neuron
-spiking	lif.py	/^    def spiking(self, t):$/;"	m	class:neuron
-supervised_update_apply	lif.py	/^    def supervised_update_apply(self):$/;"	m	class:neuron
+supervised_update	lif.py	/^    def supervised_update(self, display=False):$/;"	m	class:neuron
 supervised_update_setup	lif.py	/^    def supervised_update_setup(self):$/;"	m	class:neuron
 train	lif.py	/^    def train(self, T=None):$/;"	m	class:neuron
 untrained	lif.py	/^    def untrained(self):$/;"	m	class:neuron

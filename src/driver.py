@@ -2,19 +2,23 @@ import lif
 import numpy as np
 import pudb
 
-#pudb.set_trace()
+once = False
+
 nn = lif.neuron()
 nn.input_output()
-#nn.run()
-#nn.plot()
-i = 0
-while True:
-    print "i=", i, "",
+
+if once:
     nn.train()
-    nn.plot(save=True, show=False, i=i)
-    nn.restore()
-    print "\n",
-    i += 1
+    #pudb.set_trace()
+    #nn.plot(show=True)
+else:
+    i = 0
+    while True:
+        print "i=", i, "",
+        nn.train()
+        #nn.plot(save=True, show=False, i=i)
+        print "\n",
+        i += 1
 
 """
 changes = nn.changes

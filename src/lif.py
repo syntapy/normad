@@ -11,7 +11,6 @@ class neuron:
         self.r = 4.0
         r = self.r
         self.dta = 0.2*br.ms
-        self.dtb = 1*br.ms
         self.N = N
         self.T = T
         self.tauLP = 1.0
@@ -22,40 +21,40 @@ class neuron:
 
         Ni = br.SpikeGeneratorGroup(self.N, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
         Nh = br.NeuronGroup(1, model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
-                                        D                                           : 1 (shared)
                                         gL = 96                                     : 1
                                         El = -70                                    : 1
                                         vt = 20                                     : 1
-                                        Cm = 3.0                                    : 1 ''',
+                                        Cm = 3.0                                    : 1                                         
+                                        D                                           : 1 (shared)''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
         S = br.Synapses(Ni, Nh,
-                   model='''tl                                              : second
-                            tp                                              : second
-                            tau1 = 0.010                                    : second
-                            tau2 = 0.00250                                  : second
-                            tauL = 0.010                                    : second
-                            tauLp = 0.1*tauL                                : second
+                   model='''tl                                                      : second
+                            tp                                                      : second
+                            tau1 = 0.010                                            : second
+                            tau2 = 0.00250                                          : second
+                            tauL = 0.010                                            : second
+                            tauLp = 0.1*tauL                                        : second
 
-                            w                                               : 1
+                            w                                                       : 1
 
-                            up = (sign(t - tp) + 1.0) / 2                   : 1
-                            ul = (sign(t - tl) + 1.0) / 2                   : 1
-                            u = (sign(t) + 1.0) / 2                         : 1
+                            up = (sign(t - tp) + 1.0) / 2                           : 1
+                            ul = (sign(t - tl - 3*ms) + 1.0) / 2                    : 1
+                            u = (sign(t) + 1.0) / 2                                 : 1
 
-                            c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2) : 1
-                            D_post = w*c*ul                                 : 1 (summed) ''',
+                            c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)         : 1
+                            D_post = w*c*ul                                         : 1 (summed) ''',
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
         S.connect('True')
-        S.w[:, :] = '(0*rand()+620)'
+        S.w[:, :] = '(0*rand()+920)'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
-        M = br.StateMonitor(Nh, 'v', record=True, name='monitor')
+        M = br.StateMonitor(Nh, 'v', record=True, name='monitor0')
         N = br.StateMonitor(S, 'c', record=True, name='monitor1')
         T = br.SpikeMonitor(Nh, variables='v', name='crossings')
-        self.network_op = br.NetworkOperation(self.supervised_update_setup, dt=self.dtb)
-        self.net = br.Network(Ni, S, Nh, M, N, T, self.network_op)
+        #self.network_op = br.NetworkOperation(self.supervised_update_setup, dt=self.dtb)
+        self.net = br.Network(Ni, S, Nh, M, N, T)
         self.actual = self.net['crossings'].all_values()['t'][0]
         self.w_shape = S.w[:, :].shape
         self.net.store()
@@ -63,104 +62,20 @@ class neuron:
     def input_output(self):
         n = np.random.randint(1, 3) # of spikes per input neuron
         o = np.random.randint(1, 5)
-        #pudb.set_trace()
-        #self.times = np.array([11, 12])*br.ms#np.unique(np.random.random_integers(0, int(0.5*self.T), n*self.N))*br.ms
-        #self.indices = np.array([0, 1])#np.random.random_integers(0, self.N, len(self.times))
-        #max_time = 3 + self.times.max() / br.ms
-        #self.desired = np.array([15., 28.])
-
-        self.times = np.unique(np.random.random_integers(0, int(0.5*self.T), n*self.N))*br.ms
-        self.indices = np.random.random_integers(0, self.N, len(self.times))
+        self.times = np.array([11])*br.ms
+        self.indices = np.array([0])
         max_time = 3 + self.times.max() / br.ms
-        self.desired = np.unique(np.random.random_integers(int(max_time), self.T, o))*br.ms
+        self.desired = np.array([15., 28.])*br.ms
+
+        #self.times = np.unique(np.random.random_integers(0, int(0.5*self.T), n*self.N))*br.ms
+        #self.indices = np.random.random_integers(0, self.N, len(self.times))
+        #max_time = 3 + self.times.max() / br.ms
+        #self.desired = np.unique(np.random.random_integers(int(max_time), self.T, o))*br.ms
 
         self.net['input'].set_spikes(indices=self.indices, times=self.times)
         if op.isfile('weights.txt') == True:
             self.read_weights('weights.txt')
         self.net.store()
-
-    def spiking(self, t):
-        """ Desides whether t is within self.dtb of one of the spikes 
-            issued by self.net['hidden'] """
-        spikes = self.net['crossings'].all_values()['t'][0]
-        t_tmp = t
-        if len(spikes) > 0:
-            for i in range(len(spikes)):
-                if t_tmp - spikes[i] > 0*br.ms and t_tmp - spikes[i] < self.dtb:
-                    return True
-        return False
-
-    def print_dws(self):
-        print "\tself.actual: ", self.actual,
-        print "\tself.desired: ", self.desired,
-        print "\t",
-        if self.dw_d == None:
-            print "dw_d == None: ",
-        else:
-            print "dw_d == OBJECT",
-        if self.dw_a == None:
-            print "dw_a == None: ",
-        else:
-            print "dw_a == OBJECT",
-
-    def supervised_update_setup(self):
-        """ Sets the arrays to ultimately define total weight changes
-            to be applied after each run / epoch """
-        if self.d == 1:
-            self.d_post.append([self.net['synapses'].t, self.net['synapses'].c])
-        else:
-            self.d_pre.append([self.net['synapses'].t, self.net['synapses'].c])
-        if self.a == 1:
-            self.a_post.append([self.net['synapses'].t, self.net['synapses'].c])
-        else:
-            self.a_pre.append([self.net['synapses'].t, self.net['synapses'].c])
-        if self.net['synapses'].t in self.desired:
-            dw_d = self.net['synapses'].c
-            self.changes.append([dw_d, self.net['synapses'].t, "Desired"])
-            self.d = 1
-            dw_dS = np.sum(dw_d)
-            if dw_dS > 0:
-                if self.dw_d == None:
-                    self.dw_d =  dw_d / dw_dS
-                else:
-                    self.dw_d += dw_d / dw_dS
-        t = self.net['hidden'].t
-        if self.spiking(t):
-            dw_a = self.net['synapses'].c
-            self.changes.append([dw_a, self.net['synapses'].t, "Actual"])
-            self.a = 1
-            dw_aS = np.sum(dw_a)
-            if self.dw_a == None:
-                if dw_aS > 0:
-                    self.dw_a = dw_a / dw_aS
-            else:
-                self.dw_a += dw_a / dw_aS
-
-    def supervised_update_apply(self):
-        """ Applies all weight change vectors that have been summed and normalized
-            over entire time period.
-            Uses basic adaptive learning rate. """
-        dw = np.zeros(self.w_shape)
-        if self.dw_d != None:
-            dw += self.dw_d
-        if self.dw_a != None:
-            dw -= self.dw_a
-
-        # Adaptive learning rate
-        if self.dw_d != None or self.dw_a != None:
-            dw = dw / np.linalg.norm(dw)
-            p = abs(len(self.net['crossings'].all_values()['t'][0]) - len(self.desired))
-            c = 2
-            self.net['synapses'].w[:, :] += np.transpose(self.r*dw[::-1]*(c**(p)))
-            self.print_dw_vec(dw, c, p)
-
-    def print_dw_vec(self, dw, c, p):
-        print "\tdw:", dw,
-        if abs(dw[0] + dw[1]) < 0.0001:
-            self.save_weights()
-            pudb.set_trace()
-        print "\tw: ", self.net['synapses'].w[:, :],
-        print "\tr:", self.r*(c**(p)),
 
     def save_weights(self, fname='weights.txt'):
         folder = '../files/'
@@ -182,6 +97,8 @@ class neuron:
             weights[i] = float(string[i][:-1])
 
         self.net['synapses'].w[:] = weights[:]
+
+    ### SPIKE CORRELATION FUNCTIONS (IN PROGRESS) ###
 
     def LNonOverlap(self, Smax, Smin):
         """ Finds i in which Smax[i] > Smin[0] """
@@ -260,12 +177,6 @@ class neuron:
             total += abs(S1[matches[i][0]] - S2[matches[i][1]])
         return total
 
-    def restore(self):
-        self.w = self.net['synapses'].w[:, :]
-        self.net.restore()
-        self.net['synapses'].w = self.w
-        self.net.store()
-
     def untrained(self):
         d = self.desired
         a = self.net['crossings'].all_values()['t'][0]
@@ -279,24 +190,78 @@ class neuron:
                     return True
         return False
 
+    ### TRAINING / RUNNING ###
+
+    def data(self):
+        self.actual = self.net['crossings'].all_values()['t'][0]
+
+    def supervised_update_setup(self):
+        dt = self.dta
+        n = len(self.net['synapses'].w)
+        v = self.net['monitor0'].v
+        c = self.net['monitor1'].c
+        actual, desired = self.actual, self.desired
+        dw, dw_t = np.zeros(n), np.zeros(n)
+        dw_aS, dw_dS = 0, 0
+        self.dw_a, self.dw_d = None, None
+        for i in range(len(actual)):
+            self.dw_a = 0
+            index = int(actual[i] / dt)
+            for j in range(len(c)):
+                dw_t[j] = c[j][index]
+            dw -= dw_t / np.linalg.norm(dw_t)
+        for i in range(len(desired)):
+            self.dw_d = 0
+            index = int(desired[i] / dt)
+            for j in range(len(c)):
+                dw_t[j] = c[j][index]
+            dw += dw_t / np.linalg.norm(dw_t)
+
+        return dw
+
+    def supervised_update(self, display=False):
+        self.data()
+        dw = self.supervised_update_setup()
+        self.net.restore()
+        self.net['synapses'].w[:, :] += self.r*dw
+        self.net.store()
+        if display:
+            self.print_dw_vec(dw, self.r)
+            self.print_dws()
+
     def train(self, T=None):
-        if T != None:
-            self.T = T
-        self.run(self.T)
-        self.supervised_update_apply()
-        self.print_dws()
+        self.run(T)
+        self.supervised_update(True)
 
     def run(self, T=None):
         self.net.restore()
-        self.dw_d, self.dw_a = None, None
-        self.actual = self.net['crossings'].all_values()['t'][0]
-        r = self.r
         if T != None:
-            T = T*br.ms
-            self.net.run(T)
+            self.net.run(T*br.ms)
         else:
             self.net.run(self.T*br.ms)
-        self.actual = self.net['crossings'].all_values()['t'][0]
+
+    ### PLOTTING / DISPLAY ###
+
+    def print_dws(self):
+        print "\tself.actual: ", self.actual,
+        print "\tself.desired: ", self.desired,
+        print "\t",
+        if self.dw_d == None:
+            print "dw_d == None: ",
+        else:
+            print "dw_d == OBJECT",
+        if self.dw_a == None:
+            print "dw_a == None: ",
+        else:
+            print "dw_a == OBJECT",
+
+    def print_dw_vec(self, dw, r):
+        print "\tdw:", dw,
+        if abs(dw[0] + dw[1]) < 0.0001:
+            self.save_weights()
+            #pudb.set_trace()
+        print "\tw: ", self.net['synapses'].w[:, :],
+        print "\tr:", r,
 
     def plot_desired(self):
         desired = self.desired
@@ -315,7 +280,7 @@ class neuron:
         self.plot_desired()
         self.plot_actual()
         br.plot((0, self.T)*br.ms, (90, 90), 'b--')
-        br.plot(self.net['monitor'][0].t, self.net['monitor'][0].v+70, 'k-')
+        br.plot(self.net['monitor0'][0].t, self.net['monitor0'][0].v+70, 'k-')
         br.plot(self.net['monitor1'][0].t, self.net['monitor1'][0].c, 'g-')
         br.plot(self.net['monitor1'][1].t, self.net['monitor1'][1].c, 'g-')
         if i != None and save == True:
@@ -326,6 +291,5 @@ class neuron:
             file_name += str(i) + '.png'
             self.fig.savefig(file_name)
         if show==True:
-            self.fig.show()
-        self.fig.clf()
-        self.fig = None
+            br.show()
+        self.fig.close()

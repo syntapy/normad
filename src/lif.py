@@ -14,7 +14,7 @@ class neuron:
         self.N = N
         self.T = T
         self.tauLP = 1.0
-        np.random.seed(10)
+        np.random.seed(12)
         self.a, self.d = None, None
         self.a_post, self.d_post = [], []
         self.a_pre, self.d_pre = [], []
@@ -46,7 +46,7 @@ class neuron:
                             D_post = w*c*ul                                         : 1 (summed) ''',
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
         S.connect('True')
-        S.w[:, :] = '(0*rand()+920)'
+        S.w[:, :] = '(0*rand()+0)'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
@@ -65,7 +65,7 @@ class neuron:
         self.times = np.array([11])*br.ms
         self.indices = np.array([0])
         max_time = 3 + self.times.max() / br.ms
-        self.desired = np.array([15., 28.])*br.ms
+        self.desired = np.array([15])*br.ms
 
         #self.times = np.unique(np.random.random_integers(0, int(0.5*self.T), n*self.N))*br.ms
         #self.indices = np.random.random_integers(0, self.N, len(self.times))

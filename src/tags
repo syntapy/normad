@@ -21,11 +21,12 @@ plot	lif.py	/^    def plot(self, save=False, show=True, i=None):$/;"	m	class:neu
 plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:neuron
 plot_desired	lif.py	/^    def plot_desired(self):$/;"	m	class:neuron
 print_dw_vec	lif.py	/^    def print_dw_vec(self, dw, r):$/;"	m	class:neuron
-print_dws	lif.py	/^    def print_dws(self):$/;"	m	class:neuron
+print_dws	lif.py	/^    def print_dws(self, dw):$/;"	m	class:neuron
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:neuron
 run	lif.py	/^    def run(self, T=None):$/;"	m	class:neuron
 save_weights	lif.py	/^    def save_weights(self, fname='weights.txt'):$/;"	m	class:neuron
 supervised_update	lif.py	/^    def supervised_update(self, display=False):$/;"	m	class:neuron
 supervised_update_setup	lif.py	/^    def supervised_update_setup(self):$/;"	m	class:neuron
+times_format	lif.py	/^    def times_format(self):$/;"	m	class:neuron
 train	lif.py	/^    def train(self, T=None):$/;"	m	class:neuron
 untrained	lif.py	/^    def untrained(self):$/;"	m	class:neuron

@@ -62,8 +62,10 @@ class neuron:
     def input_output(self):
         n = np.random.randint(1, 3) # of spikes per input neuron
         o = np.random.randint(1, 5)
-        self.times = np.array([11])*br.ms
-        self.indices = np.array([0])
+        self.times = np.array([11, 13])*br.ms
+        self.indices = np.array([0, 1])
+        #self.times = np.unique(np.random.random_integers(0, 13, 12))*br.ms
+        #self.indices = np.random.random_integers(0, self.N, len(self.times))
         max_time = 3 + self.times.max() / br.ms
         self.desired = np.array([15])*br.ms
 
@@ -223,11 +225,11 @@ class neuron:
         self.data()
         dw = self.supervised_update_setup()
         self.net.restore()
-        self.net['synapses'].w[:, :] += self.r*dw
+        self.net['synapses'].w[:, :] += self.r*dw / np.linalg.norm(dw)
         self.net.store()
         if display:
-            self.print_dw_vec(dw, self.r)
-            self.print_dws()
+            #self.print_dw_vec(dw, self.r)
+            self.print_dws(dw)
 
     def train(self, T=None):
         self.run(T)
@@ -242,9 +244,18 @@ class neuron:
 
     ### PLOTTING / DISPLAY ###
 
-    def print_dws(self):
-        print "\tself.actual: ", self.actual,
-        print "\tself.desired: ", self.desired,
+    def times_format(self):
+        inputs = []
+        for i in range(len(self.times)):
+            inputs.append([self.indices[i], self.times[i]])
+
+        return inputs
+
+    def print_dws(self, dw):
+        #print "\tinput: ", self.times_format(), "\n"
+        print "\tdw: ", dw,
+        print "\tactual: ", self.actual,
+        print "\tdesired: ", self.desired,
         print "\t",
         if self.dw_d == None:
             print "dw_d == None: ",
@@ -256,10 +267,8 @@ class neuron:
             print "dw_a == OBJECT",
 
     def print_dw_vec(self, dw, r):
-        print "\tdw:", dw,
-        if abs(dw[0] + dw[1]) < 0.0001:
-            self.save_weights()
-            #pudb.set_trace()
+        #if abs(dw[0] + dw[1]) < 0.0001:
+        #    self.save_weights()
         print "\tw: ", self.net['synapses'].w[:, :],
         print "\tr:", r,
 

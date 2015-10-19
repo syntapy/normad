@@ -8,9 +8,10 @@ nn = lif.neuron()
 nn.input_output()
 
 if once:
-    nn.train()
-    #pudb.set_trace()
-    #nn.plot(show=True)
+    nn.run()
+    nn.supervised_update()
+    nn.plot(show=True)
+    pudb.set_trace()
 else:
     i = 0
     while True:

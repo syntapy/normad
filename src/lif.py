@@ -6,7 +6,11 @@ import pudb
 
 class neuron:
 
-    def __init__(self, N=2, T=30):
+    ###################
+    ### MODEL SETUP ###
+    ###################
+
+    def __init__(self, N=8, T=30):
         self.changes = []
         self.r = 4.0
         r = self.r
@@ -60,17 +64,17 @@ class neuron:
         self.net.store()
 
     def input_output(self):
-        n = np.random.randint(1, 3) # of spikes per input neuron
+        n = np.random.randint(3, 7) # of spikes per input neuron
         o = np.random.randint(1, 5)
-        self.times = np.array([11, 13])*br.ms
-        self.indices = np.array([0, 1])
+        #self.times = np.array([11, 13])*br.ms
+        #self.indices = np.array([0, 1])
         #self.times = np.unique(np.random.random_integers(0, 13, 12))*br.ms
         #self.indices = np.random.random_integers(0, self.N, len(self.times))
-        max_time = 3 + self.times.max() / br.ms
-        self.desired = np.array([15])*br.ms
+        #max_time = 3 + self.times.max() / br.ms
+        self.desired = np.array([15, 25])*br.ms
 
-        #self.times = np.unique(np.random.random_integers(0, int(0.5*self.T), n*self.N))*br.ms
-        #self.indices = np.random.random_integers(0, self.N, len(self.times))
+        self.times = np.unique(np.random.random_integers(0, int(0.5*self.T), n*self.N))*br.ms
+        self.indices = np.random.random_integers(0, self.N, len(self.times))
         #max_time = 3 + self.times.max() / br.ms
         #self.desired = np.unique(np.random.random_integers(int(max_time), self.T, o))*br.ms
 
@@ -100,7 +104,121 @@ class neuron:
 
         self.net['synapses'].w[:] = weights[:]
 
+    ##########################
+    ### TRAINING / RUNNING ###
+    ##########################
+
+    def supervised_update_setup(self):
+        self.actual = self.net['crossings'].all_values()['t'][0]
+        dt = self.dta
+        n = len(self.net['synapses'].w)
+        v = self.net['monitor0'].v
+        c = self.net['monitor1'].c
+        actual, desired = self.actual, self.desired
+        dw, dw_t = np.zeros(n), np.zeros(n)
+        dw_aS, dw_dS = 0, 0
+        self.dw_a, self.dw_d = None, None
+        for i in range(len(actual)):
+            self.dw_a = 0
+            index = int(actual[i] / dt)
+            for j in range(len(c)):
+                dw_t[j] = c[j][index]
+            dw -= dw_t / np.linalg.norm(dw_t)
+        for i in range(len(desired)):
+            self.dw_d = 0
+            index = int(desired[i] / dt)
+            for j in range(len(c)):
+                #pudb.set_trace()
+                dw_t[j] = c[j][index]
+            dw += dw_t / np.linalg.norm(dw_t)
+
+        return dw / np.linalg.norm(dw)
+
+    def supervised_update(self, display=True):
+        dw = self.supervised_update_setup()
+        self.net.restore()
+        self.net['synapses'].w[:, :] += self.r*dw
+        self.net.store()
+        if display:
+            #self.print_dw_vec(dw, self.r)
+            self.print_dws(dw)
+
+    def train(self, T=None):
+        self.run(T)
+        self.supervised_update()
+
+    def run(self, T=None):
+        self.net.restore()
+        if T != None:
+            self.net.run(T*br.ms)
+        else:
+            self.net.run(self.T*br.ms)
+
+    ##########################
+    ### PLOTTING / DISPLAY ###
+    ##########################
+
+    def times_format(self):
+        inputs = []
+        for i in range(len(self.times)):
+            inputs.append([self.indices[i], self.times[i]])
+
+        return inputs
+
+    def print_dws(self, dw):
+        #print "\tinput: ", self.times_format(), "\n"
+        #print "\tdw: ", dw,
+        #print "\tw: ", self.net['synapses'].w[:, :],
+        print "\tactual: ", self.actual,
+        print "\tdesired: ", self.desired,
+        print "\t",
+        #if self.dw_d == None:
+        #    print "dw_d == None: ",
+        #else:
+        #    print "dw_d == OBJECT",
+        #if self.dw_a == None:
+        #    print "dw_a == None: ",
+        #else:
+        #    print "dw_a == OBJECT",
+
+    def print_dw_vec(self, dw, r):
+        #if abs(dw[0] + dw[1]) < 0.0001:
+        #    self.save_weights()
+        print "\tr:", r,
+
+    def plot_desired(self):
+        desired = self.desired
+        for i in range(len(desired)):
+            x = desired[i]
+            br.plot((x, x), (0, 100), 'r--')
+
+    def plot_actual(self):
+        actual = self.actual
+        for i in range(len(actual)):
+            x = actual[i]
+            br.plot((x, x), (0, 100), 'r-')
+
+    def plot(self, save=False, show=True, i=None):
+        self.fig = br.figure(figsize=(8, 5))
+        self.plot_desired()
+        self.plot_actual()
+        br.plot((0, self.T)*br.ms, (90, 90), 'b--')
+        br.plot(self.net['monitor0'][0].t, self.net['monitor0'][0].v+70, 'k-')
+        br.plot(self.net['monitor1'][0].t, self.net['monitor1'][0].c, 'g-')
+        br.plot(self.net['monitor1'][1].t, self.net['monitor1'][1].c, 'g-')
+        if i != None and save == True:
+            file_name = '../figs/'
+            for j in range(4):
+                if i < 10**(j+1):
+                    file_name += '0'
+            file_name += str(i) + '.png'
+            self.fig.savefig(file_name)
+        if show==True:
+            br.show()
+
+    #################################################
     ### SPIKE CORRELATION FUNCTIONS (IN PROGRESS) ###
+    #################################################
 
     def LNonOverlap(self, Smax, Smin):
         """ Finds i in which Smax[i] > Smin[0] """
@@ -191,114 +309,3 @@ class neuron:
                 if abs((d[i] - a[i]) / br.ms) > 1:
                     return True
         return False
-
-    ### TRAINING / RUNNING ###
-
-    def data(self):
-        self.actual = self.net['crossings'].all_values()['t'][0]
-
-    def supervised_update_setup(self):
-        dt = self.dta
-        n = len(self.net['synapses'].w)
-        v = self.net['monitor0'].v
-        c = self.net['monitor1'].c
-        actual, desired = self.actual, self.desired
-        dw, dw_t = np.zeros(n), np.zeros(n)
-        dw_aS, dw_dS = 0, 0
-        self.dw_a, self.dw_d = None, None
-        for i in range(len(actual)):
-            self.dw_a = 0
-            index = int(actual[i] / dt)
-            for j in range(len(c)):
-                dw_t[j] = c[j][index]
-            dw -= dw_t / np.linalg.norm(dw_t)
-        for i in range(len(desired)):
-            self.dw_d = 0
-            index = int(desired[i] / dt)
-            for j in range(len(c)):
-                dw_t[j] = c[j][index]
-            dw += dw_t / np.linalg.norm(dw_t)
-
-        return dw
-
-    def supervised_update(self, display=False):
-        self.data()
-        dw = self.supervised_update_setup()
-        self.net.restore()
-        self.net['synapses'].w[:, :] += self.r*dw / np.linalg.norm(dw)
-        self.net.store()
-        if display:
-            #self.print_dw_vec(dw, self.r)
-            self.print_dws(dw)
-
-    def train(self, T=None):
-        self.run(T)
-        self.supervised_update(True)
-
-    def run(self, T=None):
-        self.net.restore()
-        if T != None:
-            self.net.run(T*br.ms)
-        else:
-            self.net.run(self.T*br.ms)
-
-    ### PLOTTING / DISPLAY ###
-
-    def times_format(self):
-        inputs = []
-        for i in range(len(self.times)):
-            inputs.append([self.indices[i], self.times[i]])
-
-        return inputs
-
-    def print_dws(self, dw):
-        #print "\tinput: ", self.times_format(), "\n"
-        print "\tdw: ", dw,
-        print "\tactual: ", self.actual,
-        print "\tdesired: ", self.desired,
-        print "\t",
-        if self.dw_d == None:
-            print "dw_d == None: ",
-        else:
-            print "dw_d == OBJECT",
-        if self.dw_a == None:
-            print "dw_a == None: ",
-        else:
-            print "dw_a == OBJECT",
-
-    def print_dw_vec(self, dw, r):
-        #if abs(dw[0] + dw[1]) < 0.0001:
-        #    self.save_weights()
-        print "\tw: ", self.net['synapses'].w[:, :],
-        print "\tr:", r,
-
-    def plot_desired(self):
-        desired = self.desired
-        for i in range(len(desired)):
-            x = desired[i]
-            br.plot((x, x), (0, 100), 'r--')
-
-    def plot_actual(self):
-        actual = self.actual
-        for i in range(len(actual)):
-            x = actual[i]
-            br.plot((x, x), (0, 100), 'r-')
-
-    def plot(self, save=False, show=True, i=None):
-        self.fig = br.figure(figsize=(8, 5))
-        self.plot_desired()
-        self.plot_actual()
-        br.plot((0, self.T)*br.ms, (90, 90), 'b--')
-        br.plot(self.net['monitor0'][0].t, self.net['monitor0'][0].v+70, 'k-')
-        br.plot(self.net['monitor1'][0].t, self.net['monitor1'][0].c, 'g-')
-        br.plot(self.net['monitor1'][1].t, self.net['monitor1'][1].c, 'g-')
-        if i != None and save == True:
-            file_name = '../figs/'
-            for j in range(4):
-                if i < 10**(j+1):
-                    file_name += '0'
-            file_name += str(i) + '.png'
-            self.fig.savefig(file_name)
-        if show==True:
-            br.show()
-        self.fig.close()

@@ -10,9 +10,9 @@ class neuron:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N=8, T=30):
+    def __init__(self, N=40, T=30):
         self.changes = []
-        self.r = 4.0
+        self.r = 1.0
         r = self.r
         self.dta = 0.2*br.ms
         self.N = N
@@ -35,8 +35,8 @@ class neuron:
         S = br.Synapses(Ni, Nh,
                    model='''tl                                                      : second
                             tp                                                      : second
-                            tau1 = 0.010                                            : second
-                            tau2 = 0.00250                                          : second
+                            tau1 = 0.005                                            : second
+                            tau2 = 0.00125                                          : second
                             tauL = 0.010                                            : second
                             tauLp = 0.1*tauL                                        : second
 
@@ -50,7 +50,7 @@ class neuron:
                             D_post = w*c*ul                                         : 1 (summed) ''',
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
         S.connect('True')
-        S.w[:, :] = '(0*rand()+0)'
+        S.w[:, :] = '(200*rand()+0)'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70

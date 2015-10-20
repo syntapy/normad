@@ -12,31 +12,70 @@ class neuron:
 
     def __init__(self, N=40, T=30):
         self.changes = []
-        self.r = 1.0
-        r = self.r
+        self.r = 4.0
         self.dta = 0.2*br.ms
         self.N = N
         self.T = T
         self.tauLP = 1.0
-        np.random.seed(12)
+        self.seed = 12
+        np.random.seed(self.seed)
         self.a, self.d = None, None
         self.a_post, self.d_post = [], []
         self.a_pre, self.d_pre = [], []
+        #self._input_output()
+        #self._groups()
 
+    def n_inputs(self, na, nb):
+        """
+        na: low end # of input spikes per synapse
+        nb: high end # of input spikes per synapse
+        """
+        self.na, self.nb = na, nb
+
+    def n_outputs(self, ma, mb):
+        """
+        ma: low end # of output spikes for neuron
+        mb: high end # of output spikes for neuron
+        """
+        self.ma, self.mb = ma, mb
+
+    def _input_output(self, indices=None, times=None, desired=None):
+        """
+        Sets the input and desired output spike times if no arguments are given
+        """
+        if indices != None and times != None and len(indices) == len(times):
+                self.indices = indices
+                self.times = times*br.ms
+        else:
+            n = np.random.randint(self.na, self.nb+1) # of spikes per input synapse
+            self.times = np.unique(np.random.random_integers(0, self.T, (n+2)*self.N))*br.ms
+            self.indices = np.random.random_integers(0, self.N, len(self.times))
+
+        if desired != None:
+            self.desired = desired*br.ms
+        else:
+            o = np.random.randint(self.ma, self.mb+1) # of spikes in output neuron
+            min_time = 5 + (self.times.min() / br.ms)
+            self.desired = np.unique(np.random.random_integers(int(min_time), self.T, o))*br.ms
+
+        self.net['input'].set_spikes(indices=self.indices, times=self.times)
+        self.net.store()
+
+    def _groups(self):
         Ni = br.SpikeGeneratorGroup(self.N, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
         Nh = br.NeuronGroup(1, model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
-                                        gL = 96                                     : 1
+                                        gL = 30                                     : 1
                                         El = -70                                    : 1
                                         vt = 20                                     : 1
-                                        Cm = 3.0                                    : 1                                         
+                                        Cm = 3.0                                    : 1
                                         D                                           : 1 (shared)''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
         S = br.Synapses(Ni, Nh,
                    model='''tl                                                      : second
                             tp                                                      : second
-                            tau1 = 0.005                                            : second
-                            tau2 = 0.00125                                          : second
+                            tau1 = 0.0025                                           : second
+                            tau2 = 0.000625                                         : second
                             tauL = 0.010                                            : second
                             tauLp = 0.1*tauL                                        : second
 
@@ -61,26 +100,6 @@ class neuron:
         self.net = br.Network(Ni, S, Nh, M, N, T)
         self.actual = self.net['crossings'].all_values()['t'][0]
         self.w_shape = S.w[:, :].shape
-        self.net.store()
-
-    def input_output(self):
-        n = np.random.randint(3, 7) # of spikes per input neuron
-        o = np.random.randint(1, 5)
-        #self.times = np.array([11, 13])*br.ms
-        #self.indices = np.array([0, 1])
-        #self.times = np.unique(np.random.random_integers(0, 13, 12))*br.ms
-        #self.indices = np.random.random_integers(0, self.N, len(self.times))
-        #max_time = 3 + self.times.max() / br.ms
-        self.desired = np.array([15, 25])*br.ms
-
-        self.times = np.unique(np.random.random_integers(0, int(0.5*self.T), n*self.N))*br.ms
-        self.indices = np.random.random_integers(0, self.N, len(self.times))
-        #max_time = 3 + self.times.max() / br.ms
-        #self.desired = np.unique(np.random.random_integers(int(max_time), self.T, o))*br.ms
-
-        self.net['input'].set_spikes(indices=self.indices, times=self.times)
-        if op.isfile('weights.txt') == True:
-            self.read_weights('weights.txt')
         self.net.store()
 
     def save_weights(self, fname='weights.txt'):
@@ -143,9 +162,41 @@ class neuron:
             #self.print_dw_vec(dw, self.r)
             self.print_dws(dw)
 
-    def train(self, T=None):
-        self.run(T)
-        self.supervised_update()
+    def reset(self):
+        self.net.restore()
+        self.net['synapses'].w[:, :] = '0'
+        self._input_output()
+
+    def test(self, N=100, K=250, T=80):
+        """
+        N: range of number of input synapses to test
+        K: number of runs for each parameter set
+        T: time (ms) for each run
+        """
+        self.T = T
+        self.n_inputs(2*self.N, 6*self.N)
+        self.n_outputs(1, int(self.N / 10))
+        for i in range(K):
+            self._groups()
+            self._input_output()
+            self.train()
+
+    def untrained(self, Dt=1.0):
+        if len(self.actual) != len(self.desired):
+            return True
+        for i in range(len(self.actual)):
+            if abs((self.actual[i] - self.desired[i])/br.ms) > Dt:
+                return True
+        return False
+
+    def train(self, T=None, dsp=True):
+        if dsp == True:
+            i = 0
+            while self.untrained():
+                print "i = ", i,
+                i += 1
+                self.run(T)
+                self.supervised_update()
 
     def run(self, T=None):
         self.net.restore()
@@ -170,8 +221,7 @@ class neuron:
         #print "\tdw: ", dw,
         #print "\tw: ", self.net['synapses'].w[:, :],
         print "\tactual: ", self.actual,
-        print "\tdesired: ", self.desired,
-        print "\t",
+        print "\tdesired: ", self.desired
         #if self.dw_d == None:
         #    print "dw_d == None: ",
         #else:

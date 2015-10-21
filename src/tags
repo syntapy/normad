@@ -9,27 +9,33 @@ LNonOverlap	lif.py	/^    def LNonOverlap(self, Smax, Smin):$/;"	m	class:neuron
 LOverlapPrevious	lif.py	/^    def LOverlapPrevious(self, Smax, Smin, index):$/;"	m	class:neuron
 SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:neuron
 SCorrelationSIMPLE	lif.py	/^    def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	m	class:neuron
-__init__	lif.py	/^    def __init__(self, N=40, T=30):$/;"	m	class:neuron
+__init__	lif.py	/^    def __init__(self, N=80, T=250):$/;"	m	class:neuron
+__init__	lift.py	/^    def __init__(self, neuron=None, Na=None, Nb=None):$/;"	m	class:lif_tester
+_get_random_spikes	lift.py	/^    def _get_random_spikes(self, s, a, b, n):$/;"	m	class:lif_tester
 _groups	lif.py	/^    def _groups(self):$/;"	m	class:neuron
-_input_output	lif.py	/^    def _input_output(self, indices=None, times=None, desired=None):$/;"	m	class:neuron
+_input_output	lift.py	/^    def _input_output(self, classes=1):$/;"	m	class:lif_tester
+_rflatten	lif.py	/^    def _rflatten(A):$/;"	m	class:neuron
+lif_tester	lift.py	/^class lif_tester:$/;"	c
 matches	lif.py	/^    def matches(self, S1, S2):$/;"	m	class:neuron
-n_inputs	lif.py	/^    def n_inputs(self, na, nb):$/;"	m	class:neuron
-n_outputs	lif.py	/^    def n_outputs(self, ma, mb):$/;"	m	class:neuron
 neuron	lif.py	/^class neuron:$/;"	c
-nn	driver.py	/^nn = lif.neuron()$/;"	v
+nt	driver.py	/^nt = lift.lif_tester()$/;"	v
 plot	lif.py	/^    def plot(self, save=False, show=True, i=None):$/;"	m	class:neuron
 plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:neuron
 plot_desired	lif.py	/^    def plot_desired(self):$/;"	m	class:neuron
 print_dw_vec	lif.py	/^    def print_dw_vec(self, dw, r):$/;"	m	class:neuron
 print_dws	lif.py	/^    def print_dws(self, dw):$/;"	m	class:neuron
+read_images	lif.py	/^    def read_images(self):$/;"	m	class:neuron
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:neuron
 reset	lif.py	/^    def reset(self):$/;"	m	class:neuron
 run	lif.py	/^    def run(self, T=None):$/;"	m	class:neuron
 save_weights	lif.py	/^    def save_weights(self, fname='weights.txt'):$/;"	m	class:neuron
+set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:neuron
 supervised_update	lif.py	/^    def supervised_update(self, display=True):$/;"	m	class:neuron
 supervised_update_setup	lif.py	/^    def supervised_update_setup(self):$/;"	m	class:neuron
 test	lif.py	/^    def test(self, N=100, K=250, T=80):$/;"	m	class:neuron
+test	lift.py	/^    def test(self, classes=2):$/;"	m	class:lif_tester
 times_format	lif.py	/^    def times_format(self):$/;"	m	class:neuron
 train	lif.py	/^    def train(self, T=None, dsp=True):$/;"	m	class:neuron
+train_step	lif.py	/^    def train_step(self, T=None):$/;"	m	class:neuron
 untrained	lif.py	/^    def untrained(self):$/;"	m	class:neuron
 untrained	lif.py	/^    def untrained(self, Dt=1.0):$/;"	m	class:neuron

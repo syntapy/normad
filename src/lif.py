@@ -2,6 +2,7 @@ import os.path as op
 import brian2 as br
 import math as ma
 import numpy as np
+import scipy
 import pudb
 
 class neuron:
@@ -10,7 +11,7 @@ class neuron:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N=40, T=30):
+    def __init__(self, N=80, T=250):
         self.changes = []
         self.r = 4.0
         self.dta = 0.2*br.ms
@@ -23,43 +24,7 @@ class neuron:
         self.a_post, self.d_post = [], []
         self.a_pre, self.d_pre = [], []
         #self._input_output()
-        #self._groups()
-
-    def n_inputs(self, na, nb):
-        """
-        na: low end # of input spikes per synapse
-        nb: high end # of input spikes per synapse
-        """
-        self.na, self.nb = na, nb
-
-    def n_outputs(self, ma, mb):
-        """
-        ma: low end # of output spikes for neuron
-        mb: high end # of output spikes for neuron
-        """
-        self.ma, self.mb = ma, mb
-
-    def _input_output(self, indices=None, times=None, desired=None):
-        """
-        Sets the input and desired output spike times if no arguments are given
-        """
-        if indices != None and times != None and len(indices) == len(times):
-                self.indices = indices
-                self.times = times*br.ms
-        else:
-            n = np.random.randint(self.na, self.nb+1) # of spikes per input synapse
-            self.times = np.unique(np.random.random_integers(0, self.T, (n+2)*self.N))*br.ms
-            self.indices = np.random.random_integers(0, self.N, len(self.times))
-
-        if desired != None:
-            self.desired = desired*br.ms
-        else:
-            o = np.random.randint(self.ma, self.mb+1) # of spikes in output neuron
-            min_time = 5 + (self.times.min() / br.ms)
-            self.desired = np.unique(np.random.random_integers(int(min_time), self.T, o))*br.ms
-
-        self.net['input'].set_spikes(indices=self.indices, times=self.times)
-        self.net.store()
+        self._groups()
 
     def _groups(self):
         Ni = br.SpikeGeneratorGroup(self.N, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
@@ -102,6 +67,12 @@ class neuron:
         self.w_shape = S.w[:, :].shape
         self.net.store()
 
+    def set_train_spikes(self, indices=[], times=[], desired=[]):
+        self.net.restore()
+        self.indices, self.times, self.desired = indices, times*br.ms, desired*br.ms
+        self.net['input'].set_spikes(indices=self.indices, times=self.times)
+        self.net.store()
+
     def save_weights(self, fname='weights.txt'):
         folder = '../files/'
         F = open(folder + fname, 'w')
@@ -111,6 +82,39 @@ class neuron:
             F.write(str(s.w[i]))
             F.write('\n')
         F.close()
+
+    def _rflatten(A):
+        if A.dtype == 'O':
+            dim = np.shape(A)
+            n = len(dim)
+            ad = np.zeros(n)
+            i = 0
+            tmp = []
+            for a in A:
+                tmp.append(rflatten(a))
+            return_val = np.concatenate(tmp)
+        else:
+            return_val = A.flatten()
+
+        return return_val
+
+    def read_images(self):
+        c1_train = scipy.io.loadmat('../data/train-1.mat')['c1a'][0]
+        c1_test = scipy.io.loadmat('../data/test-1.mat')['c1b'][0]
+
+        N_train, N_test = len(c1_train), len(c1_test)
+        self.train_features = np.empty(N_train, dtype=object)
+        self.test_features = np.empty(N_test, dtype=object)
+
+        for i in xrange(N_train):
+            train_features[i] = self._rflatten(c1_train[i])
+        for i in xrange(N_train):
+            test_features[i] = self._rflatten(c1_test[i])
+
+        train_labels = scipy.io.loadmat('../data/train-label.mat')['train_labels_body']
+        test_labels = scipy.io.loadmat('../data/test-label.mat')['test_labels_body']
+        self.train_mnist = [train_features, train_labels]
+        self.test_mnist = [test_features, test_labels]
 
     def read_weights(self, fname='weights.txt'):
         folder = '../files/'
@@ -128,6 +132,7 @@ class neuron:
     ##########################
 
     def supervised_update_setup(self):
+        #pudb.set_trace()
         self.actual = self.net['crossings'].all_values()['t'][0]
         dt = self.dta
         n = len(self.net['synapses'].w)
@@ -147,7 +152,7 @@ class neuron:
             self.dw_d = 0
             index = int(desired[i] / dt)
             for j in range(len(c)):
-                #pudb.set_trace()
+                print "\ti, j = ", i, ", ", j
                 dw_t[j] = c[j][index]
             dw += dw_t / np.linalg.norm(dw_t)
 
@@ -173,6 +178,7 @@ class neuron:
         K: number of runs for each parameter set
         T: time (ms) for each run
         """
+
         self.T = T
         self.n_inputs(2*self.N, 6*self.N)
         self.n_outputs(1, int(self.N / 10))
@@ -189,14 +195,17 @@ class neuron:
                 return True
         return False
 
+    def train_step(self, T=None):
+        self.run(T)
+        self.supervised_update()
+
     def train(self, T=None, dsp=True):
         if dsp == True:
             i = 0
             while self.untrained():
                 print "i = ", i,
                 i += 1
-                self.run(T)
-                self.supervised_update()
+                self.train_step(T)
 
     def run(self, T=None):
         self.net.restore()

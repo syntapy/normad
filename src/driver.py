@@ -1,6 +1,5 @@
-import lif
-import numpy as np
+import lift
 import pudb
 
-nn = lif.neuron()
-nn.test()
+nt = lift.lif_tester()
+nt.test(1)

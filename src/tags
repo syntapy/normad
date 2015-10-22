@@ -8,14 +8,18 @@ F	lif.py	/^    def F(self, S, t):$/;"	m	class:neuron
 L	lif.py	/^    def L(self, t1, t2):$/;"	m	class:neuron
 LNonOverlap	lif.py	/^    def LNonOverlap(self, Smax, Smin):$/;"	m	class:neuron
 LOverlapPrevious	lif.py	/^    def LOverlapPrevious(self, Smax, Smin, index):$/;"	m	class:neuron
+SC_step	lif.py	/^    def SC_step(self, total, t1, t2, int1, int2, i, j, S1, S2):$/;"	m	class:neuron
 SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:neuron
 SCorrelationSIMPLE	lif.py	/^    def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	m	class:neuron
 SCorrelationSlow	lif.py	/^    def SCorrelationSlow(self, S1, S2, dt=0.05):$/;"	m	class:neuron
 __init__	lif.py	/^    def __init__(self, N=80, T=250):$/;"	m	class:neuron
 __init__	lift.py	/^    def __init__(self, neuron=None, Na=None, Nb=None):$/;"	m	class:lif_tester
+_equal_len_SC	lif.py	/^    def _equal_len_SC(self, S1, S2):$/;"	m	class:neuron
+_equal_len_SC	lif.py	/^    def _equal_len_SC(self, Smax, Smin):$/;"	m	class:neuron
 _get_random_spikes	lift.py	/^    def _get_random_spikes(self, s, a, b, n):$/;"	m	class:lif_tester
 _groups	lif.py	/^    def _groups(self):$/;"	m	class:neuron
 _input_output	lift.py	/^    def _input_output(self, classes=1):$/;"	m	class:lif_tester
+_prel_SC	lif.py	/^    def _prel_SC(self, Smax, Smin):$/;"	m	class:neuron
 _rflatten	lif.py	/^    def _rflatten(A):$/;"	m	class:neuron
 lif_tester	lift.py	/^class lif_tester:$/;"	c
 matches	lif.py	/^    def matches(self, S1, S2):$/;"	m	class:neuron

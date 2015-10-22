@@ -18,7 +18,7 @@ class neuron:
         self.dta = 0.2*br.ms
         self.N = N
         self.T = T
-        self.tauLP = 1.0
+        self.tauLP = 5.0
         self.seed = 12
         np.random.seed(self.seed)
         self.a, self.d = None, None
@@ -276,9 +276,9 @@ class neuron:
         if show==True:
             br.show()
 
-    #################################################
-    ### SPIKE CORRELATION FUNCTIONS (IN PROGRESS) ###
-    #################################################
+    ##################################################
+     ### SPIKE CORRELATION FOUTINES (IN PROGRESS) ###
+    ##################################################
 
     def LNonOverlap(self, Smax, Smin):
         """ Finds i in which Smax[i] > Smin[0] """
@@ -313,7 +313,6 @@ class neuron:
 
     def SCorrelationSlow(self, S1, S2, dt=0.05):
         """
-
             Trapezoid integration rule to compute inner product:
             
                 <L(S1), L(S2)> / (||L(S1)|| * ||L(S2)||)
@@ -328,26 +327,83 @@ class neuron:
             nb += self.F(S2, t) * dt
         return return_val / (na * nb)
 
+    def _prel_SC(self, Smax, Smin):
+        i, t_last = 0, 0
+
+        while Smax[i] < Smin[0]:
+            tot *= np.exp((t_last - Smax[i]) / self.tauLP)
+            tot += 1
+            t_last = Smax[i]
+            i += 1
+        tot *= np.exp((t_last - Smin[0]) / self.tauLP)
+        if Smax[i] == Smin[0]:
+            tot += 1
+        return tot*self.tauLP, i
+
+    def _equal_len_SC(self, Smax, Smin):
+        return_val = 0
+        integral = 0
+        t_last = 0
+        if Smax[0] < Smin[0]:
+            return_val, i = self._prel_SC(Smax, Smin)
+            j = 0
+            while i < len(Smax):
+                while Smin[j] <= Smax[i]:
+                    integral += 1
+                    integral *= np.exp((Smin[j] - Smax[i]) / self.tauLP)
+                    j += 1
+                i += 1
+
+    def SC_step(self, total, t1, t2, int1, int2, i, j, S1, S2):
+        if S1[i] < S2[j]:
+            
+        elif S1[i] > S2[j]:
+            pass
+        elif S1[i] == S2[j]:
+            pass
+
+    def _equal_len_SC(self, S1, S2):
+        total, int1, int2 = 0, 0, 0
+        i, j = 0, 0
+        t1, t2 = -10, -10
+
+        while i < len(S1) and j < len(S2):
+            total, int1, int2, i, j = self.SC_step(total, t1, t2, int1, int2, i, j, S1, S2)
+
+    def SCorrelation(self, S1, S2):
+        S1, S2 = np.sort(S1), np.sort(S2)
+        total, integral1, integral2 = 0, 0, 0
+        i, j = 0, 0
+
+        if len(S1) == len(S2):
+            if len(S1) > 0:
+                if S1[-1] > S2[-1]:
+                    return self._equal_len_SC(S1, S2)
+                return self._equal_len_SC(S2, S1)
+            return 1
+        return 0
+                    
+
     def SCorrelation(self, S1, S2):
         """ 
-
             Analytical approach to compute the inner product:
             
                 <L(S1), L(S2)> / (||L(S1)|| * ||L(S2)||)
-
         """
+
+        pudb.set_trace()
         S1, S2 = np.sort(S1), np.sort(S2)
         total, integral1, integral2 = 0, 0, 0
         i, j, = 0, 0
         n1, n2 = len(S1), len(S2)
-        i_index, j_index = min(i, n1-1), min(j, n2-1)
+        i_index, j_index = 0, 0
         t1_last, t2_last = -10, -10
         if n1 > 0 and n2 > 0:
             while i < n1 or j < n2:
                 if S1[i_index] < S2[j_index]:
                     integral1 /= np.exp((S1[i_index] - t1_last) / self.tauLP)
                     integral1 += 1
-                    total += integral1 / np.exp((S2[j_index] - S1[i_index]) / self.tauLP)
+                    total += integral1 * np.exp((S2[i_index] - S1[j_index]) / self.tauLP)
                     i += 1
                     i_index = min(i, n1-1)
                 elif S1[i_index] > S2[j_index]:

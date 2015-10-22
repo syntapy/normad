@@ -24,11 +24,11 @@ class lif_tester:
 
     def test_SC(self):
         S1, S2 = [2.5, 15.5], [2.5, 15.5]
-        a = self.neuron.SCorrelationSlow(S1, S2)
-        #b = self.neuron.SCorrelation(S1, S2)
+        #a = self.neuron.SCorrelationSlow(S1, S2)
+        b = self.neuron.SCorrelation(S1, S2)
 
-        print a
-        #print b
+        #print a
+        print b
 
     def _get_random_spikes(self, s, a, b, n):
         """

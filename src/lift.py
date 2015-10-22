@@ -22,6 +22,14 @@ class lif_tester:
         else:
             self.ma, self.mb = Nb[0], Nb[1]
 
+    def test_SC(self):
+        S1, S2 = [2.5, 15.5], [2.5, 15.5]
+        a = self.neuron.SCorrelationSlow(S1, S2)
+        #b = self.neuron.SCorrelation(S1, S2)
+
+        print a
+        #print b
+
     def _get_random_spikes(self, s, a, b, n):
         """
         Generate array of n numbers between a and b 
@@ -34,7 +42,7 @@ class lif_tester:
 
     def _input_output(self, classes=1):
         """
-        Sets the input and desired output spike times if no arguments are given
+            Sets the input and desired output spike times if no arguments are given
         """
         self.times, self.indices, self.desired = [], [], []
         self.classes = classes
@@ -51,8 +59,9 @@ class lif_tester:
             self.times.append(input_cmpnt)
             self.desired.append(desired_cmpnt)
 
-    def test(self, classes=2):
+    def test(self, classes=1):
         self._input_output(classes)
-        for i in range(self.classes):
-            self.neuron.set_train_spikes(self.indices[i], self.times[i], self.desired[i])
-            self.neuron.train_step()
+        while self.neuron.trained == False:
+            for i in range(self.classes):
+                self.neuron.set_train_spikes(self.indices[i], self.times[i], self.desired[i])
+                self.neuron.train_step()

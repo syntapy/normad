@@ -2,4 +2,5 @@ import lift
 import pudb
 
 nt = lift.lif_tester()
-nt.test(1)
+#pudb.set_trace()
+nt.test_SC()

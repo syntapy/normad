@@ -13,6 +13,7 @@ class neuron:
 
     def __init__(self, N=80, T=250):
         self.changes = []
+        self.trained = False
         self.r = 4.0
         self.dta = 0.2*br.ms
         self.N = N
@@ -132,7 +133,6 @@ class neuron:
     ##########################
 
     def supervised_update_setup(self):
-        #pudb.set_trace()
         self.actual = self.net['crossings'].all_values()['t'][0]
         dt = self.dta
         n = len(self.net['synapses'].w)
@@ -187,13 +187,14 @@ class neuron:
             self._input_output()
             self.train()
 
-    def untrained(self, Dt=1.0):
+    def test_if_trained(self, Dt=1.0):
+        self.trained = True
         if len(self.actual) != len(self.desired):
-            return True
-        for i in range(len(self.actual)):
-            if abs((self.actual[i] - self.desired[i])/br.ms) > Dt:
-                return True
-        return False
+            self.trained = False
+        else:
+            for i in range(len(self.actual)):
+                if abs((self.actual[i] - self.desired[i])/br.ms) > Dt:
+                    self.trained = False
 
     def train_step(self, T=None):
         self.run(T)
@@ -202,7 +203,7 @@ class neuron:
     def train(self, T=None, dsp=True):
         if dsp == True:
             i = 0
-            while self.untrained():
+            while self.not_trained():
                 print "i = ", i,
                 i += 1
                 self.train_step(T)
@@ -295,18 +296,52 @@ class neuron:
         return SC_overlap
 
     def L(self, t1, t2):
+        """ Atomic low-pass filter function """
         if t2 > t1:
             return ma.exp((t1 - t2) / self.tauLP)
         return ma.exp((t2 - t1) / self.tauLP)
 
+    def F(self, S, t):
+        """ Returns summ of low-passed spikes at time t """
+        return_val = 0
+        if len(S) > 0:
+            i = 0
+            while i < len(S) and S[i] <= t:
+                return_val += self.L(S[i], t)
+                i += 1
+        return return_val
+
+    def SCorrelationSlow(self, S1, S2, dt=0.05):
+        """
+
+            Trapezoid integration rule to compute inner product:
+            
+                <L(S1), L(S2)> / (||L(S1)|| * ||L(S2)||)
+        """
+        na = self.F(S1, 0) + self.F(S1, self.T-dt)
+        nb = self.F(S2, 0) + self.F(S2, self.T-dt)
+        return_val = self.F(S1, 0) * self.F(S2, 0) + \
+                    self.F(S1, self.T-dt) * self.F(S2, self.T-dt)
+        for t in range(1, self.T - 1):
+            return_val += 2*self.F(S1, t) * self.F(S2, t) * dt
+            na += self.F(S1, t) * dt
+            nb += self.F(S2, t) * dt
+        return return_val / (na * nb)
+
     def SCorrelation(self, S1, S2):
-        """ S1 and S2 are lists of spike times. """
+        """ 
+
+            Analytical approach to compute the inner product:
+            
+                <L(S1), L(S2)> / (||L(S1)|| * ||L(S2)||)
+
+        """
         S1, S2 = np.sort(S1), np.sort(S2)
         total, integral1, integral2 = 0, 0, 0
         i, j, = 0, 0
         n1, n2 = len(S1), len(S2)
         i_index, j_index = min(i, n1-1), min(j, n2-1)
-        t1_last, t2_last = -10, -10 
+        t1_last, t2_last = -10, -10
         if n1 > 0 and n2 > 0:
             while i < n1 or j < n2:
                 if S1[i_index] < S2[j_index]:

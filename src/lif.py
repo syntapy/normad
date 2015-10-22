@@ -11,7 +11,7 @@ class neuron:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N=80, T=250):
+    def __init__(self, N=160, T=250):
         self.changes = []
         self.trained = False
         self.r = 4.0
@@ -55,7 +55,7 @@ class neuron:
                             D_post = w*c*ul                                         : 1 (summed) ''',
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
         S.connect('True')
-        S.w[:, :] = '(200*rand()+0)'
+        S.w[:, :] = '(100*rand()+75)'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
@@ -147,14 +147,18 @@ class neuron:
             index = int(actual[i] / dt)
             for j in range(len(c)):
                 dw_t[j] = c[j][index]
-            dw -= dw_t / np.linalg.norm(dw_t)
+            dw_tNorm = np.linalg.norm(dw_t)
+            if dw_tNorm > 0:
+                dw -= dw_t / dw_tNorm
         for i in range(len(desired)):
             self.dw_d = 0
             index = int(desired[i] / dt)
             for j in range(len(c)):
-                print "\ti, j = ", i, ", ", j
+                #print "\ti, j = ", i, ", ", j
                 dw_t[j] = c[j][index]
-            dw += dw_t / np.linalg.norm(dw_t)
+            dw_tNorm = np.linalg.norm(dw_t)
+            if dw_tNorm > 0:
+                dw += dw_t / dw_tNorm
 
         return dw / np.linalg.norm(dw)
 
@@ -188,7 +192,7 @@ class neuron:
             self.train()
 
     def test_if_trained(self, Dt=1.0):
-        self.trained = True
+        #self.trained = True
         if len(self.actual) != len(self.desired):
             self.trained = False
         else:
@@ -196,9 +200,23 @@ class neuron:
                 if abs((self.actual[i] - self.desired[i])/br.ms) > Dt:
                     self.trained = False
 
+    def tdiff_rms(self):
+        actual, desired = np.sort(self.actual), np.sort(self.desired)
+        if len(actual) != len(desired):
+            return 0
+
+        n = len(actual)
+        if n > 0:
+            r, m = 0, 0
+            for i in range(n):
+                r += (actual[i] - desired[i])**2
+            return (r / float(n - 1))**0.5
+
     def train_step(self, T=None):
         self.run(T)
+        tdf = self.tdiff_rms()
         self.supervised_update()
+        return tdf
 
     def train(self, T=None, dsp=True):
         if dsp == True:
@@ -228,10 +246,11 @@ class neuron:
 
     def print_dws(self, dw):
         #print "\tinput: ", self.times_format(), "\n"
-        #print "\tdw: ", dw,
-        #print "\tw: ", self.net['synapses'].w[:, :],
+        #print "\tdw: ", np.sum(dw),
+        #print "\tw: ", np.sum(self.net['synapses'].w[:, :]),
         print "\tactual: ", self.actual,
-        print "\tdesired: ", self.desired
+        print "\tdesired: ", self.desired,
+        print "\tlen_dif: ", len(self.desired) - len(self.actual),
         #if self.dw_d == None:
         #    print "dw_d == None: ",
         #else:
@@ -356,7 +375,7 @@ class neuron:
 
     def SC_step(self, total, t1, t2, int1, int2, i, j, S1, S2):
         if S1[i] < S2[j]:
-            
+            pass
         elif S1[i] > S2[j]:
             pass
         elif S1[i] == S2[j]:

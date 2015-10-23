@@ -4,9 +4,9 @@ import numpy as np
 
 class lif_tester:
 
-    def __init__(self, neuron=None, Na=None, Nb=None):
+    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):
         if neuron == None:
-            self.neuron = lif.neuron()
+            self.neuron = lif.neuron(seed=seed)
         else:
             self.neuron = neuron
 
@@ -33,75 +33,101 @@ class lif_tester:
     def _spaced_next_number(self, spacing, a):
         return a + int(np.ma.round(abs(np.random.poisson(lam=10))))
 
-    def _get_random_spikes(self, N, r, T0, T1, spacing, give_indices=False):
+    def _poisson(self, r, spacing, Ti, Tf):
+        """
+        Generates a sequnce of spikes with mean arrival rate r,
+        min seperation of spacing, on the range of [Ti, Tf).
+
+        Returns numpy array and size of spike train.
+        """
+
+        spikes = [0]
+        while True:
+            spikes[0] = np.random.poisson(lam=r)
+            if spikes[0] >= Ti:
+                break
+        a = np.random.poisson(lam=r)
+        while spikes[-1] + a < Tf and a >= spacing:
+            spikes.append(spikes[-1] + a)
+            a = np.random.poisson(lam=r)
+
+        return spikes
+
+    def rflatten(self, A):
+        if A.dtype == 'O':
+            dim = np.shape(A)
+            n = len(dim)
+            ad = np.zeros(n)
+            i = 0
+            tmp = []
+            for a in A:
+                tmp.append(self.rflatten(a))
+            return_val = np.concatenate(tmp)
+        else:
+            return_val = A.flatten()
+
+        return return_val
+
+    def _get_random_spikes(self, N, r, Ti, Tf, spacing, g_indices=True):
         """
         Generate array of spikes from poisson distribution with mean rate of r 
-        and subject to minimum spacing of spacing. Spike will be no earlier than T0
-        and no later than T1
+        and subject to minimum spacing of spacing. Spike will be no earlier than
+        T0 and no later than T1
 
-        Produces spikes for each of the N inputs
+        Produces spikes for each of the N inputs, and records the earliest spike
+        for each value of N in min_times array
 
-        If give_indices == True, routine also returns an array of indices in addition
-        to array of spike times.
+        If g_indices == True, routine also returns, in addition to array of 
+        times, both an array of indices along with min_times
         """
-        return_val = np.empty(n)
-
-        # List of indices
-        separation_table = np.empty(N+1)
-        separation_table[0] = 0
-        r = 0
-        for i in range(1, N+1):
-            separation_table[i] = np.random.randint(1, 2*a)
-            separation_table[i] += separation_table[i-1]
-        return_val = np.empty(separation_table[-1]+1)
-        index = 0
-        for i in range(1, N+1):
-            index_a, index_b = separation_table[i-1], separation_table[i]
-            while True:
-                return_val[index_a] = self._spaced_next_number(spacing, a)
-                for i in range(1, n):
-                    return_val[i] = self._spaced_next_number(spacing, return_val[i-1])
-                if return_val[-1] < b:
-                    break
-        return return_val
-        #a, b = max(int(np.ceil(a/spacing)), 1), int(np.floor(b/spacing))
-        #ints = np.sort(np.random.random_integers(a, b, n))*spacing
-        #add = np.arange(start=0, stop=spacing*(len(ints) + 0), step=spacing)
-        #return ints + add
+        spikes_list, indices_list = [], []
+        min_times = np.empty(N)
+        for i in range(N):
+            if type(Ti) == np.ndarray or type(Ti) == list:
+                spikes = self._poisson(r, spacing, Ti[i], Tf)
+            else:
+                spikes = self._poisson(r, spacing, Ti, Tf)
+            min_times[i] = spikes[0] + spacing
+            indices = [i]*len(spikes)
+            spikes_list.append(np.asarray(spikes))
+            indices_list.append(np.asarray(indices))
+        times = self.rflatten(np.asarray(spikes_list))
+        indices = self.rflatten(np.asarray(indices_list))
+        if g_indices == True:
+            return times, min_times, indices
+        return times
 
     def _input_output(self, classes=1):
         """
         Sets the input and desired output spike times if no arguments are given
         """
-        pudb.set_trace()
+        #pudb.set_trace()
+        N, ri, ro, spacing = self.N, 10, 20, 5
         self.times, self.indices, self.desired = [], [], []
         self.classes = classes
+        self.times_list, self.indices_list, self.desired_list = [], [], []
         for i in range(classes):
-            a, b = int(0.8*self.T / 10.0), int(1.2*self.T / 10.0)
-            n = np.random.randint(a, b) # of spikes per input synapse
-            times = self._get_random_spikes(self.N, n, 10, 
-            input_cmpnt = self._get_random_spikes(5, 0, self.T - 10, (n+2)*self.N)
-            indices_cmpnt = np.random.random_integers(0, self.N, len(input_cmpnt))
-            min_time = int(np.ceil((5 + (input_cmpnt[i].min())) / 20.0) * 20)
-            m = np.random.randint(0.4*n, 0.6*n) # of spikes per output synapse
-            desired_cmpnt = self._get_random_spikes(20, min_time, self.T-1, m)
+            times, min_times, indices = self._get_random_spikes(N, ri, 0, self.T, spacing)
+            desired = self._get_random_spikes(20, ro, min_times, self.T, spacing, g_indices=False)
 
-            self.indices.append(indices_cmpnt)
-            self.times.append(input_cmpnt)
-            self.desired.append(desired_cmpnt)
-            print "i = ", i
+            self.times_list.append(times)
+            self.indices_list.append(indices)
+            self.desired_list.append(desired)
 
-    def test_spike_consistency(self):
-        m, n = len(self.times), len(self.desired)
-        if m != n:
+    def test_spike_consistency(self, classes=1, spacing=5):
+        self._input_output(classes)
+        l, m, n = len(self.times_list), len(self.indices_list), len(self.desired_list)
+        if l != m or m != n:
             return False
-        for i in range(m):
-            if self.times[0] >= self.desired[0] - 5:
+        for i in range(l):
+            if self.times_list[i][0] > self.desired_list[i][0] - spacing:
                 return False
-            if self.desired[-1] >= self.neuron.T:
+            if self.desired_list[i][-1] >= self.neuron.T:
                 return False
-            if self.times[-1] > self.neuron.T:
+            if self.times_list[i][-1] > self.neuron.T:
                 return False
+
+        return True
 
     def setup(self, classes=1):
         self._input_output(classes)

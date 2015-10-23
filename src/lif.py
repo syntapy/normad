@@ -11,7 +11,7 @@ class neuron:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N=160, T=250):
+    def __init__(self, N=160, T=250, seed=5):
         self.changes = []
         self.trained = False
         self.r = 4.0
@@ -19,7 +19,7 @@ class neuron:
         self.N = N
         self.T = T
         self.tauLP = 5.0
-        self.seed = 12
+        self.seed = seed
         np.random.seed(self.seed)
         self.a, self.d = None, None
         self.a_post, self.d_post = [], []
@@ -154,7 +154,6 @@ class neuron:
             self.dw_d = 0
             index = int(desired[i] / dt)
             for j in range(len(c)):
-                #print "\ti, j = ", i, ", ", j
                 dw_t[j] = c[j][index]
             dw_tNorm = np.linalg.norm(dw_t)
             if dw_tNorm > 0:

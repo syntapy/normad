@@ -12,20 +12,23 @@ SC_step	lif.py	/^    def SC_step(self, total, t1, t2, int1, int2, i, j, S1, S2):
 SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:neuron
 SCorrelationSIMPLE	lif.py	/^    def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	m	class:neuron
 SCorrelationSlow	lif.py	/^    def SCorrelationSlow(self, S1, S2, dt=0.05):$/;"	m	class:neuron
-__init__	lif.py	/^    def __init__(self, N=160, T=250):$/;"	m	class:neuron
-__init__	lift.py	/^    def __init__(self, neuron=None, Na=None, Nb=None):$/;"	m	class:lif_tester
+__init__	lif.py	/^    def __init__(self, N=160, T=250, seed=5):$/;"	m	class:neuron
+__init__	lift.py	/^    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):$/;"	m	class:lif_tester
 _equal_len_SC	lif.py	/^    def _equal_len_SC(self, S1, S2):$/;"	m	class:neuron
 _equal_len_SC	lif.py	/^    def _equal_len_SC(self, Smax, Smin):$/;"	m	class:neuron
-_get_random_spikes	lift.py	/^    def _get_random_spikes(self, spacing, a, b, n):$/;"	m	class:lif_tester
+_get_random_spikes	lift.py	/^    def _get_random_spikes(self, N, r, Ti, Tf, spacing, g_indices=True):$/;"	m	class:lif_tester
 _groups	lif.py	/^    def _groups(self):$/;"	m	class:neuron
 _input_output	lift.py	/^    def _input_output(self, classes=1):$/;"	m	class:lif_tester
+_poisson	lift.py	/^    def _poisson(self, r, spacing, Ti, Tf):$/;"	m	class:lif_tester
 _prel_SC	lif.py	/^    def _prel_SC(self, Smax, Smin):$/;"	m	class:neuron
 _rflatten	lif.py	/^    def _rflatten(A):$/;"	m	class:neuron
 _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"	m	class:lif_tester
+a	test.py	/^a = f(100, 10**8)$/;"	v
+f	test.py	/^def f(m, n):$/;"	f
 lif_tester	lift.py	/^class lif_tester:$/;"	c
 matches	lif.py	/^    def matches(self, S1, S2):$/;"	m	class:neuron
 neuron	lif.py	/^class neuron:$/;"	c
-nt	driver.py	/^nt = lift.lif_tester()$/;"	v
+nt	driver.py	/^nt = lift.lif_tester(seed=9)$/;"	v
 plot	lif.py	/^    def plot(self, save=False, show=True, i=None):$/;"	m	class:neuron
 plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:neuron
 plot_desired	lif.py	/^    def plot_desired(self):$/;"	m	class:neuron
@@ -34,6 +37,7 @@ print_dws	lif.py	/^    def print_dws(self, dw):$/;"	m	class:neuron
 read_images	lif.py	/^    def read_images(self):$/;"	m	class:neuron
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:neuron
 reset	lif.py	/^    def reset(self):$/;"	m	class:neuron
+rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:lif_tester
 run	lif.py	/^    def run(self, T=None):$/;"	m	class:neuron
 save_weights	lif.py	/^    def save_weights(self, fname='weights.txt'):$/;"	m	class:neuron
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:neuron
@@ -45,7 +49,7 @@ test	lif.py	/^    def test(self, N=100, K=250, T=80):$/;"	m	class:neuron
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:lif_tester
 test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester
 test_if_trained	lif.py	/^    def test_if_trained(self, Dt=1.0):$/;"	m	class:neuron
-test_spike_consistency	lift.py	/^    def test_spike_consistency(self):$/;"	m	class:lif_tester
+test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:lif_tester
 times_format	lif.py	/^    def times_format(self):$/;"	m	class:neuron
 train	lif.py	/^    def train(self, T=None, dsp=True):$/;"	m	class:neuron
 train_step	lif.py	/^    def train_step(self, T=None):$/;"	m	class:neuron

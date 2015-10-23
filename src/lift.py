@@ -33,18 +33,36 @@ class lif_tester:
     def _spaced_next_number(self, spacing, a):
         return a + int(np.ma.round(abs(np.random.poisson(lam=10))))
 
-    def _get_random_spikes(self, spacing, a, b, n):
+    def _get_random_spikes(self, N, r, T0, T1, spacing, give_indices=False):
         """
-        Generate array of n numbers between a and b 
-        with minimum spacing of spacing
+        Generate array of spikes from poisson distribution with mean rate of r 
+        and subject to minimum spacing of spacing. Spike will be no earlier than T0
+        and no later than T1
+
+        Produces spikes for each of the N inputs
+
+        If give_indices == True, routine also returns an array of indices in addition
+        to array of spike times.
         """
         return_val = np.empty(n)
-        while True:
-            return_val[0] = self._spaced_next_number(spacing, a)
-            for i in range(1, n):
-                return_val[i] = self._spaced_next_number(spacing, return_val[i-1])
-            if return_val[-1] < b:
-                break
+
+        # List of indices
+        separation_table = np.empty(N+1)
+        separation_table[0] = 0
+        r = 0
+        for i in range(1, N+1):
+            separation_table[i] = np.random.randint(1, 2*a)
+            separation_table[i] += separation_table[i-1]
+        return_val = np.empty(separation_table[-1]+1)
+        index = 0
+        for i in range(1, N+1):
+            index_a, index_b = separation_table[i-1], separation_table[i]
+            while True:
+                return_val[index_a] = self._spaced_next_number(spacing, a)
+                for i in range(1, n):
+                    return_val[i] = self._spaced_next_number(spacing, return_val[i-1])
+                if return_val[-1] < b:
+                    break
         return return_val
         #a, b = max(int(np.ceil(a/spacing)), 1), int(np.floor(b/spacing))
         #ints = np.sort(np.random.random_integers(a, b, n))*spacing
@@ -61,6 +79,7 @@ class lif_tester:
         for i in range(classes):
             a, b = int(0.8*self.T / 10.0), int(1.2*self.T / 10.0)
             n = np.random.randint(a, b) # of spikes per input synapse
+            times = self._get_random_spikes(self.N, n, 10, 
             input_cmpnt = self._get_random_spikes(5, 0, self.T - 10, (n+2)*self.N)
             indices_cmpnt = np.random.random_integers(0, self.N, len(input_cmpnt))
             min_time = int(np.ceil((5 + (input_cmpnt[i].min())) / 20.0) * 20)

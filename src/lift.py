@@ -74,27 +74,26 @@ class lif_tester:
         and subject to minimum spacing of spacing. Spike will be no earlier than
         T0 and no later than T1
 
-        Produces spikes for each of the N inputs, and records the earliest spike
-        for each value of N in min_times array
+        Produces spikes for each of the N inputs
 
         If g_indices == True, routine also returns, in addition to array of 
-        times, both an array of indices along with min_times
+        times, an array of indices
         """
         spikes_list, indices_list = [], []
-        min_times = np.empty(N)
+        #min_times = np.empty(N)
         for i in range(N):
             if type(Ti) == np.ndarray or type(Ti) == list:
                 spikes = self._poisson(r, spacing, Ti[i], Tf)
             else:
                 spikes = self._poisson(r, spacing, Ti, Tf)
-            min_times[i] = spikes[0] + spacing
+            #min_times[i] = spikes[0] + spacing
             indices = [i]*len(spikes)
             spikes_list.append(np.asarray(spikes))
             indices_list.append(np.asarray(indices))
         times = self.rflatten(np.asarray(spikes_list))
         indices = self.rflatten(np.asarray(indices_list))
         if g_indices == True:
-            return times, min_times, indices
+            return times, indices
         return times
 
     def _input_output(self, classes=1):
@@ -102,13 +101,15 @@ class lif_tester:
         Sets the input and desired output spike times if no arguments are given
         """
         #pudb.set_trace()
-        N, ri, ro, spacing = self.N, 10, 20, 5
+        N, ri, ro, spacing = self.N, 20, 10, 5
+        lri, lro = int(1000 / ri), int(1000 / ro)
         self.times, self.indices, self.desired = [], [], []
         self.classes = classes
         self.times_list, self.indices_list, self.desired_list = [], [], []
         for i in range(classes):
-            times, min_times, indices = self._get_random_spikes(N, ri, 0, self.T, spacing)
-            desired = self._get_random_spikes(20, ro, min_times, self.T, spacing, g_indices=False)
+            times, indices = self._get_random_spikes(N, lri, 0, self.T, spacing)
+            min_time = np.min(times)
+            desired = self._get_random_spikes(1, lro, min_time + 5, self.T, spacing, g_indices=False)
 
             self.times_list.append(times)
             self.indices_list.append(indices)
@@ -137,7 +138,7 @@ class lif_tester:
         while self.neuron.trained == False:
             self.neuron.trained = True
             for i in range(self.classes):
-                self.neuron.set_train_spikes(self.indices[i], self.times[i], self.desired[i])
+                self.neuron.set_train_spikes(self.indices_list[i], self.times_list[i], self.desired_list[i])
                 rms = self.neuron.train_step()
                 self.neuron.test_if_trained()
                 print "\trms: ", rms

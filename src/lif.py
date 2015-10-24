@@ -11,7 +11,7 @@ class neuron:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N=160, T=250, seed=5):
+    def __init__(self, N=50, T=200, seed=5):
         self.changes = []
         self.trained = False
         self.r = 4.0
@@ -191,7 +191,6 @@ class neuron:
             self.train()
 
     def test_if_trained(self, Dt=1.0):
-        #self.trained = True
         if len(self.actual) != len(self.desired):
             self.trained = False
         else:
@@ -247,8 +246,8 @@ class neuron:
         #print "\tinput: ", self.times_format(), "\n"
         #print "\tdw: ", np.sum(dw),
         #print "\tw: ", np.sum(self.net['synapses'].w[:, :]),
-        print "\tactual: ", self.actual,
-        print "\tdesired: ", self.desired,
+        #print "\tactual: ", self.actual,
+        #print "\tdesired: ", self.desired,
         print "\tlen_dif: ", len(self.desired) - len(self.actual),
         #if self.dw_d == None:
         #    print "dw_d == None: ",

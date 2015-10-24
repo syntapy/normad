@@ -1,5 +1,6 @@
 import lift
 import pudb
 
+#pudb.set_trace()
 nt = lift.lif_tester(seed=9)
-print nt.test_spike_consistency(80)
+nt.test(2)

@@ -12,7 +12,7 @@ SC_step	lif.py	/^    def SC_step(self, total, t1, t2, int1, int2, i, j, S1, S2):
 SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:neuron
 SCorrelationSIMPLE	lif.py	/^    def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	m	class:neuron
 SCorrelationSlow	lif.py	/^    def SCorrelationSlow(self, S1, S2, dt=0.05):$/;"	m	class:neuron
-__init__	lif.py	/^    def __init__(self, N=160, T=250, seed=5):$/;"	m	class:neuron
+__init__	lif.py	/^    def __init__(self, N=1000, T=200, seed=5):$/;"	m	class:neuron
 __init__	lift.py	/^    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):$/;"	m	class:lif_tester
 _equal_len_SC	lif.py	/^    def _equal_len_SC(self, S1, S2):$/;"	m	class:neuron
 _equal_len_SC	lif.py	/^    def _equal_len_SC(self, Smax, Smin):$/;"	m	class:neuron

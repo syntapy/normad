@@ -1,5 +1,6 @@
 import lif
 import pudb
+import array
 import numpy as np
 
 class lif_tester:
@@ -101,7 +102,7 @@ class lif_tester:
         Sets the input and desired output spike times if no arguments are given
         """
         #pudb.set_trace()
-        N, ri, ro, spacing = self.N, 20, 10, 5
+        N, ri, ro, spacing = self.N, 60, 30, 5
         lri, lro = int(1000 / ri), int(1000 / ro)
         self.times, self.indices, self.desired = [], [], []
         self.classes = classes
@@ -109,7 +110,9 @@ class lif_tester:
         for i in range(classes):
             times, indices = self._get_random_spikes(N, lri, 0, self.T, spacing)
             min_time = np.min(times)
-            desired = self._get_random_spikes(1, lro, min_time + 5, self.T, spacing, g_indices=False)
+            desired = self._get_random_spikes(
+                    1, lro, min_time + 5, self.T, 
+                    spacing, g_indices=False)
 
             self.times_list.append(times)
             self.indices_list.append(indices)

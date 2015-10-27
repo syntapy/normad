@@ -1,35 +1,42 @@
+import scipy.io as sio
 import os.path as op
 import brian2 as br
-import math as ma
 import numpy as np
+import math as ma
 import scipy
 import pudb
 
-class neuron:
+class net:
 
     ###################
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N=50, T=200, seed=5):
+    def __init__(self, N_hidden=2, N_input=4, data='mnist', seed=5):
         self.changes = []
         self.trained = False
         self.r = 4.0
         self.dta = 0.2*br.ms
-        self.N = N
-        self.T = T
+        self.N_hidden = N_hidden
         self.tauLP = 5.0
         self.seed = seed
         np.random.seed(self.seed)
         self.a, self.d = None, None
         self.a_post, self.d_post = [], []
         self.a_pre, self.d_pre = [], []
-        #self._input_output()
+        if data == 'mnist':
+            self.load()
+            self.N_inputs = len(self.data['train'][0])
+        else:
+            self.N_inputs = N_inputs
         self._groups()
 
     def _groups(self):
-        Ni = br.SpikeGeneratorGroup(self.N, indices=np.asarray([]), times=np.asarray([])*br.ms, name='input')
-        Nh = br.NeuronGroup(1, model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
+        Ni = br.SpikeGeneratorGroup(self.N_inputs, 
+                                        indices=np.asarray([]), 
+                                        times=np.asarray([])*br.ms, 
+                                        name='input')
+        Nh = br.NeuronGroup(self.N_hidden, model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
                                         gL = 30                                     : 1
                                         El = -70                                    : 1
                                         vt = 20                                     : 1
@@ -68,11 +75,53 @@ class neuron:
         self.w_shape = S.w[:, :].shape
         self.net.store()
 
-    def set_train_spikes(self, indices=[], times=[], desired=[]):
-        self.net.restore()
-        self.indices, self.times, self.desired = indices, times*br.ms, desired*br.ms
-        self.net['input'].set_spikes(indices=self.indices, times=self.times)
-        self.net.store()
+    ##################
+    ### DATA SETUP ### 
+    ##################
+
+    def rflatten(self, A):
+        if A.dtype == 'O':
+            dim = np.shape(A)
+            n = len(dim)
+            ad = np.zeros(n)
+            i = 0
+            tmp = []
+            for a in A:
+                tmp.append(self.rflatten(a))
+            return_val = np.concatenate(tmp)
+        else:
+            return_val = A.flatten()
+
+        return return_val
+
+    def load(self):
+        c1_train = scipy.io.loadmat('../data/train-1.mat')['c1a'][0]
+        c1_test = scipy.io.loadmat('../data/test-1.mat')['c1b'][0]
+
+        N_train, N_test = len(c1_train), len(c1_test)
+        train_features = np.empty(N_train, dtype=object)
+        test_features = np.empty(N_test, dtype=object)
+
+        for i in xrange(N_train):
+            train_features[i] = self.rflatten(c1_train[i])
+        for i in xrange(N_test):
+            test_features[i] = self.rflatten(c1_test[i])
+
+        self.data, self.labels = {}, {}
+        train_labels = scipy.io.loadmat('../data/train-label.mat')['train_labels_body']
+        test_labels = scipy.io.loadmat('../data/test-label.mat')['test_labels_body']
+
+        self.data['train'] = train_features
+        self.data['test'] = test_features
+        self.labels['train'] = self.rflatten(train_labels)
+        self.labels['test'] = self.rflatten(test_labels)
+
+        pudb.set_trace()
+
+        del train_features
+        del test_features
+        del train_labels
+        del test_labels
 
     def save_weights(self, fname='weights.txt'):
         folder = '../files/'
@@ -83,39 +132,6 @@ class neuron:
             F.write(str(s.w[i]))
             F.write('\n')
         F.close()
-
-    def _rflatten(A):
-        if A.dtype == 'O':
-            dim = np.shape(A)
-            n = len(dim)
-            ad = np.zeros(n)
-            i = 0
-            tmp = []
-            for a in A:
-                tmp.append(rflatten(a))
-            return_val = np.concatenate(tmp)
-        else:
-            return_val = A.flatten()
-
-        return return_val
-
-    def read_images(self):
-        c1_train = scipy.io.loadmat('../data/train-1.mat')['c1a'][0]
-        c1_test = scipy.io.loadmat('../data/test-1.mat')['c1b'][0]
-
-        N_train, N_test = len(c1_train), len(c1_test)
-        self.train_features = np.empty(N_train, dtype=object)
-        self.test_features = np.empty(N_test, dtype=object)
-
-        for i in xrange(N_train):
-            train_features[i] = self._rflatten(c1_train[i])
-        for i in xrange(N_train):
-            test_features[i] = self._rflatten(c1_test[i])
-
-        train_labels = scipy.io.loadmat('../data/train-label.mat')['train_labels_body']
-        test_labels = scipy.io.loadmat('../data/test-label.mat')['test_labels_body']
-        self.train_mnist = [train_features, train_labels]
-        self.test_mnist = [test_features, test_labels]
 
     def read_weights(self, fname='weights.txt'):
         folder = '../files/'
@@ -131,6 +147,12 @@ class neuron:
     ##########################
     ### TRAINING / RUNNING ###
     ##########################
+
+    def set_train_spikes(self, indices=[], times=[], desired=[]):
+        self.net.restore()
+        self.indices, self.times, self.desired = indices, times*br.ms, desired*br.ms
+        self.net['input'].set_spikes(indices=self.indices, times=self.times)
+        self.net.store()
 
     def supervised_update_setup(self):
         self.actual = self.net['crossings'].all_values()['t'][0]
@@ -208,7 +230,7 @@ class neuron:
             r, m = 0, 0
             for i in range(n):
                 r += (actual[i] - desired[i])**2
-            return (r / float(n - 1))**0.5
+            return (r / float(n))**0.5
 
     def train_step(self, T=None):
         self.run(T)

@@ -1,6 +1,5 @@
-import lift
+import lif
 import pudb
 
 #pudb.set_trace()
-nt = lift.lif_tester(seed=9)
-nt.test(2)
+network = lif.net()

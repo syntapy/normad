@@ -32,11 +32,12 @@ plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:net
 plot_desired	lif.py	/^    def plot_desired(self):$/;"	m	class:net
 print_dw_vec	lif.py	/^    def print_dw_vec(self, dw, r):$/;"	m	class:net
 print_dws	lif.py	/^    def print_dws(self, dw):$/;"	m	class:net
+read_image	lif.py	/^    def read_image(self, index, kind='train'):$/;"	m	class:net
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:net
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
 rflatten	lif.py	/^    def rflatten(self, A):$/;"	m	class:net
 rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:lif_tester
-run	lif.py	/^    def run(self, T=None):$/;"	m	class:net
+run	lif.py	/^    def run(self, T):$/;"	m	class:net
 save_weights	lif.py	/^    def save_weights(self, fname='weights.txt'):$/;"	m	class:net
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
 setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:lif_tester
@@ -48,7 +49,9 @@ test	lift.py	/^    def test(self, classes=1):$/;"	m	class:lif_tester
 test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester
 test_if_trained	lif.py	/^    def test_if_trained(self, Dt=1.0):$/;"	m	class:net
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:lif_tester
+test_weight_order	lif.py	/^    def test_weight_order(self):$/;"	m	class:net
 times_format	lif.py	/^    def times_format(self):$/;"	m	class:net
-train	lif.py	/^    def train(self, T=None, dsp=True):$/;"	m	class:net
+train	lif.py	/^    def train(self, T, dsp=True):$/;"	m	class:net
 train_step	lif.py	/^    def train_step(self, T=None):$/;"	m	class:net
+uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	lif.py	/^    def untrained(self):$/;"	m	class:net

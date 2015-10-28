@@ -19,16 +19,20 @@ class net:
         self.dta = 0.2*br.ms
         self.N_hidden = N_hidden
         self.tauLP = 5.0
+        #self.tauIN = 5.0
         self.seed = seed
         np.random.seed(self.seed)
         self.a, self.d = None, None
         self.a_post, self.d_post = [], []
         self.a_pre, self.d_pre = [], []
+        self.data, self.labels = None, None
         if data == 'mnist':
             self.load()
             self.N_inputs = len(self.data['train'][0])
+            self.N_hidden = 10
         else:
             self.N_inputs = N_inputs
+        #pudb.set_trace()
         self._groups()
 
     def _groups(self):
@@ -62,12 +66,12 @@ class net:
                             D_post = w*c*ul                                         : 1 (summed) ''',
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
         S.connect('True')
-        S.w[:, :] = '(100*rand()+75)'
+        S.w[:, :] = '0*(100*rand()+75)'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
-        M = br.StateMonitor(Nh, 'v', record=True, name='monitor0')
-        N = br.StateMonitor(S, 'c', record=True, name='monitor1')
+        M = br.StateMonitor(Nh, 'v', record=True, name='monitor_v')
+        N = br.StateMonitor(S, 'c', record=True, name='monitor_c')
         T = br.SpikeMonitor(Nh, variables='v', name='crossings')
         #self.network_op = br.NetworkOperation(self.supervised_update_setup, dt=self.dtb)
         self.net = br.Network(Ni, S, Nh, M, N, T)
@@ -116,8 +120,6 @@ class net:
         self.labels['train'] = self.rflatten(train_labels)
         self.labels['test'] = self.rflatten(test_labels)
 
-        pudb.set_trace()
-
         del train_features
         del test_features
         del train_labels
@@ -153,6 +155,25 @@ class net:
         self.indices, self.times, self.desired = indices, times*br.ms, desired*br.ms
         self.net['input'].set_spikes(indices=self.indices, times=self.times)
         self.net.store()
+
+    def read_image(self, index, kind='train'):
+        self.net.restore()
+        array = self.data[kind][index]
+        label = self.labels[kind][index]
+        times = self.tauLP / array
+        indices = np.arange(len(array))
+        desired = np.zeros(self.N_hidden)
+        desired[label] = 1
+        self.set_train_spikes(indices=indices, times=times, desired=desired)
+        self.T = int(ma.ceil(max(np.max(desired), np.max(times)) + self.tauLP))
+        self.net.store()
+
+    def uniform_input(self):
+        self.net.restore()
+        times = np.zeros(self.N_inputs)
+        indices = np.arange(self.N_inputs)
+        self.set_train_spikes(indices=indices, times=times, desired=np.array([]))
+        self.T = 20
 
     def supervised_update_setup(self):
         self.actual = self.net['crossings'].all_values()['t'][0]
@@ -197,6 +218,16 @@ class net:
         self.net['synapses'].w[:, :] = '0'
         self._input_output()
 
+    def test_weight_order(self):
+        n = len(self.net['synapses'].w)
+        for i in range(n):
+            self.net.restore()
+            self.net['synapses'].w[:, :] = '0'
+            self.net['synapses'].w[i] = 30000
+            self.net.store()
+            self.run(self.T)
+            self.plot()
+
     def test(self, N=100, K=250, T=80):
         """
         N: range of number of input synapses to test
@@ -238,7 +269,7 @@ class net:
         self.supervised_update()
         return tdf
 
-    def train(self, T=None, dsp=True):
+    def train(self, T, dsp=True):
         if dsp == True:
             i = 0
             while self.not_trained():
@@ -246,9 +277,9 @@ class net:
                 i += 1
                 self.train_step(T)
 
-    def run(self, T=None):
+    def run(self, T):
         self.net.restore()
-        if T != None:
+        if T >= self.T:
             self.net.run(T*br.ms)
         else:
             self.net.run(self.T*br.ms)
@@ -299,12 +330,14 @@ class net:
 
     def plot(self, save=False, show=True, i=None):
         self.fig = br.figure(figsize=(8, 5))
-        self.plot_desired()
+        #self.plot_desired()
         self.plot_actual()
         br.plot((0, self.T)*br.ms, (90, 90), 'b--')
-        br.plot(self.net['monitor0'][0].t, self.net['monitor0'][0].v+70, 'k-')
-        br.plot(self.net['monitor1'][0].t, self.net['monitor1'][0].c, 'g-')
-        br.plot(self.net['monitor1'][1].t, self.net['monitor1'][1].c, 'g-')
+        for j in range(self.N_hidden):
+            br.plot(self.net['monitor_v'][j].t, self.net['monitor_v'][j].v+70, label='v ' + str(j))
+            #br.plot(self.net['monitor_c'][j].t, self.net['monitor_c'][j].c, label='c ' + str(j))
+        #br.plot(self.net['monitor1'][1].t, self.net['monitor1'][1].c, 'g-')
+            br.legend()
         if i != None and save == True:
             file_name = '../figs/'
             for j in range(4):

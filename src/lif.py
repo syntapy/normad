@@ -67,6 +67,7 @@ class net:
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
         S.connect('True')
         S.w[:, :] = '0*(100*rand()+75)'
+        S.w[0] = 1000
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
@@ -176,35 +177,41 @@ class net:
         self.T = 20
 
     def supervised_update_setup(self):
-        self.actual = self.net['crossings'].all_values()['t'][0]
-        dt = self.dta
-        n = len(self.net['synapses'].w)
-        v = self.net['monitor0'].v
-        c = self.net['monitor1'].c
+        """ Normad training step """
+        pudb.set_trace()
+        self.actual = self.net['crossings'].all_values()['t']
         actual, desired = self.actual, self.desired
-        dw, dw_t = np.zeros(n), np.zeros(n)
-        dw_aS, dw_dS = 0, 0
-        self.dw_a, self.dw_d = None, None
-        for i in range(len(actual)):
-            self.dw_a = 0
-            index = int(actual[i] / dt)
-            for j in range(len(c)):
-                dw_t[j] = c[j][index]
-            dw_tNorm = np.linalg.norm(dw_t)
-            if dw_tNorm > 0:
-                dw -= dw_t / dw_tNorm
-        for i in range(len(desired)):
-            self.dw_d = 0
-            index = int(desired[i] / dt)
-            for j in range(len(c)):
-                dw_t[j] = c[j][index]
-            dw_tNorm = np.linalg.norm(dw_t)
-            if dw_tNorm > 0:
-                dw += dw_t / dw_tNorm
-
-        return dw / np.linalg.norm(dw)
+        dt = self.dta
+        v = self.net['monitor_v'].v
+        c = self.net['monitor_c'].c
+        m, n = len(v), len(self.net['synapses'].w[:, 0])
+        dw, dw_t = np.zeros((m, n)), np.zeros(n)
+        for i in range(m):
+            #n = len(self.net['synapses'].w[:, i])
+            #dw, dw_t = np.zeros(n), np.zeros(n)
+            #dw_aS, dw_dS = 0, 0
+            #self.dw_a, self.dw_d = None, None
+            for j in range(len(actual[i])):
+                self.dw_a = 0
+                index = int(actual[i][j] / dt)
+                for k in range(i*4, len(c) / m):
+                    dw_t[k] = c[k, index]
+                dw_tNorm = np.linalg.norm(dw_t)
+                if dw_tNorm > 0:
+                    dw[i] -= dw_t / dw_tNorm
+            for j in range(len([desired[i]])):
+                self.dw_d = 0
+                index = int(desired[j] / dt)
+                for k in range(i*4, len(c) / m):
+                    dw_t[k] = c[k, index]
+                dw_tNorm = np.linalg.norm(dw_t)
+                if dw_tNorm > 0:
+                    dw[i] += dw_t / dw_tNorm
+            dw[i] /= np.linalg.norm(dw[i])
+        return dw
 
     def supervised_update(self, display=True):
+        pudb.set_trace()
         dw = self.supervised_update_setup()
         self.net.restore()
         self.net['synapses'].w[:, :] += self.r*dw
@@ -279,7 +286,7 @@ class net:
 
     def run(self, T):
         self.net.restore()
-        if T >= self.T:
+        if T != None and T >= self.T:
             self.net.run(T*br.ms)
         else:
             self.net.run(self.T*br.ms)

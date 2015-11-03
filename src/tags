@@ -22,11 +22,14 @@ _input_output	lift.py	/^    def _input_output(self, classes=1):$/;"	m	class:lif_
 _poisson	lift.py	/^    def _poisson(self, r, spacing, Ti, Tf):$/;"	m	class:lif_tester
 _prel_SC	lif.py	/^    def _prel_SC(self, Smax, Smin):$/;"	m	class:net
 _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"	m	class:lif_tester
+accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
 lif_tester	lift.py	/^class lif_tester:$/;"	c
 load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	lif.py	/^    def matches(self, S1, S2):$/;"	m	class:net
 net	lif.py	/^class net:$/;"	c
 network	driver.py	/^network = lif.net()$/;"	v
+neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self):$/;"	m	class:net
+output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 plot	lif.py	/^    def plot(self, save=False, show=True, i=None):$/;"	m	class:net
 plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:net
 plot_desired	lif.py	/^    def plot_desired(self):$/;"	m	class:net
@@ -41,17 +44,18 @@ run	lif.py	/^    def run(self, T):$/;"	m	class:net
 save_weights	lif.py	/^    def save_weights(self, fname='weights.txt'):$/;"	m	class:net
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
 setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:lif_tester
-supervised_update	lif.py	/^    def supervised_update(self, display=True):$/;"	m	class:net
+single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
+supervised_update	lif.py	/^    def supervised_update(self, display=False):$/;"	m	class:net
 supervised_update_setup	lif.py	/^    def supervised_update_setup(self):$/;"	m	class:net
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
 test	lif.py	/^    def test(self, N=100, K=250, T=80):$/;"	m	class:net
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:lif_tester
 test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester
-test_if_trained	lif.py	/^    def test_if_trained(self, Dt=1.0):$/;"	m	class:net
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:lif_tester
 test_weight_order	lif.py	/^    def test_weight_order(self):$/;"	m	class:net
 times_format	lif.py	/^    def times_format(self):$/;"	m	class:net
-train	lif.py	/^    def train(self, T, dsp=True):$/;"	m	class:net
+train	lif.py	/^    def train(self, a, b, threshold=0.7):$/;"	m	class:net
+train_epoch	lif.py	/^    def train_epoch(self, a, b, dsp=True):$/;"	m	class:net
 train_step	lif.py	/^    def train_step(self, T=None):$/;"	m	class:net
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	lif.py	/^    def untrained(self):$/;"	m	class:net

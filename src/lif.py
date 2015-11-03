@@ -45,37 +45,42 @@ class net:
                                         El = -70                                    : 1
                                         vt = 20                                     : 1
                                         Cm = 3.0                                    : 1
-                                        D                                           : 1 (shared)''',
+                                        D                                           : 1''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
         S = br.Synapses(Ni, Nh,
-                   model='''tl                                                      : second
-                            tp                                                      : second
-                            tau1 = 0.0025                                           : second
-                            tau2 = 0.000625                                         : second
-                            tauL = 0.010                                            : second
-                            tauLp = 0.1*tauL                                        : second
+                   model='''tl                                                  : second
+                            tp                                                  : second
+                            tau1 = 0.0025                                       : second (shared)
+                            tau2 = 0.000625                                     : second (shared)
+                            tauL = 0.010                                        : second (shared)
+                            tauLp = 0.1*tauL                                    : second (shared)
 
-                            w                                                       : 1
+                            w                                                   : 1
 
-                            up = (sign(t - tp) + 1.0) / 2                           : 1
-                            ul = (sign(t - tl - 3*ms) + 1.0) / 2                    : 1
-                            u = (sign(t) + 1.0) / 2                                 : 1
+                            up = (sign(t - tp) + 1.0) / 2                       : 1
+                            ul = (sign(t - tl - 3*ms) + 1.0) / 2                : 1
+                            u = (sign(t) + 1.0) / 2                             : 1
 
-                            c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)         : 1
-                            D_post = w*c*ul                                         : 1 (summed) ''',
+                            c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
+                            f = w*c                                             : 1
+                            D_post = w*c*ul                                     : 1 (summed) ''',
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
         S.connect('True')
-        S.w[:, :] = '0*(100*rand()+75)'
-        S.w[0] = 1000
+        S.w[:, :] = '(100*rand()+75)'
+        #S.w[0, 0] = '1000'
+        #S.w[0, 1] = '500'
+        #S.w[1, 0] = '250'
+        #S.w[1, 1] = '125'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
         M = br.StateMonitor(Nh, 'v', record=True, name='monitor_v')
         N = br.StateMonitor(S, 'c', record=True, name='monitor_c')
+        O = br.StateMonitor(S, 'tp', record=True, name='monitor_o')
+        F = br.StateMonitor(S, 'f', record=True, name='monitor_f')
         T = br.SpikeMonitor(Nh, variables='v', name='crossings')
-        #self.network_op = br.NetworkOperation(self.supervised_update_setup, dt=self.dtb)
-        self.net = br.Network(Ni, S, Nh, M, N, T)
+        self.net = br.Network(Ni, S, Nh, M, N, F, O, T)
         self.actual = self.net['crossings'].all_values()['t'][0]
         self.w_shape = S.w[:, :].shape
         self.net.store()
@@ -148,7 +153,7 @@ class net:
         self.net['synapses'].w[:] = weights[:]
 
     ##########################
-    ### TRAINING / RUNNING ###
+    ### SET INPUT / OUTPUT ###
     ##########################
 
     def set_train_spikes(self, indices=[], times=[], desired=[]):
@@ -158,15 +163,15 @@ class net:
         self.net.store()
 
     def read_image(self, index, kind='train'):
-        self.net.restore()
         array = self.data[kind][index]
         label = self.labels[kind][index]
         times = self.tauLP / array
         indices = np.arange(len(array))
         desired = np.zeros(self.N_hidden)
-        desired[label] = 1
-        self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.T = int(ma.ceil(max(np.max(desired), np.max(times)) + self.tauLP))
+        desired[label] = int(ma.ceil(self.T))
+        self.T += 5
+        self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net.store()
 
     def uniform_input(self):
@@ -176,54 +181,53 @@ class net:
         self.set_train_spikes(indices=indices, times=times, desired=np.array([]))
         self.T = 20
 
-    def supervised_update_setup(self):
-        """ Normad training step """
-        pudb.set_trace()
-        self.actual = self.net['crossings'].all_values()['t']
-        actual, desired = self.actual, self.desired
-        dt = self.dta
-        v = self.net['monitor_v'].v
-        c = self.net['monitor_c'].c
-        m, n = len(v), len(self.net['synapses'].w[:, 0])
-        dw, dw_t = np.zeros((m, n)), np.zeros(n)
-        for i in range(m):
-            #n = len(self.net['synapses'].w[:, i])
-            #dw, dw_t = np.zeros(n), np.zeros(n)
-            #dw_aS, dw_dS = 0, 0
-            #self.dw_a, self.dw_d = None, None
-            for j in range(len(actual[i])):
-                self.dw_a = 0
-                index = int(actual[i][j] / dt)
-                for k in range(i*4, len(c) / m):
-                    dw_t[k] = c[k, index]
-                dw_tNorm = np.linalg.norm(dw_t)
-                if dw_tNorm > 0:
-                    dw[i] -= dw_t / dw_tNorm
-            for j in range(len([desired[i]])):
-                self.dw_d = 0
-                index = int(desired[j] / dt)
-                for k in range(i*4, len(c) / m):
-                    dw_t[k] = c[k, index]
-                dw_tNorm = np.linalg.norm(dw_t)
-                if dw_tNorm > 0:
-                    dw[i] += dw_t / dw_tNorm
-            dw[i] /= np.linalg.norm(dw[i])
-        return dw
-
-    def supervised_update(self, display=True):
-        pudb.set_trace()
-        dw = self.supervised_update_setup()
-        self.net.restore()
-        self.net['synapses'].w[:, :] += self.r*dw
-        self.net.store()
-        if display:
-            #self.print_dw_vec(dw, self.r)
-            self.print_dws(dw)
-
     def reset(self):
         self.net.restore()
         self.net['synapses'].w[:, :] = '0'
         self._input_output()
+
+    ##################
+    ### EVAULATION ###
+    ##################
+
+    def accuracy(self, a=0, b=50000, data='train'):
+        false_p, false_n = np.zeros(self.N_hidden), np.zeros(self.N_hidden)
+        true_p, true_n = np.zeros(self.N_hidden), np.zeros(self.N_hidden)
+        for i in range(a, b):
+            self.read_image(i, kind=data)
+            self.run(self.T)
+            if self.neuron_right_outputs():
+                pass
+
+    def output_class(self):
+        actual, desired = self.actual, self.desired
+        for i in range(len(actual)):
+            if len(actual[i]) >= 1:
+                return i
+        return -1
+
+    def neuron_right_outputs(self):
+        actual, desired = self.actual, self.desired
+        for i in range(len(desired)):
+            if desired[i] == 0:
+                if len(actual[i]) > 0:
+                    return False
+            else:
+                if len(actual[i]) != 1:
+                    return False
+        return True
+
+    def tdiff_rms(self):
+        actual, desired = np.sort(self.actual), np.sort(self.desired)
+        if len(actual) != len(desired):
+            return 0
+
+        n = len(actual)
+        if n > 0:
+            r, m = 0, 0
+            for i in range(n):
+                r += (actual[i] - desired[i])**2
+            return (r / float(n))**0.5
 
     def test_weight_order(self):
         n = len(self.net['synapses'].w)
@@ -234,6 +238,69 @@ class net:
             self.net.store()
             self.run(self.T)
             self.plot()
+
+    ##########################
+    ### TRAINING / RUNNING ###
+    ##########################
+
+    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):
+        """ Computes weight updates for single neuron """
+        # m neurons in network
+        # n inputs
+        dw_t = np.empty(n)
+        dw_t[:] = c[neuron_index:m:m*n, time_index]
+
+        dw_n = np.linalg.norm(dw_t)
+        if dw_n > 0:
+            return dw_t
+        return 0
+
+    def supervised_update_setup(self):
+        """ Normad training step """
+        self.actual = self.net['crossings'].all_values()['t']
+        actual, desired = self.actual, self.desired
+        dt = self.dta
+        v = self.net['monitor_v'].v
+        c = self.net['monitor_c'].c
+        w = self.net['synapses'].w
+        #t = self.net['monitor_o'].tp
+        f = self.net['monitor_f'].f
+        a = [max(f[i]) for i in range(len(f))]
+
+        # m neurons, n inputs
+        #pudb.set_trace()
+        m, n = len(v), len(self.net['synapses'].w[:, 0])
+        m_n = m*n
+        dW, dw = np.zeros(m_n), np.zeros(n)
+        for i in range(m):
+            if len(actual[i]) > 0:
+                index_a = int(actual[i] / dt)
+                dw_tmp = c[i:m_n:m, index_a]
+                dw_tmp_norm = np.linalg.norm(dw_tmp)
+                if dw_tmp_norm > 0:
+                    dw[:] -= dw_tmp / dw_tmp_norm
+
+            if desired[i] > 0:
+                index_d = int(desired[i] / dt)
+                dw_tmp = c[i:m_n:m, index_d]
+                dw_tmp_norm = np.linalg.norm(dw_tmp)
+                if dw_tmp_norm > 0:
+                    dw[:] += dw_tmp / dw_tmp_norm
+            dwn = np.linalg.norm(dw)
+            if dwn > 0:
+                dW[i:m_n:m] = dw / dwn
+            dw *= 0
+        return dW
+
+    def supervised_update(self, display=False):
+        #pudb.set_trace()
+        dw = self.supervised_update_setup()
+        self.net.restore()
+        self.net['synapses'].w += self.r*dw
+        self.net.store()
+        if display:
+            #self.print_dw_vec(dw, self.r)
+            self.print_dws(dw)
 
     def test(self, N=100, K=250, T=80):
         """
@@ -250,46 +317,43 @@ class net:
             self._input_output()
             self.train()
 
-    def test_if_trained(self, Dt=1.0):
-        if len(self.actual) != len(self.desired):
-            self.trained = False
-        else:
-            for i in range(len(self.actual)):
-                if abs((self.actual[i] - self.desired[i])/br.ms) > Dt:
-                    self.trained = False
-
-    def tdiff_rms(self):
-        actual, desired = np.sort(self.actual), np.sort(self.desired)
-        if len(actual) != len(desired):
-            return 0
-
-        n = len(actual)
-        if n > 0:
-            r, m = 0, 0
-            for i in range(n):
-                r += (actual[i] - desired[i])**2
-            return (r / float(n))**0.5
-
-    def train_step(self, T=None):
-        self.run(T)
-        tdf = self.tdiff_rms()
-        self.supervised_update()
-        return tdf
-
-    def train(self, T, dsp=True):
-        if dsp == True:
-            i = 0
-            while self.not_trained():
-                print "i = ", i,
-                i += 1
-                self.train_step(T)
-
     def run(self, T):
         self.net.restore()
         if T != None and T >= self.T:
             self.net.run(T*br.ms)
         else:
             self.net.run(self.T*br.ms)
+
+    def train_step(self, T=None):
+        self.run(T)
+        #pudb.set_trace()
+        self.actual = self.net['crossings'].all_values()['t'][0]
+        #a = self.net['crossings'].all_values()['t']
+        tdf = self.tdiff_rms()
+        self.supervised_update()
+        return tdf
+
+    def train_epoch(self, a, b, dsp=True):
+        correct = 0
+        for i in range(a, b):
+            self.read_image(i)
+            self.train_step()
+            print "\tImage ", i, " trained"
+            if self.neuron_right_outputs():
+                correct += 1
+        return correct
+
+    def train(self, a, b, threshold=0.7):
+        i = 0
+        while True:
+            i += 1
+            print "Epoch ", i
+            correct = self.train_epoch(a, b)
+            p_correct = float(correct) / (b - a)
+            print  ": %", p_correct, " correct"
+            if p_correct > threshold:
+                break
+        return p_correct
 
     ##########################
     ### PLOTTING / DISPLAY ###

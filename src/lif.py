@@ -12,7 +12,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=2, N_input=4, data='mnist', seed=5):
+    def __init__(self, N_hidden=1, N_input=4, data='mnist', seed=5):
         self.changes = []
         self.trained = False
         self.r = 4.0
@@ -345,6 +345,7 @@ class net:
 
     def train(self, a, b, threshold=0.7):
         i = 0
+        self.r = 1
         while True:
             i += 1
             print "Epoch ", i
@@ -353,6 +354,7 @@ class net:
             print  ": %", p_correct, " correct"
             if p_correct > threshold:
                 break
+            self.r = 32 / (1 + 1024*p_correct)
         return p_correct
 
     ##########################

@@ -7,11 +7,12 @@ class lif_tester:
 
     def __init__(self, neuron=None, seed=5, Na=None, Nb=None):
         if neuron == None:
-            self.neuron = lif.neuron(seed=seed)
+            self.neuron = lif.net(seed=seed)
         else:
             self.neuron = neuron
 
-        self.N = self.neuron.N
+        self.N = self.neuron.N_hidden
+        self.neuron.T = 50
         self.T = self.neuron.T
         if Na == None:
             self.na, self.nb = 2*self.N, 6*self.N
@@ -130,7 +131,6 @@ class lif_tester:
                 return False
             if self.times_list[i][-1] > self.neuron.T:
                 return False
-
         return True
 
     def setup(self, classes=1):
@@ -141,7 +141,8 @@ class lif_tester:
         while self.neuron.trained == False:
             self.neuron.trained = True
             for i in range(self.classes):
-                self.neuron.set_train_spikes(self.indices_list[i], self.times_list[i], self.desired_list[i])
+                self.neuron.set_train_spikes(\
+                    self.indices_list[i], self.times_list[i], self.desired_list[i])
                 rms = self.neuron.train_step()
                 self.neuron.test_if_trained()
                 print "\trms: ", rms

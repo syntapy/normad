@@ -12,7 +12,7 @@ SC_step	lif.py	/^    def SC_step(self, total, t1, t2, int1, int2, i, j, S1, S2):
 SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:net
 SCorrelationSIMPLE	lif.py	/^    def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	m	class:net
 SCorrelationSlow	lif.py	/^    def SCorrelationSlow(self, S1, S2, dt=0.05):$/;"	m	class:net
-__init__	lif.py	/^    def __init__(self, N_hidden=1, N_input=4, data='mnist', seed=5):$/;"	m	class:net
+__init__	lif.py	/^    def __init__(self, N_hidden=20, N_output=10, N_input=4, data='mnist', seed=5):$/;"	m	class:net
 __init__	lift.py	/^    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):$/;"	m	class:lif_tester
 _equal_len_SC	lif.py	/^    def _equal_len_SC(self, S1, S2):$/;"	m	class:net
 _equal_len_SC	lif.py	/^    def _equal_len_SC(self, Smax, Smin):$/;"	m	class:net

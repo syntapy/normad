@@ -12,12 +12,13 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=1, N_input=4, data='mnist', seed=5):
+    def __init__(self, N_hidden=20, N_output=10, N_input=4, data='mnist', seed=5):
         self.changes = []
         self.trained = False
         self.r = 4.0
         self.dta = 0.2*br.ms
         self.N_hidden = N_hidden
+        self.N_output = N_output
         self.tauLP = 5.0
         #self.tauIN = 5.0
         self.seed = seed
@@ -29,18 +30,19 @@ class net:
         if data == 'mnist':
             self.load()
             self.N_inputs = len(self.data['train'][0])
-            self.N_hidden = 10
+            self.N_output = 10
         else:
             self.N_inputs = N_inputs
         #pudb.set_trace()
         self._groups()
 
     def _groups(self):
-        Ni = br.SpikeGeneratorGroup(self.N_inputs, 
+        inputs = br.SpikeGeneratorGroup(self.N_inputs, 
                                         indices=np.asarray([]), 
                                         times=np.asarray([])*br.ms, 
                                         name='input')
-        Nh = br.NeuronGroup(self.N_hidden, model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
+        hidden = br.NeuronGroup(self.N_hidden, \
+                               model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
                                         gL = 30                                     : 1
                                         El = -70                                    : 1
                                         vt = 20                                     : 1
@@ -48,7 +50,54 @@ class net:
                                         D                                           : 1''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
-        S = br.Synapses(Ni, Nh,
+        output = br.NeuronGroup(self.N_output, \
+                               model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
+                                        gL = 30                                     : 1
+                                        El = -70                                    : 1
+                                        vt = 20                                     : 1
+                                        Cm = 3.0                                    : 1
+                                        D                                           : 1''',
+                                        method='rk2', refractory=0*br.ms, threshold='v>=vt', 
+                                        reset='v=El', name='output', dt=self.dta)
+        #hidden = br.Subgroup(neurons, 0, self.N_hidden, name='hidden')
+        #output = br.Subgroup(neurons, self.N_hidden, self.N_hidden+self.N_output, name='output')
+
+        Sh = br.Synapses(inputs, hidden,
+                    model='''
+                            # STDP variables
+                            gmax = 100                                          : 1
+                            taupre = 0.020                                      : second (shared)
+                            taupost = 0.020                                     : second (shared)
+                            dApre = 0.10                                        : 1
+                            dApost = -dApre * 1.05                              : 1
+                            dApre/dt = -Apre /  (0.020*second)                  : 1 (event-driven)
+                            dApost/dt = -Apost / (0.020*second)                 : 1 (event-driven)
+
+                            tl                                                  : second
+                            tp                                                  : second
+                            tau1 = 0.0025                                       : second (shared)
+                            tau2 = 0.000625                                     : second (shared)
+                            tauL = 0.010                                        : second (shared)
+                            tauLp = 0.1*tauL                                    : second (shared)
+
+                            w                                                   : 1
+
+                            up = (sign(t - tp) + 1.0) / 2                       : 1
+                            ul = (sign(t - tl - 3*ms) + 1.0) / 2                : 1
+                            u = (sign(t) + 1.0) / 2                             : 1
+
+                            c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
+                            f = w*c                                             : 1
+                            D_post = w*c*ul                                     : 1 (summed) ''',
+                    pre=''' tp=t
+                            Apre += dApre
+                            w = clip(w + Apre, 0, gmax)''',
+                    post='''tl=t
+                            Apost += dApost
+                            w = clip(w + Apre, 0, gmax)''', 
+                    name='synapses_hidden', dt=self.dta)
+
+        So = br.Synapses(hidden, output, 
                    model='''tl                                                  : second
                             tp                                                  : second
                             tau1 = 0.0025                                       : second (shared)
@@ -65,24 +114,32 @@ class net:
                             c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
                             f = w*c                                             : 1
                             D_post = w*c*ul                                     : 1 (summed) ''',
-                   post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
-        S.connect('True')
-        S.w[:, :] = '(100*rand()+75)'
-        #S.w[0, 0] = '1000'
-        #S.w[0, 1] = '500'
-        #S.w[1, 0] = '250'
-        #S.w[1, 1] = '125'
-        S.tl[:, :] = '-1*second'
-        S.tp[:, :] = '-1*second'
-        Nh.v[:] = -70
-        M = br.StateMonitor(Nh, 'v', record=True, name='monitor_v')
-        N = br.StateMonitor(S, 'c', record=True, name='monitor_c')
-        O = br.StateMonitor(S, 'tp', record=True, name='monitor_o')
-        F = br.StateMonitor(S, 'f', record=True, name='monitor_f')
-        T = br.SpikeMonitor(Nh, variables='v', name='crossings')
-        self.net = br.Network(Ni, S, Nh, M, N, F, O, T)
-        self.actual = self.net['crossings'].all_values()['t'][0]
-        self.w_shape = S.w[:, :].shape
+                   post='tl=t', pre='tp=t', name='synapses_output', dt=self.dta)
+        Rh = br.Synapses(hidden, hidden, pre='c_post=0', name='winner_take_all_a', dt=self.dta)
+        Ro = br.Synapses(output, output, pre='c_post=0', name='winner_take_all_b', dt=self.dta)
+
+        Rh.connect('i!=j')
+        Ro.connect('i!=j')
+        Sh.connect('True')
+        So.connect('True')
+
+        Sh.w[:, :] = '(100*rand()+75)'
+        So.w[:, :] = '(100*rand()+75)'
+        Sh.tl[:, :] = '-1*second'
+        Sh.tp[:, :] = '-1*second'
+        So.tl[:, :] = '-1*second'
+        So.tp[:, :] = '-1*second'
+        hidden.v[:] = -70
+        output.v[:] = -70
+        M = br.StateMonitor(output, 'v', record=True, name='monitor_v')
+        N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
+        #O = br.StateMonitor(S, 'tp', record=True, name='monitor_o')
+        #F = br.StateMonitor(S, 'f', record=True, name='monitor_f')
+        Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
+        To = br.SpikeMonitor(output, variables='v', name='crossings_o')
+        self.net = br.Network(inputs, hidden, output, Sh, So, Rh, Ro, M, N, Th, To)
+        self.actual = self.net['crossings_o'].all_values()['t'][0]
+        self.w_shape = So.w[:, :].shape
         self.net.store()
 
     ##################
@@ -167,7 +224,7 @@ class net:
         label = self.labels[kind][index]
         times = self.tauLP / array
         indices = np.arange(len(array))
-        desired = np.zeros(self.N_hidden)
+        desired = np.zeros(self.N_output)
         self.T = int(ma.ceil(max(np.max(desired), np.max(times)) + self.tauLP))
         desired[label] = int(ma.ceil(self.T))
         self.T += 5
@@ -191,8 +248,8 @@ class net:
     ##################
 
     def accuracy(self, a=0, b=50000, data='train'):
-        false_p, false_n = np.zeros(self.N_hidden), np.zeros(self.N_hidden)
-        true_p, true_n = np.zeros(self.N_hidden), np.zeros(self.N_hidden)
+        false_p, false_n = np.zeros(self.N_output), np.zeros(self.N_output)
+        true_p, true_n = np.zeros(self.N_output), np.zeros(self.N_output)
         for i in range(a, b):
             self.read_image(i, kind=data)
             self.run(self.T)
@@ -257,19 +314,19 @@ class net:
 
     def supervised_update_setup(self):
         """ Normad training step """
-        self.actual = self.net['crossings'].all_values()['t']
+        self.actual = self.net['crossings_o'].all_values()['t']
         actual, desired = self.actual, self.desired
         dt = self.dta
         v = self.net['monitor_v'].v
-        c = self.net['monitor_c'].c
-        w = self.net['synapses'].w
+        c = self.net['monitor_o_c'].c
+        w = self.net['synapses_output'].w
         #t = self.net['monitor_o'].tp
-        f = self.net['monitor_f'].f
-        a = [max(f[i]) for i in range(len(f))]
+        #f = self.net['monitor_f'].f
+        #a = [max(f[i]) for i in range(len(f))]
 
         # m neurons, n inputs
         #pudb.set_trace()
-        m, n = len(v), len(self.net['synapses'].w[:, 0])
+        m, n = len(v), len(self.net['synapses_output'].w[:, 0])
         m_n = m*n
         dW, dw = np.zeros(m_n), np.zeros(n)
         for i in range(m):
@@ -279,7 +336,6 @@ class net:
                 dw_tmp_norm = np.linalg.norm(dw_tmp)
                 if dw_tmp_norm > 0:
                     dw[:] -= dw_tmp / dw_tmp_norm
-
             if desired[i] > 0:
                 index_d = int(desired[i] / dt)
                 dw_tmp = c[i:m_n:m, index_d]
@@ -296,7 +352,7 @@ class net:
         #pudb.set_trace()
         dw = self.supervised_update_setup()
         self.net.restore()
-        self.net['synapses'].w += self.r*dw
+        self.net['synapses_output'].w += self.r*dw
         self.net.store()
         if display:
             #self.print_dw_vec(dw, self.r)
@@ -327,7 +383,7 @@ class net:
     def train_step(self, T=None):
         self.run(T)
         #pudb.set_trace()
-        self.actual = self.net['crossings'].all_values()['t'][0]
+        self.actual = self.net['crossings_o'].all_values()['t'][0]
         #a = self.net['crossings'].all_values()['t']
         tdf = self.tdiff_rms()
         self.supervised_update()
@@ -406,7 +462,7 @@ class net:
         #self.plot_desired()
         self.plot_actual()
         br.plot((0, self.T)*br.ms, (90, 90), 'b--')
-        for j in range(self.N_hidden):
+        for j in range(self.N_output):
             br.plot(self.net['monitor_v'][j].t, self.net['monitor_v'][j].v+70, label='v ' + str(j))
             #br.plot(self.net['monitor_c'][j].t, self.net['monitor_c'][j].c, label='c ' + str(j))
         #br.plot(self.net['monitor1'][1].t, self.net['monitor1'][1].c, 'g-')

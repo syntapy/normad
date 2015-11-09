@@ -23,6 +23,9 @@ _poisson	lift.py	/^    def _poisson(self, r, spacing, Ti, Tf):$/;"	m	class:lif_t
 _prel_SC	lif.py	/^    def _prel_SC(self, Smax, Smin):$/;"	m	class:net
 _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"	m	class:lif_tester
 accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
+current	derivation.py	/^current = sp.exp(-(t - tl[i]) \/ tauA) - sp.exp(-(t - tl[i]) \/ tauB)$/;"	v
+diffeq	derivation.py	/^diffeq = sp.Eq(v(t).diff(t), Cm*(-gL*(v(t) - v0) + current(t)))$/;"	v
+i	derivation.py	/^i = 0$/;"	v
 lif_tester	lift.py	/^class lif_tester:$/;"	c
 load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	lif.py	/^    def matches(self, S1, S2):$/;"	m	class:net
@@ -47,6 +50,7 @@ setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:lif_tester
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
 supervised_update	lif.py	/^    def supervised_update(self, display=False):$/;"	m	class:net
 supervised_update_setup	lif.py	/^    def supervised_update_setup(self):$/;"	m	class:net
+t	derivation.py	/^t = sp.symbols('t')$/;"	v
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
 test	lif.py	/^    def test(self, N=100, K=250, T=80):$/;"	m	class:net
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:lif_tester
@@ -54,6 +58,7 @@ test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:lif_tester
 test_weight_order	lif.py	/^    def test_weight_order(self):$/;"	m	class:net
 times_format	lif.py	/^    def times_format(self):$/;"	m	class:net
+tl	derivation.py	/^tl = sp.symbols('tl:4')$/;"	v
 train	lif.py	/^    def train(self, a, b, threshold=0.7):$/;"	m	class:net
 train_epoch	lif.py	/^    def train_epoch(self, a, b, dsp=True):$/;"	m	class:net
 train_step	lif.py	/^    def train_step(self, T=None):$/;"	m	class:net

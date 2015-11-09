@@ -56,6 +56,9 @@ class net:
                             tauL = 0.010                                        : second (shared)
                             tauLp = 0.1*tauL                                    : second (shared)
 
+                            # 1st neuron to fire sets this to zero on all other neurons
+                            q = 1                                               : 1
+
                             w                                                   : 1
 
                             up = (sign(t - tp) + 1.0) / 2                       : 1
@@ -64,8 +67,10 @@ class net:
 
                             c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
                             f = w*c                                             : 1
-                            D_post = w*c*ul                                     : 1 (summed) ''',
+                            D_post = w*c*ul*q                                   : 1 (summed) ''',
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
+        R = br.Synapses(Nh, Nh, pre='q_post=0', name='compete', dt=self.dta)
+        R.connect('i!=j')
         S.connect('True')
         S.w[:, :] = '(100*rand()+75)'
         #S.w[0, 0] = '1000'
@@ -80,7 +85,7 @@ class net:
         O = br.StateMonitor(S, 'tp', record=True, name='monitor_o')
         F = br.StateMonitor(S, 'f', record=True, name='monitor_f')
         T = br.SpikeMonitor(Nh, variables='v', name='crossings')
-        self.net = br.Network(Ni, S, Nh, M, N, F, O, T)
+        self.net = br.Network(Ni, R, S, Nh, M, N, F, O, T)
         self.actual = self.net['crossings'].all_values()['t'][0]
         self.w_shape = S.w[:, :].shape
         self.net.store()
@@ -264,8 +269,8 @@ class net:
         c = self.net['monitor_c'].c
         w = self.net['synapses'].w
         #t = self.net['monitor_o'].tp
-        f = self.net['monitor_f'].f
-        a = [max(f[i]) for i in range(len(f))]
+        #f = self.net['monitor_f'].f
+        #a = [max(f[i]) for i in range(len(f))]
 
         # m neurons, n inputs
         #pudb.set_trace()

@@ -72,7 +72,7 @@ class net:
         R = br.Synapses(Nh, Nh, pre='q_post=0', name='compete', dt=self.dta)
         R.connect('i!=j')
         S.connect('True')
-        S.w[:, :] = '(100*rand()+75)'
+        S.w[:, :] = '(100*rand()+155)'
         #S.w[0, 0] = '1000'
         #S.w[0, 1] = '500'
         #S.w[1, 0] = '250'
@@ -279,6 +279,7 @@ class net:
         dW, dw = np.zeros(m_n), np.zeros(n)
         for i in range(m):
             if len(actual[i]) > 0:
+                #pudb.set_trace()
                 index_a = int(actual[i] / dt)
                 dw_tmp = c[i:m_n:m, index_a]
                 dw_tmp_norm = np.linalg.norm(dw_tmp)
@@ -286,6 +287,8 @@ class net:
                     dw[:] -= dw_tmp / dw_tmp_norm
 
             if desired[i] > 0:
+                if len(actual[0]) > 0 and len(actual[5]) > 0:
+                    pudb.set_trace()
                 index_d = int(desired[i] / dt)
                 dw_tmp = c[i:m_n:m, index_d]
                 dw_tmp_norm = np.linalg.norm(dw_tmp)
@@ -342,10 +345,12 @@ class net:
         correct = 0
         for i in range(a, b):
             self.read_image(i)
+            print "\tImage: ", self.labels['train'][i], "\t",
             self.train_step()
-            print "\tImage ", i, " trained"
+            self.print_neurons_fired()
             if self.neuron_right_outputs():
                 correct += 1
+            print ""
         return correct
 
     def train(self, a, b, threshold=0.7):
@@ -355,7 +360,7 @@ class net:
             print "Epoch ", i
             correct = self.train_epoch(a, b)
             p_correct = float(correct) / (b - a)
-            print  ": %", p_correct, " correct"
+            print  "\t\t\t%", p_correct, " correct"
             if p_correct > threshold:
                 break
         return p_correct
@@ -370,6 +375,16 @@ class net:
             inputs.append([self.indices[i], self.times[i]])
 
         return inputs
+
+    def print_neurons_fired(self):
+        actual = self.actual
+        fired = []
+        for i in range(len(actual)):
+            if len(actual[i]) > 0:
+                fired.append([i, len(actual[i])])
+                print " (", i, ", ", actual[i], "ms), ",
+        if len(actual) > 0:
+            print ""
 
     def print_dws(self, dw):
         #print "\tinput: ", self.times_format(), "\n"

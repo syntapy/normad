@@ -38,6 +38,7 @@ plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:net
 plot_desired	lif.py	/^    def plot_desired(self):$/;"	m	class:net
 print_dw_vec	lif.py	/^    def print_dw_vec(self, dw, r):$/;"	m	class:net
 print_dws	lif.py	/^    def print_dws(self, dw):$/;"	m	class:net
+print_neurons_fired	lif.py	/^    def print_neurons_fired(self):$/;"	m	class:net
 read_image	lif.py	/^    def read_image(self, index, kind='train'):$/;"	m	class:net
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:net
 reset	lif.py	/^    def reset(self):$/;"	m	class:net

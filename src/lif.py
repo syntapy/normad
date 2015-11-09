@@ -40,7 +40,8 @@ class net:
                                         indices=np.asarray([]), 
                                         times=np.asarray([])*br.ms, 
                                         name='input')
-        Nh = br.NeuronGroup(self.N_hidden, model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
+        Nh = br.NeuronGroup(self.N_hidden, model='''dv/dt = ((-gL*(v - El)) + q*D) / (Cm*second)  : 1
+                                        q = 1                                       : 1
                                         gL = 30                                     : 1
                                         El = -70                                    : 1
                                         vt = 20                                     : 1
@@ -56,9 +57,6 @@ class net:
                             tauL = 0.010                                        : second (shared)
                             tauLp = 0.1*tauL                                    : second (shared)
 
-                            # 1st neuron to fire sets this to zero on all other neurons
-                            q = 1                                               : 1
-
                             w                                                   : 1
 
                             up = (sign(t - tp) + 1.0) / 2                       : 1
@@ -67,7 +65,7 @@ class net:
 
                             c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
                             f = w*c                                             : 1
-                            D_post = w*c*ul*q                                   : 1 (summed) ''',
+                            D_post = w*c*ul                                     : 1 (summed) ''',
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
         R = br.Synapses(Nh, Nh, pre='q_post=0', name='compete', dt=self.dta)
         R.connect('i!=j')
@@ -168,6 +166,7 @@ class net:
         self.net.store()
 
     def read_image(self, index, kind='train'):
+        #pudb.set_trace()
         array = self.data[kind][index]
         label = self.labels[kind][index]
         times = self.tauLP / array
@@ -287,8 +286,8 @@ class net:
                     dw[:] -= dw_tmp / dw_tmp_norm
 
             if desired[i] > 0:
-                if len(actual[0]) > 0 and len(actual[5]) > 0:
-                    pudb.set_trace()
+                #if len(actual[0]) > 0 and len(actual[5]) > 0:
+                #    pudb.set_trace()
                 index_d = int(desired[i] / dt)
                 dw_tmp = c[i:m_n:m, index_d]
                 dw_tmp_norm = np.linalg.norm(dw_tmp)

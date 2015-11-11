@@ -27,21 +27,20 @@ class net:
         self.a_pre, self.d_pre = [], []
         self.data, self.labels = None, None
         if data == 'mnist':
-            self.load()
+            self.__load()
             self.N_inputs = len(self.data['train'][0])
             self.N_hidden = 10
         else:
             self.N_inputs = N_inputs
         #pudb.set_trace()
-        self._groups()
+        self.__groups()
 
-    def _groups(self):
+    def __groups(self):
         Ni = br.SpikeGeneratorGroup(self.N_inputs, 
                                         indices=np.asarray([]), 
                                         times=np.asarray([])*br.ms, 
                                         name='input')
-        Nh = br.NeuronGroup(self.N_hidden, model='''dv/dt = ((-gL*(v - El)) + q*D) / (Cm*second)  : 1
-                                        q = 1                                       : 1
+        Nh = br.NeuronGroup(self.N_hidden, model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
                                         gL = 30                                     : 1
                                         El = -70                                    : 1
                                         vt = 20                                     : 1
@@ -70,6 +69,7 @@ class net:
         R = br.Synapses(Nh, Nh, pre='q_post=0', name='compete', dt=self.dta)
         R.connect('i!=j')
         S.connect('True')
+        S.delay='7*ms'
         S.w[:, :] = '(100*rand()+155)'
         #S.w[0, 0] = '1000'
         #S.w[0, 1] = '500'
@@ -107,7 +107,7 @@ class net:
 
         return return_val
 
-    def load(self):
+    def __load(self):
         c1_train = scipy.io.loadmat('../data/train-1.mat')['c1a'][0]
         c1_test = scipy.io.loadmat('../data/test-1.mat')['c1b'][0]
 
@@ -161,7 +161,9 @@ class net:
 
     def set_train_spikes(self, indices=[], times=[], desired=[]):
         self.net.restore()
-        self.indices, self.times, self.desired = indices, times*br.ms, desired*br.ms
+        self.indices, self.times, self.desired = \
+            np.asarray(indices), np.asarray(times)*br.ms, np.asarray(desired)*br.ms
+        self.T = int(max(times) + 7)
         self.net['input'].set_spikes(indices=self.indices, times=self.times)
         self.net.store()
 
@@ -210,16 +212,20 @@ class net:
                 return i
         return -1
 
-    def neuron_right_outputs(self):
+    def neuron_right_outputs(self, index=None):
         actual, desired = self.actual, self.desired
-        for i in range(len(desired)):
-            if desired[i] == 0:
-                if len(actual[i]) > 0:
-                    return False
-            else:
-                if len(actual[i]) != 1:
-                    return False
-        return True
+        if index == None:
+            for i in range(len(desired)):
+                if desired[i] == 0:
+                    if len(actual[i]) > 0:
+                        return False
+                else:
+                    if len(actual[i]) != 1:
+                        return False
+            return True
+        elif len(desired[index]) == len(actual[index]):
+                return True
+        return False
 
     def tdiff_rms(self):
         actual, desired = np.sort(self.actual), np.sort(self.desired)
@@ -267,6 +273,7 @@ class net:
         v = self.net['monitor_v'].v
         c = self.net['monitor_c'].c
         w = self.net['synapses'].w
+        #pudb.set_trace()
         #t = self.net['monitor_o'].tp
         #f = self.net['monitor_f'].f
         #a = [max(f[i]) for i in range(len(f))]
@@ -278,7 +285,6 @@ class net:
         dW, dw = np.zeros(m_n), np.zeros(n)
         for i in range(m):
             if len(actual[i]) > 0:
-                #pudb.set_trace()
                 index_a = int(actual[i] / dt)
                 dw_tmp = c[i:m_n:m, index_a]
                 dw_tmp_norm = np.linalg.norm(dw_tmp)
@@ -320,7 +326,7 @@ class net:
         self.n_inputs(2*self.N, 6*self.N)
         self.n_outputs(1, int(self.N / 10))
         for i in range(K):
-            self._groups()
+            self.__groups()
             self._input_output()
             self.train()
 
@@ -336,9 +342,7 @@ class net:
         #pudb.set_trace()
         self.actual = self.net['crossings'].all_values()['t'][0]
         #a = self.net['crossings'].all_values()['t']
-        tdf = self.tdiff_rms()
         self.supervised_update()
-        return tdf
 
     def train_epoch(self, a, b, dsp=True):
         correct = 0
@@ -363,6 +367,28 @@ class net:
             if p_correct > threshold:
                 break
         return p_correct
+    
+    def fill_spiketimeslist(self, digit=0, start=0, number=10, kind='train'):
+        pass
+ 
+    def train_digit_step(self, spike_times, digit=0, start=0, number=10, kind='train'):
+        index, count = start, 0
+        indices = np.argwhere(spike_times == -1)
+        while True and index < len(self.labels[kind]) and count < len(indices):
+            i = indices[count]
+            if self.labels[kind][index] == digit:
+                self.read_image(index, kind=kind)
+                self.train_step()
+                if len(self.actual[digit]) > 0:
+                    spike_times[i] = self.actual[digit]
+                else:
+                    spike_times[i] = -1
+                count += 1
+            index += 1
+        return spike_times
+
+    def train_digit(self, digit=0, start=0, number=10, kind='train'):
+        pass
 
     ##########################
     ### PLOTTING / DISPLAY ###

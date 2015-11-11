@@ -12,12 +12,13 @@ SC_step	lif.py	/^    def SC_step(self, total, t1, t2, int1, int2, i, j, S1, S2):
 SCorrelation	lif.py	/^    def SCorrelation(self, S1, S2):$/;"	m	class:net
 SCorrelationSIMPLE	lif.py	/^    def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	m	class:net
 SCorrelationSlow	lif.py	/^    def SCorrelationSlow(self, S1, S2, dt=0.05):$/;"	m	class:net
+__groups	lif.py	/^    def __groups(self):$/;"	m	class:net	file:
 __init__	lif.py	/^    def __init__(self, N_hidden=2, N_input=4, data='mnist', seed=5):$/;"	m	class:net
 __init__	lift.py	/^    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):$/;"	m	class:lif_tester
+__load	lif.py	/^    def __load(self):$/;"	m	class:net	file:
 _equal_len_SC	lif.py	/^    def _equal_len_SC(self, S1, S2):$/;"	m	class:net
 _equal_len_SC	lif.py	/^    def _equal_len_SC(self, Smax, Smin):$/;"	m	class:net
 _get_random_spikes	lift.py	/^    def _get_random_spikes(self, N, r, Ti, Tf, spacing, g_indices=True):$/;"	m	class:lif_tester
-_groups	lif.py	/^    def _groups(self):$/;"	m	class:net
 _input_output	lift.py	/^    def _input_output(self, classes=1):$/;"	m	class:lif_tester
 _poisson	lift.py	/^    def _poisson(self, r, spacing, Ti, Tf):$/;"	m	class:lif_tester
 _prel_SC	lif.py	/^    def _prel_SC(self, Smax, Smin):$/;"	m	class:net
@@ -25,13 +26,13 @@ _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"
 accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
 current	derivation.py	/^current = sp.exp(-(t - tl[i]) \/ tauA) - sp.exp(-(t - tl[i]) \/ tauB)$/;"	v
 diffeq	derivation.py	/^diffeq = sp.Eq(v(t).diff(t), Cm*(-gL*(v(t) - v0) + current(t)))$/;"	v
+fill_spiketimeslist	lif.py	/^    def fill_spiketimeslist(self, digit=0, start=0, number=10, kind='train'):$/;"	m	class:net
 i	derivation.py	/^i = 0$/;"	v
 lif_tester	lift.py	/^class lif_tester:$/;"	c
-load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	lif.py	/^    def matches(self, S1, S2):$/;"	m	class:net
 net	lif.py	/^class net:$/;"	c
 network	driver.py	/^network = lif.net()$/;"	v
-neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self):$/;"	m	class:net
+neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, index=None):$/;"	m	class:net
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 plot	lif.py	/^    def plot(self, save=False, show=True, i=None):$/;"	m	class:net
 plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:net
@@ -61,6 +62,8 @@ test_weight_order	lif.py	/^    def test_weight_order(self):$/;"	m	class:net
 times_format	lif.py	/^    def times_format(self):$/;"	m	class:net
 tl	derivation.py	/^tl = sp.symbols('tl:4')$/;"	v
 train	lif.py	/^    def train(self, a, b, threshold=0.7):$/;"	m	class:net
+train_digit	lif.py	/^    def train_digit(self, digit=0, start=0, number=10, kind='train'):$/;"	m	class:net
+train_digit_step	lif.py	/^    def train_digit_step(self, spike_times, digit=0, start=0, number=10, kind='train'):$/;"	m	class:net
 train_epoch	lif.py	/^    def train_epoch(self, a, b, dsp=True):$/;"	m	class:net
 train_step	lif.py	/^    def train_step(self, T=None):$/;"	m	class:net
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net

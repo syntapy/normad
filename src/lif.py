@@ -32,10 +32,10 @@ class net:
             self.N_hidden = 10
         else:
             self.N_inputs = N_inputs
-        #pudb.set_trace()
         self.__groups()
 
     def __groups(self):
+        self.o = 5
         Ni = br.SpikeGeneratorGroup(self.N_inputs, 
                                         indices=np.asarray([]), 
                                         times=np.asarray([])*br.ms, 
@@ -68,16 +68,14 @@ class net:
                    post='tl=t+0*ms', pre='tp=t', name='synapses', dt=self.dta)
         R = br.Synapses(Nh, Nh, pre='q_post=0', name='compete', dt=self.dta)
         R.connect('i!=j')
-        S.connect('True')
-        S.delay='7*ms'
-        S.w[:, :] = '(100*rand()+155)'
-        #S.w[0, 0] = '1000'
-        #S.w[0, 1] = '500'
-        #S.w[1, 0] = '250'
-        #S.w[1, 1] = '125'
+        S.connect('True', n=self.o)
+        S.delay='7*rand()*ms'
+        S.w[:, :, :] = '(100*rand()+50)'
+        #S.w[0, 1] = '1000'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
+        #pudb.set_trace()
         M = br.StateMonitor(Nh, 'v', record=True, name='monitor_v')
         N = br.StateMonitor(S, 'c', record=True, name='monitor_c')
         O = br.StateMonitor(S, 'tp', record=True, name='monitor_o')
@@ -273,14 +271,13 @@ class net:
         v = self.net['monitor_v'].v
         c = self.net['monitor_c'].c
         w = self.net['synapses'].w
-        #pudb.set_trace()
         #t = self.net['monitor_o'].tp
-        #f = self.net['monitor_f'].f
-        #a = [max(f[i]) for i in range(len(f))]
+        f = self.net['monitor_f'].f
+        a = [max(f[i]) for i in range(len(f))]
 
-        # m neurons, n inputs
-        #pudb.set_trace()
-        m, n = len(v), len(self.net['synapses'].w[:, 0])
+        # m neurons, n inputs, o synapses per neuron
+        pudb.set_trace()
+        m, n, o = len(v), len(self.net['synapses'].w[:, 0]) / self.o, self.o
         m_n = m*n
         dW, dw = np.zeros(m_n), np.zeros(n)
         for i in range(m):
@@ -306,7 +303,6 @@ class net:
         return dW
 
     def supervised_update(self, display=False):
-        #pudb.set_trace()
         dw = self.supervised_update_setup()
         self.net.restore()
         self.net['synapses'].w += self.r*dw
@@ -339,9 +335,7 @@ class net:
 
     def train_step(self, T=None):
         self.run(T)
-        #pudb.set_trace()
         self.actual = self.net['crossings'].all_values()['t'][0]
-        #a = self.net['crossings'].all_values()['t']
         self.supervised_update()
 
     def train_epoch(self, a, b, dsp=True):

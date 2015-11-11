@@ -70,8 +70,8 @@ class net:
         R.connect('i!=j')
         S.connect('True', n=self.o)
         S.delay='7*rand()*ms'
-        S.w[:, :, :] = '(100*rand()+50)'
-        #S.w[0, 1] = '1000'
+        S.w[:, :, :] = '0*(100*rand()+50)'
+        S.w[1, 0] = '1000'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
@@ -276,14 +276,24 @@ class net:
         a = [max(f[i]) for i in range(len(f))]
 
         # m neurons, n inputs, o synapses per neuron
-        pudb.set_trace()
         m, n, o = len(v), len(self.net['synapses'].w[:, 0]) / self.o, self.o
-        m_n = m*n
-        dW, dw = np.zeros(m_n), np.zeros(n)
+        m_n_o, m_n, n_o, m_o = m*n*o, m*n, n*o, m*o
+        dW, dw = np.zeros(m_n_o), np.zeros(n_o)
+        pudb.set_trace()
+        w_list = []
+        for i in range(m):
+            #dw_tmp = [np.asarray(c[j:j+o, 0]) / np.linalg.norm(np.asarray(c[j:j+p, 0])), for j in range(i, m_n_o, m_o)]
+            dw_tmp = np.asarray([c[j:j+o, 0], for j in range(i, m_n_o, m_o)])
+            w_list.append(dw_tmp)
+
+        for i in range(m):
+            dw_tmp[i*
+
         for i in range(m):
             if len(actual[i]) > 0:
                 index_a = int(actual[i] / dt)
-                dw_tmp = c[i:m_n:m, index_a]
+                dw_tmp = np.asarray([c[j:j+o, index_a] for j in range(i, m_n_o, m_o)])
+                #dw_tmp = c[i+j:m_n_o:m_o, index_a]
                 dw_tmp_norm = np.linalg.norm(dw_tmp)
                 if dw_tmp_norm > 0:
                     dw[:] -= dw_tmp / dw_tmp_norm
@@ -292,7 +302,8 @@ class net:
                 #if len(actual[0]) > 0 and len(actual[5]) > 0:
                 #    pudb.set_trace()
                 index_d = int(desired[i] / dt)
-                dw_tmp = c[i:m_n:m, index_d]
+                dw_tmp = np.asarray([c[j:j+o, index_a] for j in range(i, m_n_o, m_o)])
+                #dw_tmp = c[i:m_n:m, index_d]
                 dw_tmp_norm = np.linalg.norm(dw_tmp)
                 if dw_tmp_norm > 0:
                     dw[:] += dw_tmp / dw_tmp_norm

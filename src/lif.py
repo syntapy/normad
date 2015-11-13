@@ -71,7 +71,7 @@ class net:
         S.connect('True', n=self.o)
         S.delay='7*rand()*ms'
         S.w[:, :, :] = '0*(100*rand()+50)'
-        S.w[1, 0] = '1000'
+        S.w[1, 3] = '1000'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
@@ -273,22 +273,49 @@ class net:
         w = self.net['synapses'].w
         #t = self.net['monitor_o'].tp
         f = self.net['monitor_f'].f
-        a = [max(f[i]) for i in range(len(f))]
+        a = np.asarray([max(f[i]) for i in range(len(f))])
+        w = self.net['synapses'].w[:]
 
-        # m neurons, n inputs, o synapses per neuron
-        m, n, o = len(v), len(self.net['synapses'].w[:, 0]) / self.o, self.o
+        # m inputs, n neurons, o synapses per neuron
+        m, n, o = len(self.net['synapses'].w[:, 0]) / self.o, len(v), self.o
         m_n_o, m_n, n_o, m_o = m*n*o, m*n, n*o, m*o
         dW, dw = np.zeros(m_n_o), np.zeros(n_o)
         pudb.set_trace()
-        w_list = []
-        for i in range(m):
-            #dw_tmp = [np.asarray(c[j:j+o, 0]) / np.linalg.norm(np.asarray(c[j:j+p, 0])), for j in range(i, m_n_o, m_o)]
-            dw_tmp = np.asarray([c[j:j+o, 0], for j in range(i, m_n_o, m_o)])
-            w_list.append(dw_tmp)
 
-        for i in range(m):
-            dw_tmp[i*
+        ### m inputs, n neurons, o synapses per neuron/input pair
+        ### (i, j, k) denotes kth synapse from input i to neuron j
+        ### c[n_o*i+o*j+k] --------------> (i, j, k)
+        ### c[o*j+k:m_n_o:n_o] ----------> (:, j, k)
+        ### c[n_o*i+k:n_o*(i+1)+k:o] ----> (i, :, k)
 
+        ### Step 1: dw_tmp vector: Same shape as c[:, index] vector 
+        dW, dw = np.zeros(m_n_o), np.zeros(m_n_o)
+
+        ### loop over j, calculating dw(:, j, :)
+        for j in range(n):
+            for l in len(actual[j]):
+                ### Calculate dw(:, j, :)
+                index_a = int(actua[i] / dt)
+                for k in range(o):
+                    ### Calculate dw(:, j, k)
+                    dw_tmp = c[o*j+k:m_n_o:n_o, index_a]
+                    dw[o*j+k:m_n_o:n_o] -= dw_tmp
+            if desired[j] > 0:
+                ### Calculate dw(:, j, :)
+                index_d = int(desired[j] / dt)
+                for k in range(o):
+                    ### Calculate dw(:, j, k)
+                    dw_tmp = c[o*j+k:m_n_o:n_o, index_d]
+                    dw[o*j+k:m_n_o:n_o] += dw_tmp
+            for k in range(o):
+                ### Set dW(:, j, k)
+                dw_tmp = dw[o*j+k:m_n_o:n_o]
+                dw_norm = np.linalg.norm(dw_tmp)
+                if dw_norm > 0:
+                    dW[o*j+k:m_n_o:n_o] =  dw_tmp / dw_norm
+        return dW
+
+        ### normalize each (:, j, k) component
         for i in range(m):
             if len(actual[i]) > 0:
                 index_a = int(actual[i] / dt)

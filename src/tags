@@ -61,10 +61,10 @@ test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1,
 test_weight_order	lif.py	/^    def test_weight_order(self):$/;"	m	class:net
 times_format	lif.py	/^    def times_format(self):$/;"	m	class:net
 tl	derivation.py	/^tl = sp.symbols('tl:4')$/;"	v
-train	lif.py	/^    def train(self, a, b, threshold=0.7):$/;"	m	class:net
+train	lif.py	/^    def train(self, a, b=None, threshold=0.7):$/;"	m	class:net
 train_digit	lif.py	/^    def train_digit(self, digit=0, start=0, number=10, kind='train'):$/;"	m	class:net
 train_digit_step	lif.py	/^    def train_digit_step(self, spike_times, digit=0, start=0, number=10, kind='train'):$/;"	m	class:net
-train_epoch	lif.py	/^    def train_epoch(self, a, b, dsp=True):$/;"	m	class:net
+train_epoch	lif.py	/^    def train_epoch(self, a, b=None, dsp=True):$/;"	m	class:net
 train_step	lif.py	/^    def train_step(self, T=None):$/;"	m	class:net
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	lif.py	/^    def untrained(self):$/;"	m	class:net

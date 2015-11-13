@@ -35,7 +35,7 @@ class net:
         self.__groups()
 
     def __groups(self):
-        self.o = 5
+        self.o = 15
         Ni = br.SpikeGeneratorGroup(self.N_inputs, 
                                         indices=np.asarray([]), 
                                         times=np.asarray([])*br.ms, 
@@ -70,8 +70,8 @@ class net:
         R.connect('i!=j')
         S.connect('True', n=self.o)
         S.delay='7*rand()*ms'
-        S.w[:, :, :] = '0*(100*rand()+50)'
-        S.w[1, 3] = '1000'
+        S.w[:, :, :] = '(10*rand()+5)'
+        #S.w[1, 3] = '1000'
         S.tl[:, :] = '-1*second'
         S.tp[:, :] = '-1*second'
         Nh.v[:] = -70
@@ -280,7 +280,7 @@ class net:
         m, n, o = len(self.net['synapses'].w[:, 0]) / self.o, len(v), self.o
         m_n_o, m_n, n_o, m_o = m*n*o, m*n, n*o, m*o
         dW, dw = np.zeros(m_n_o), np.zeros(n_o)
-        pudb.set_trace()
+        #pudb.set_trace()
 
         ### m inputs, n neurons, o synapses per neuron/input pair
         ### (i, j, k) denotes kth synapse from input i to neuron j
@@ -293,13 +293,14 @@ class net:
 
         ### loop over j, calculating dw(:, j, :)
         for j in range(n):
-            for l in len(actual[j]):
-                ### Calculate dw(:, j, :)
-                index_a = int(actua[i] / dt)
-                for k in range(o):
-                    ### Calculate dw(:, j, k)
-                    dw_tmp = c[o*j+k:m_n_o:n_o, index_a]
-                    dw[o*j+k:m_n_o:n_o] -= dw_tmp
+            if len(actual[j]) > 0:
+                for l in actual[j]:
+                    ### Calculate dw(:, j, :)
+                    index_a = int(l / dt)
+                    for k in range(o):
+                        ### Calculate dw(:, j, k)
+                        dw_tmp = c[o*j+k:m_n_o:n_o, index_a]
+                        dw[o*j+k:m_n_o:n_o] -= dw_tmp
             if desired[j] > 0:
                 ### Calculate dw(:, j, :)
                 index_d = int(desired[j] / dt)
@@ -313,31 +314,6 @@ class net:
                 dw_norm = np.linalg.norm(dw_tmp)
                 if dw_norm > 0:
                     dW[o*j+k:m_n_o:n_o] =  dw_tmp / dw_norm
-        return dW
-
-        ### normalize each (:, j, k) component
-        for i in range(m):
-            if len(actual[i]) > 0:
-                index_a = int(actual[i] / dt)
-                dw_tmp = np.asarray([c[j:j+o, index_a] for j in range(i, m_n_o, m_o)])
-                #dw_tmp = c[i+j:m_n_o:m_o, index_a]
-                dw_tmp_norm = np.linalg.norm(dw_tmp)
-                if dw_tmp_norm > 0:
-                    dw[:] -= dw_tmp / dw_tmp_norm
-
-            if desired[i] > 0:
-                #if len(actual[0]) > 0 and len(actual[5]) > 0:
-                #    pudb.set_trace()
-                index_d = int(desired[i] / dt)
-                dw_tmp = np.asarray([c[j:j+o, index_a] for j in range(i, m_n_o, m_o)])
-                #dw_tmp = c[i:m_n:m, index_d]
-                dw_tmp_norm = np.linalg.norm(dw_tmp)
-                if dw_tmp_norm > 0:
-                    dw[:] += dw_tmp / dw_tmp_norm
-            dwn = np.linalg.norm(dw)
-            if dwn > 0:
-                dW[i:m_n:m] = dw / dwn
-            dw *= 0
         return dW
 
     def supervised_update(self, display=False):
@@ -376,8 +352,10 @@ class net:
         self.actual = self.net['crossings'].all_values()['t'][0]
         self.supervised_update()
 
-    def train_epoch(self, a, b, dsp=True):
+    def train_epoch(self, a, b=None, dsp=True):
         correct = 0
+        if b == None or b <= a:
+            b = a + 1
         for i in range(a, b):
             self.read_image(i)
             print "\tImage: ", self.labels['train'][i], "\t",
@@ -388,13 +366,16 @@ class net:
             print ""
         return correct
 
-    def train(self, a, b, threshold=0.7):
+    def train(self, a, b=None, threshold=0.7):
         i = 0
+        threshold *= 100
+        if b == None or b <= a:
+            b = a + 1
         while True:
             i += 1
             print "Epoch ", i
             correct = self.train_epoch(a, b)
-            p_correct = float(correct) / (b - a)
+            p_correct = int(round(100*float(correct) / (b - a)))
             print  "\t\t\t%", p_correct, " correct"
             if p_correct > threshold:
                 break

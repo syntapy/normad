@@ -34,9 +34,9 @@ class net:
         else:
             self.N_inputs = N_inputs
         #pudb.set_trace()
-        self._groups()
+        self.__groups()
 
-    def _groups(self):
+    def __groups(self):
         inputs = br.SpikeGeneratorGroup(self.N_inputs, 
                                         indices=np.asarray([]), 
                                         times=np.asarray([])*br.ms, 
@@ -369,7 +369,7 @@ class net:
         self.n_inputs(2*self.N, 6*self.N)
         self.n_outputs(1, int(self.N / 10))
         for i in range(K):
-            self._groups()
+            self.__groups()
             self._input_output()
             self.train()
 

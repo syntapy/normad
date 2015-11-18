@@ -50,10 +50,10 @@ class stdp_encoder():
                             gmax = 10000                                        : 1
                             taupre = 0.020                                      : second (shared)
                             taupost = 0.020                                     : second (shared)
-                            dApre = 1                                           : 1
+                            dApre = 30                                          : 1
                             dApost = -dApre * 1.05                              : 1
-                            dApre/dt = -Apre /  (0.020*second)                  : 1 (event-driven)
-                            dApost/dt = -Apost / (0.020*second)                 : 1 (event-driven)
+                            dApre/dt = -Apre / (0.005*second)                   : 1 (event-driven)
+                            dApost/dt = -Apost / (0.005*second)                 : 1 (event-driven)
 
                             tl                                                  : second
                             tp                                                  : second
@@ -163,14 +163,13 @@ class stdp_encoder():
             print i, " norm: ", norm
             i, norm = i+1, 0
             for j in numbers:
-                print "\tj = ", j,
                 self.net.restore()
                 self.read_image(j)
                 self.net.run(self.T*br.ms)
                 w = self.net['synapses'].w[:]
                 self.net.restore()
                 norm_tmp = np.linalg.norm(self.net['synapses'].w[:] - w[:])
-                print "\tnorm_tmp: ", norm_tmp
+                print "\tj = ", j, "\tnorm_tmp: ", norm_tmp
                 norm += norm_tmp
                 self.net['synapses'].w[:] = w[:]
                 self.net.store()
@@ -187,7 +186,11 @@ class stdp_encoder():
         
         #pudb.set_trace()
         n = len(iterator)
-        fname = "mnist_encoded.bin"
+        fname = "mnist_encoded-"
+        fname += str(self.N_hidden)
+        fname += "-" + str(a)
+        fname += "-" + str(b)
+        fname += ".bin"
         f = open(fname, "w+")
         p = pickle.Pickler(f)
         p.dump(n)

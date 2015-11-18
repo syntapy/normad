@@ -1,4 +1,5 @@
 import brian2 as br
+import cPickle as pickle
 import numpy as np
 import math as ma
 import scipy
@@ -46,10 +47,10 @@ class stdp_encoder():
         Sh = br.Synapses(inputs, hidden,
                     model='''
                             # STDP variables
-                            gmax = 100                                          : 1
+                            gmax = 10000                                        : 1
                             taupre = 0.020                                      : second (shared)
                             taupost = 0.020                                     : second (shared)
-                            dApre = 0.10                                        : 1
+                            dApre = 1                                           : 1
                             dApost = -dApre * 1.05                              : 1
                             dApre/dt = -Apre /  (0.020*second)                  : 1 (event-driven)
                             dApost/dt = -Apost / (0.020*second)                 : 1 (event-driven)
@@ -80,10 +81,12 @@ class stdp_encoder():
         Sh.connect('True')
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
-        Sh.w[:, :] = '(100*rand()+1750)'
+        Sh.w[:, :] = '(1000*rand()+3750)'
         hidden.v[:] = -70
-        T = br.SpikeMonitor(hidden, name='crossings_h')
-        self.net = br.Network(inputs, hidden, Sh, T)
+        T = br.SpikeMonitor(hidden, name='crossings')
+        M = br.StateMonitor(hidden, variables='v', record=True, name='monitor_v')
+        N = br.StateMonitor(Sh, variables='Apre', record=True, name='monitor_Apre')
+        self.net = br.Network(inputs, hidden, Sh, T, M, N)
         self.net.store()
 
     def rflatten(self, A):
@@ -149,7 +152,7 @@ class stdp_encoder():
 
     def pretrain(self, a, b):
         print "Unsupervised pre-training with STDP"
-        norm = float("inf")
+        i, norm = 0, float("inf")
         threshold = 0.05 * self.N_hidden
         if a == 0:
             numbers = np.asarray(range(b))
@@ -157,12 +160,12 @@ class stdp_encoder():
             numbers = np.asarray(range(a, b))
         while norm > threshold * 2:
             np.random.shuffle(numbers)
-            print "\tnorm: ", norm
-            norm = 0
-            for i in numbers:
-                print "\t\ti = ", i,
+            print i, " norm: ", norm
+            i, norm = i+1, 0
+            for j in numbers:
+                print "\tj = ", j,
                 self.net.restore()
-                self.read_image(i)
+                self.read_image(j)
                 self.net.run(self.T*br.ms)
                 w = self.net['synapses'].w[:]
                 self.net.restore()
@@ -172,14 +175,36 @@ class stdp_encoder():
                 self.net['synapses'].w[:] = w[:]
                 self.net.store()
 
+        print "Saving to mnist_encoded.bin"
+
+        self.save_outputs(a, b)
+
     def save_outputs(self, a, b):
         if a == 0:
             iterator = xrange(b)
         else:
             iterator = xrange(a, b)
+        
+        #pudb.set_trace()
+        n = len(iterator)
+        fname = "mnist_encoded.bin"
+        f = open(fname, "w+")
+        p = pickle.Pickler(f)
+        p.dump(n)
         for i in iterator:
+            print "Dumping encoded image ", i
             self.net.restore()
             self.read_image(i)
             self.net.run(self.T*br.ms)
-            q = self.net['crossings_h']
-            pudb.set_trace()
+            q = self.net['crossings']
+            #pudb.set_trace()
+            p.dump(i)
+            p.dump(q.it[0]['i'])
+            p.dump(q.it[1]/br.ms)
+            r = self.net['monitor_v']
+        f.close()
+
+    def plot(self, name='monitor_v'):
+        for j in range(self.N_hidden):
+            br.plot(self.net[name][j].t, self.net[name][j].v, label=name[-1] + ' ' + str(j))
+        br.show()

@@ -1,9 +1,6 @@
-import lif
+import stdp
 import pudb
-import brian2 as br
 
-network = lif.net()
-#network.set_train_spikes(indices=[0,1,2,3], times=[0,0,0,0])
-network.train(0, 10)
-#network.read_image(0)
-#network.train_step()
+encoder = stdp.stdp_encoder(10)
+#encoder.save_outputs(0, 10)
+encoder.pretrain(18, 20)

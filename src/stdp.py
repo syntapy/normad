@@ -47,13 +47,17 @@ class stdp_encoder():
         Sh = br.Synapses(inputs, hidden,
                     model='''
                             # STDP variables
-                            gmax = 10000                                        : 1
+                            gmax                                                : 1 (shared)
                             taupre = 0.020                                      : second (shared)
                             taupost = 0.020                                     : second (shared)
-                            dApre = 30                                          : 1
+                            dApre = 0.05*gmax                                   : 1
                             dApost = -dApre * 1.05                              : 1
-                            dApre/dt = -Apre / (0.005*second)                   : 1 (event-driven)
-                            dApost/dt = -Apost / (0.005*second)                 : 1 (event-driven)
+                            Apre                                                : 1
+                            Apost                                               : 1
+                            #tauPre = 0.005                                      : second
+                            #tauPost = 0.005                                     : second
+                            #dApre/dt = -Apre / (0.005*second)                  : 1 (event-driven)
+                            #dApost/dt = -Apost / (0.005*second)                : 1 (event-driven)
 
                             tl                                                  : second
                             tp                                                  : second
@@ -71,16 +75,20 @@ class stdp_encoder():
                             c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
                             f = w*c                                             : 1
                             D_post = w*c*ul                                     : 1 (summed) ''',
-                    pre=''' tp=t
-                            Apre += dApre
-                            w = clip(w + Apre, 0, gmax)''',
-                    post='''tl=t
-                            Apost += dApost
+                    pre=''' Apost *= exp(-(t - tl) / (0.005*second))
+                            Apre += dApost
+                            tp=t
+                            w = clip(w + Apost, 0, gmax)''',
+                    post='''Apre *= exp(-(t - tp) / (0.005*second))
+                            Apost += dApre
+                            tl=t
                             w = clip(w + Apre, 0, gmax)''', 
                     name='synapses', dt=self.dta)
         Sh.connect('True')
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
+        Sh.Apre[:, :] = '0'
+        Sh.Apost[:, :] = '0'
         Sh.w[:, :] = '(1000*rand()+3750)'
         hidden.v[:] = -70
         T = br.SpikeMonitor(hidden, name='crossings')
@@ -131,13 +139,17 @@ class stdp_encoder():
         del train_labels
         del test_labels
 
+    def get_actual(self):
+        T = self.net['crossings']
+        return T.it
+
     def set_train_spikes(self, indices=[], times=[], desired=[]):
         self.net.restore()
         self.indices, self.times, self.desired = indices, times*br.ms, desired*br.ms
         self.net['input'].set_spikes(indices=self.indices, times=self.times)
         self.net.store()
 
-    def read_image(self, index, kind='train'):
+    def read_image(self, index, kind='train', name=None):
         array = self.data[kind][index]
         label = self.labels[kind][index]
         times = self.tauLP / array
@@ -147,13 +159,46 @@ class stdp_encoder():
         desired[label] = int(ma.ceil(self.T))
         self.T += 25
         self.set_train_spikes(indices=indices, times=times, desired=desired)
-        self.net
-        self.net.store()
+        if name == None:
+            self.net.store()
+        else:
+            self.net.store(name)
+
+    def determine_gmax(self):
+        mean, a_gmax, b_gmax = 100, 1, 10000
+        name = 'determine_gmax'
+        self.net.restore()
+        self.net['synapses'].gmax = (a_gmax + b_gmax) / 2
+        self.net['synapses'].dApre = '0'
+        self.net['synapses'].dApost = '0'
+        self.net.store(name)
+        new_gmax = gmax
+
+        while abs(mean - 1.5)  > 0.4:
+            self.net.restore(name)
+            gmax = self.net['synapses'].gmax
+            self.net['synapses'].gmax = new_gmax
+            self.net['synapses'].w[:, :] = str(new_gmax)
+            self.net.store(name)
+            count = 0
+            for index in range(20):
+                self.read_image(index, name=name)
+                self.net.run(self.T*br.ms)
+                it = self.get_actual()
+                count += len(it[1])
+                self.net.restore(name)
+            mean = count / float(20*self.N_hidden)
+            if mean > 1.5:
+
+    def count_instances(self, array, value):
+        t_array = (value == array)
+        return np.sum(t_array)
 
     def pretrain(self, a, b):
         print "Unsupervised pre-training with STDP"
         i, norm = 0, float("inf")
         threshold = 0.05 * self.N_hidden
+        gmax = self.net['synapses'].gmax
         if a == 0:
             numbers = np.asarray(range(b))
         else:
@@ -166,10 +211,17 @@ class stdp_encoder():
                 self.net.restore()
                 self.read_image(j)
                 self.net.run(self.T*br.ms)
+                #pudb.set_trace()
                 w = self.net['synapses'].w[:]
                 self.net.restore()
                 norm_tmp = np.linalg.norm(self.net['synapses'].w[:] - w[:])
-                print "\tj = ", j, "\tnorm_tmp: ", norm_tmp
+                print "\tj = ", j, "\tnorm_tmp: ", norm_tmp,
+                print "\tmean w: ", np.mean(w),
+                gmax_n = self.count_instances(w, gmax)
+                gmin_n = self.count_instances(w, 0)
+                if gmin_n > 0:
+                    pudb.set_trace()
+                print "\tgmax_n: ", gmax_n, "\tgmin_n: ", gmin_n
                 norm += norm_tmp
                 self.net['synapses'].w[:] = w[:]
                 self.net.store()

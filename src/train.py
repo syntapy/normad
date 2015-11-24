@@ -1,31 +1,73 @@
 import numpy as np
 import pudb
 
-def smaller_indices(self, a, B):
+def sort(S):
+    if len(S) > 0:
+        for i in range(len(S)):
+            S[i] = np.sort(S[i])
+    return S
+
+def smaller_indices(a, B):
     indices = []
     for i in range(len(B)):
         if B[i] <= a:
             indices.append(i)
     return np.asarray(indices)
 
-def resume_kernel(self, s):
+def larger_indices(a, B):
+    indices = []
+    for i in range(len(B)):
+        if B[i] > a:
+            indices.append(i)
+    return np.asarray(indices)
+
+def resume_kernel(s):
     A = 3.0
     tau=self.net['synapses_hidden'].tau1
     return A*np.exp(-s/tau)
 
 def resume_update_output_weights(self):
+    a = 1.0     # non-hebbian weight term
     pudb.set_trace()
     w = self.net['synapses_output'].w[:]
-    dw = np.zeros(np.shape(w))
-    #Sh = self.net['crossings_h'].all_values()['t'][0]
     Sh = self.net['crossings_h'].all_values()['t']
     Sa, Sd = self.actual, self.desired
     nh = self.N_hidden
-    for i in range(len(Sh)):
-        s_d = smaller_indices(self, Sh[i], Sd)
-        s_a = smaller_indices(self, Sh[i], Sa)
-        for j in range(len(s_d)):
-            pass
+    m, n, o= self.N_hidden, self.N_output, 1
+    n_o, m_n_o = n*o, m*n*o
+    wij = 0
+
+    Sa, Sh = sort(Sa), sort(Sh)
+
+    ### m hidden neurons, n output neurons, o synapses per neuron/input pair
+    ### (i, j, k) denotes kth synapse from hidden i to output j
+    ### w[n_o*i+o*j+k] --------------> (i, j, k)
+    ### w[o*j+k:m_n_o:n_o] ----------> (:, j, k)
+    ### w[n_o*i+k:n_o*(i+1)+k:o] ----> (i, :, k)
+    dw = np.zeros(np.shape(w))
+    for j in range(n): # output neurons
+        for i in range(m): # hidden neurons
+            dw_tmp = 0
+            s_dh = smaller_indices(Sd[j], Sh)
+            s_hd = larger_indices(Sd[j], Sh)
+            for g in range(len(s_dh)):
+                s = Sd[j] - Sh[s_dh[g]]
+                dw_tmp += a - resume_kernel(s)
+            for g in range(len(s_hd)):
+                s = Sh[s_hd[g]] - Sd[j]
+                dw_tmp += a + resume_kernel(s)
+            for g in range(len(Sh[i])):
+                s_ha = smaller_indices(self, Sh[i][g], Sa[j])
+                for h in range(len(s_ha)):
+                    s = Sh[i][g] - Sa[j][s_ha[h]]
+                    dw_tmp -= a - resume_kernel(s)
+            for g in range(len(Sa[i])):
+                s_ah = smaller_indices(self,Sa[j][h], Sh[i])
+                for h in range(len(s_ah)):
+                    s = Sa[i][g] - Sh[i][s_ah[h]]
+                    dw_tmp -= a + resume_kernel(s)
+            dw[n_o*i+o*j] = dw_tmp
+    return dw
 
 def resume_supervised_update_setup(self):
     dw = np.empty(2, dtype=object)

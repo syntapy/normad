@@ -26,6 +26,7 @@ accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	clas
 current	derivation.py	/^current = sp.exp(-(t - tl[i]) \/ tauA) - sp.exp(-(t - tl[i]) \/ tauB)$/;"	v
 diffeq	derivation.py	/^diffeq = sp.Eq(v(t).diff(t), Cm*(-gL*(v(t) - v0) + current(t)))$/;"	v
 i	derivation.py	/^i = 0$/;"	v
+larger_indices	train.py	/^def larger_indices(a, B):$/;"	f
 lif_tester	lift.py	/^class lif_tester:$/;"	c
 load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
@@ -42,7 +43,7 @@ print_dws	display.py	/^def print_dws(self, dw):$/;"	f
 read_image	lif.py	/^    def read_image(self, index, kind='train'):$/;"	m	class:net
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:net
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
-resume_kernel	train.py	/^def resume_kernel(self, s):$/;"	f
+resume_kernel	train.py	/^def resume_kernel(s):$/;"	f
 resume_supervised_update_setup	train.py	/^def resume_supervised_update_setup(self):$/;"	f
 resume_update_output_weights	train.py	/^def resume_update_output_weights(self):$/;"	f
 rflatten	lif.py	/^    def rflatten(self, A):$/;"	m	class:net
@@ -52,7 +53,8 @@ save_weights	lif.py	/^    def save_weights(self, fname='weights.txt'):$/;"	m	cla
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
 setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:lif_tester
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
-smaller_indices	train.py	/^def smaller_indices(self, a, B):$/;"	f
+smaller_indices	train.py	/^def smaller_indices(a, B):$/;"	f
+sort	train.py	/^def sort(S):$/;"	f
 supervised_update	train.py	/^def supervised_update(self, display=False, method='resume'):$/;"	f
 t	derivation.py	/^t = sp.symbols('t')$/;"	v
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net

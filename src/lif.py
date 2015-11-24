@@ -8,7 +8,6 @@ import pudb
 
 import display
 import spike_correlation
-import resume
 import train
 
 class net:

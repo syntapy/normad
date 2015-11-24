@@ -6,6 +6,11 @@ import math as ma
 import scipy
 import pudb
 
+import display
+import spike_correlation
+import resume
+import train
+
 class net:
 
     ###################
@@ -43,19 +48,19 @@ class net:
                                         name='input')
         hidden = br.NeuronGroup(self.N_hidden, \
                                model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
-                                        gL = 30                                     : 1
-                                        El = -70                                    : 1
-                                        vt = 20                                     : 1
-                                        Cm = 3.0                                    : 1
+                                        gL = 30                                     : 1 (shared)
+                                        El = -70                                    : 1 (shared)
+                                        vt = 20                                     : 1 (shared)
+                                        Cm = 3.0                                    : 1 (shared)
                                         D                                           : 1''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
         output = br.NeuronGroup(self.N_output, \
                                model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
-                                        gL = 30                                     : 1
-                                        El = -70                                    : 1
-                                        vt = 20                                     : 1
-                                        Cm = 3.0                                    : 1
+                                        gL = 30                                     : 1 (shared)
+                                        El = -70                                    : 1 (shared)
+                                        vt = 20                                     : 1 (shared)
+                                        Cm = 3.0                                    : 1 (shared)
                                         D                                           : 1''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='output', dt=self.dta)
@@ -64,15 +69,6 @@ class net:
 
         Sh = br.Synapses(inputs, hidden,
                     model='''
-                            # STDP variables
-                            gmax = 100                                          : 1
-                            taupre = 0.020                                      : second (shared)
-                            taupost = 0.020                                     : second (shared)
-                            dApre = 0.10                                        : 1
-                            dApost = -dApre * 1.05                              : 1
-                            dApre/dt = -Apre /  (0.020*second)                  : 1 (event-driven)
-                            dApost/dt = -Apost / (0.020*second)                 : 1 (event-driven)
-
                             tl                                                  : second
                             tp                                                  : second
                             tau1 = 0.0025                                       : second (shared)
@@ -89,14 +85,7 @@ class net:
                             c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
                             f = w*c                                             : 1
                             D_post = w*c*ul                                     : 1 (summed) ''',
-                    pre=''' tp=t
-                            Apre += dApre
-                            w = clip(w + Apre, 0, gmax)''',
-                    post='''tl=t
-                            Apost += dApost
-                            w = clip(w + Apre, 0, gmax)''', 
-                    name='synapses_hidden', dt=self.dta)
-
+                    pre='tp=t', post='tl=t', name='synapses_hidden', dt=self.dta)
         So = br.Synapses(hidden, output, 
                    model='''tl                                                  : second
                             tp                                                  : second
@@ -114,17 +103,17 @@ class net:
                             c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
                             f = w*c                                             : 1
                             D_post = w*c*ul                                     : 1 (summed) ''',
-                   post='tl=t', pre='tp=t', name='synapses_output', dt=self.dta)
-        Rh = br.Synapses(hidden, hidden, pre='c_post=0', name='winner_take_all_a', dt=self.dta)
-        Ro = br.Synapses(output, output, pre='c_post=0', name='winner_take_all_b', dt=self.dta)
+                   pre='tp=t', post='tl=t', name='synapses_output', dt=self.dta)
+        #Rh = br.Synapses(hidden, hidden, pre='c_post=0', name='winner_take_all_a', dt=self.dta)
+        #Ro = br.Synapses(output, output, pre='c_post=0', name='winner_take_all_b', dt=self.dta)
 
-        Rh.connect('i!=j')
-        Ro.connect('i!=j')
+        #Rh.connect('i!=j')
+        #Ro.connect('i!=j')
         Sh.connect('True')
         So.connect('True')
 
-        Sh.w[:, :] = '(100*rand()+75)'
-        So.w[:, :] = '(100*rand()+75)'
+        Sh.w[:, :] = '(1000*rand()+750)'
+        So.w[:, :] = '(1000*rand()+750)'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'
@@ -137,8 +126,8 @@ class net:
         #F = br.StateMonitor(S, 'f', record=True, name='monitor_f')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
-        self.net = br.Network(inputs, hidden, output, Sh, So, Rh, Ro, M, N, Th, To)
-        self.actual = self.net['crossings_o'].all_values()['t'][0]
+        self.net = br.Network(inputs, hidden, output, Sh, So, M, N, Th, To)
+        self.actual = self.net['crossings_o'].all_values()['t']
         self.w_shape = So.w[:, :].shape
         self.net.store()
 
@@ -275,6 +264,9 @@ class net:
         return True
 
     def tdiff_rms(self):
+        """ OUTDATED FUNCTION """
+        return 1
+        pudb.set_trace()
         actual, desired = np.sort(self.actual), np.sort(self.desired)
         if len(actual) != len(desired):
             return 0
@@ -311,53 +303,7 @@ class net:
         if dw_n > 0:
             return dw_t
         return 0
-
-    def supervised_update_setup(self):
-        """ Normad training step """
-        self.actual = self.net['crossings_o'].all_values()['t']
-        actual, desired = self.actual, self.desired
-        dt = self.dta
-        v = self.net['monitor_v'].v
-        c = self.net['monitor_o_c'].c
-        w = self.net['synapses_output'].w
-        #t = self.net['monitor_o'].tp
-        #f = self.net['monitor_f'].f
-        #a = [max(f[i]) for i in range(len(f))]
-
-        # m neurons, n inputs
-        #pudb.set_trace()
-        m, n = len(v), len(self.net['synapses_output'].w[:, 0])
-        m_n = m*n
-        dW, dw = np.zeros(m_n), np.zeros(n)
-        for i in range(m):
-            if len(actual[i]) > 0:
-                index_a = int(actual[i] / dt)
-                dw_tmp = c[i:m_n:m, index_a]
-                dw_tmp_norm = np.linalg.norm(dw_tmp)
-                if dw_tmp_norm > 0:
-                    dw[:] -= dw_tmp / dw_tmp_norm
-            if desired[i] > 0:
-                index_d = int(desired[i] / dt)
-                dw_tmp = c[i:m_n:m, index_d]
-                dw_tmp_norm = np.linalg.norm(dw_tmp)
-                if dw_tmp_norm > 0:
-                    dw[:] += dw_tmp / dw_tmp_norm
-            dwn = np.linalg.norm(dw)
-            if dwn > 0:
-                dW[i:m_n:m] = dw / dwn
-            dw *= 0
-        return dW
-
-    def supervised_update(self, display=False):
-        #pudb.set_trace()
-        dw = self.supervised_update_setup()
-        self.net.restore()
-        self.net['synapses_output'].w += self.r*dw
-        self.net.store()
-        if display:
-            #self.print_dw_vec(dw, self.r)
-            self.print_dws(dw)
-
+    
     def test(self, N=100, K=250, T=80):
         """
         N: range of number of input synapses to test
@@ -380,283 +326,16 @@ class net:
         else:
             self.net.run(self.T*br.ms)
 
-    def train_step(self, T=None):
-        self.run(T)
-        #pudb.set_trace()
-        self.actual = self.net['crossings_o'].all_values()['t'][0]
-        #a = self.net['crossings'].all_values()['t']
-        tdf = self.tdiff_rms()
-        self.supervised_update()
-        return tdf
-
-    def train_epoch(self, a, b, dsp=True):
-        correct = 0
-        for i in range(a, b):
-            self.read_image(i)
-            self.train_step()
-            print "\tImage ", i, " trained"
-            if self.neuron_right_outputs():
-                correct += 1
-        return correct
-
-    def train(self, a, b, threshold=0.7):
+    def train(self, a, b, method='resume', threshold=0.7):
         i = 0
         self.r = 1
         while True:
             i += 1
             print "Epoch ", i
-            correct = self.train_epoch(a, b)
+            correct = train.train_epoch(self, a, b, method=method)
             p_correct = float(correct) / (b - a)
             print  ": %", p_correct, " correct"
             if p_correct > threshold:
                 break
             self.r = 32 / (1 + 1024*p_correct)
         return p_correct
-
-    ##########################
-    ### PLOTTING / DISPLAY ###
-    ##########################
-
-    def times_format(self):
-        inputs = []
-        for i in range(len(self.times)):
-            inputs.append([self.indices[i], self.times[i]])
-
-        return inputs
-
-    def print_dws(self, dw):
-        #print "\tinput: ", self.times_format(), "\n"
-        #print "\tdw: ", np.sum(dw),
-        #print "\tw: ", np.sum(self.net['synapses'].w[:, :]),
-        #print "\tactual: ", self.actual,
-        #print "\tdesired: ", self.desired,
-        print "\tlen_dif: ", len(self.desired) - len(self.actual),
-        #if self.dw_d == None:
-        #    print "dw_d == None: ",
-        #else:
-        #    print "dw_d == OBJECT",
-        #if self.dw_a == None:
-        #    print "dw_a == None: ",
-        #else:
-        #    print "dw_a == OBJECT",
-
-    def print_dw_vec(self, dw, r):
-        #if abs(dw[0] + dw[1]) < 0.0001:
-        #    self.save_weights()
-        print "\tr:", r,
-
-    def plot_desired(self):
-        desired = self.desired
-        for i in range(len(desired)):
-            x = desired[i]
-            br.plot((x, x), (0, 100), 'r--')
-
-    def plot_actual(self):
-        actual = self.actual
-        for i in range(len(actual)):
-            x = actual[i]
-            br.plot((x, x), (0, 100), 'r-')
-
-    def plot(self, save=False, show=True, i=None):
-        self.fig = br.figure(figsize=(8, 5))
-        #self.plot_desired()
-        self.plot_actual()
-        br.plot((0, self.T)*br.ms, (90, 90), 'b--')
-        for j in range(self.N_output):
-            br.plot(self.net['monitor_v'][j].t, self.net['monitor_v'][j].v+70, label='v ' + str(j))
-            #br.plot(self.net['monitor_c'][j].t, self.net['monitor_c'][j].c, label='c ' + str(j))
-        #br.plot(self.net['monitor1'][1].t, self.net['monitor1'][1].c, 'g-')
-            br.legend()
-        if i != None and save == True:
-            file_name = '../figs/'
-            for j in range(4):
-                if i < 10**(j+1):
-                    file_name += '0'
-            file_name += str(i) + '.png'
-            self.fig.savefig(file_name)
-        if show==True:
-            br.show()
-
-    ##################################################
-     ### SPIKE CORRELATION FOUTINES (IN PROGRESS) ###
-    ##################################################
-
-    def LNonOverlap(self, Smax, Smin):
-        """ Finds i in which Smax[i] > Smin[0] """
-        nmax, nmin, i = len(Smax), len(Smin), 0
-        if Smin[0] > Smax[0]:
-            while Smin[0] > Smax[i]:
-                i += 1
-        return i
-
-    def LOverlapPrevious(self, Smax, Smin, index):
-        i, SC_overlap = 0, 0
-        while i < len(Smin) and Smin[i] <= Smax[index]:
-            SC_overlap += ma.exp((Smin[i]-Smax[index])/self.tauLP)
-            i += 1
-        return SC_overlap
-
-    def L(self, t1, t2):
-        """ Atomic low-pass filter function """
-        if t2 > t1:
-            return ma.exp((t1 - t2) / self.tauLP)
-        return ma.exp((t2 - t1) / self.tauLP)
-
-    def F(self, S, t):
-        """ Returns summ of low-passed spikes at time t """
-        return_val = 0
-        if len(S) > 0:
-            i = 0
-            while i < len(S) and S[i] <= t:
-                return_val += self.L(S[i], t)
-                i += 1
-        return return_val
-
-    def SCorrelationSlow(self, S1, S2, dt=0.05):
-        """
-            Trapezoid integration rule to compute inner product:
-            
-                <L(S1), L(S2)> / (||L(S1)|| * ||L(S2)||)
-        """
-        na = self.F(S1, 0) + self.F(S1, self.T-dt)
-        nb = self.F(S2, 0) + self.F(S2, self.T-dt)
-        return_val = self.F(S1, 0) * self.F(S2, 0) + \
-                    self.F(S1, self.T-dt) * self.F(S2, self.T-dt)
-        for t in range(1, self.T - 1):
-            return_val += 2*self.F(S1, t) * self.F(S2, t) * dt
-            na += self.F(S1, t) * dt
-            nb += self.F(S2, t) * dt
-        return return_val / (na * nb)
-
-    def _prel_SC(self, Smax, Smin):
-        i, t_last = 0, 0
-
-        while Smax[i] < Smin[0]:
-            tot *= np.exp((t_last - Smax[i]) / self.tauLP)
-            tot += 1
-            t_last = Smax[i]
-            i += 1
-        tot *= np.exp((t_last - Smin[0]) / self.tauLP)
-        if Smax[i] == Smin[0]:
-            tot += 1
-        return tot*self.tauLP, i
-
-    def _equal_len_SC(self, Smax, Smin):
-        return_val = 0
-        integral = 0
-        t_last = 0
-        if Smax[0] < Smin[0]:
-            return_val, i = self._prel_SC(Smax, Smin)
-            j = 0
-            while i < len(Smax):
-                while Smin[j] <= Smax[i]:
-                    integral += 1
-                    integral *= np.exp((Smin[j] - Smax[i]) / self.tauLP)
-                    j += 1
-                i += 1
-
-    def SC_step(self, total, t1, t2, int1, int2, i, j, S1, S2):
-        if S1[i] < S2[j]:
-            pass
-        elif S1[i] > S2[j]:
-            pass
-        elif S1[i] == S2[j]:
-            pass
-
-    def _equal_len_SC(self, S1, S2):
-        total, int1, int2 = 0, 0, 0
-        i, j = 0, 0
-        t1, t2 = -10, -10
-
-        while i < len(S1) and j < len(S2):
-            total, int1, int2, i, j = self.SC_step(total, t1, t2, int1, int2, i, j, S1, S2)
-
-    def SCorrelation(self, S1, S2):
-        S1, S2 = np.sort(S1), np.sort(S2)
-        total, integral1, integral2 = 0, 0, 0
-        i, j = 0, 0
-
-        if len(S1) == len(S2):
-            if len(S1) > 0:
-                if S1[-1] > S2[-1]:
-                    return self._equal_len_SC(S1, S2)
-                return self._equal_len_SC(S2, S1)
-            return 1
-        return 0
-                    
-
-    def SCorrelation(self, S1, S2):
-        """ 
-            Analytical approach to compute the inner product:
-            
-                <L(S1), L(S2)> / (||L(S1)|| * ||L(S2)||)
-        """
-
-        pudb.set_trace()
-        S1, S2 = np.sort(S1), np.sort(S2)
-        total, integral1, integral2 = 0, 0, 0
-        i, j, = 0, 0
-        n1, n2 = len(S1), len(S2)
-        i_index, j_index = 0, 0
-        t1_last, t2_last = -10, -10
-        if n1 > 0 and n2 > 0:
-            while i < n1 or j < n2:
-                if S1[i_index] < S2[j_index]:
-                    integral1 /= np.exp((S1[i_index] - t1_last) / self.tauLP)
-                    integral1 += 1
-                    total += integral1 * np.exp((S2[i_index] - S1[j_index]) / self.tauLP)
-                    i += 1
-                    i_index = min(i, n1-1)
-                elif S1[i_index] > S2[j_index]:
-                    integral2 /= np.exp((S2[j_index] - t2_last) / self.tauLP)
-                    integral2 += 1
-                    total += integral2 / np.exp((S1[i_index] - S2[j_index]) / self.tauLP)
-                    j += 1
-                    j_index = min(j, n2-1)
-                elif S1[i_index] == S2[j_index]:
-                    integral1 /= np.exp((S1[i_index] - t1_last) / self.tauLP)
-                    integral2 /= np.exp((S2[j_index] - t2_last) / self.tauLP)
-                    integral1, integral2 = integral1 + 1, integral2 + 1
-                    total += integral1*integral2
-                    i, j = i + 1, j + 1
-                    i_index, j_index = min(i, n1 - 1), min(j, n2 - 1)
-            return total / float(n1 * n2)
-        elif n1 > 0 or n2 > 0:
-            return 0
-        else:
-            return 1
-
-    def matches(self, S1, S2):
-        if len(S1) > 0 and len(S2) > 0:
-            i_min, j_min, min_diff = -1, -1, float("inf")
-            for i in range(len(S1)):
-                for j in range(len(S2)):
-                    diff = abs(S1[i] - S2[j])
-                    if diff < min_diff:
-                        i_min, j_min, min_diff = i, j, diff
-            return i_min, j_min
-
-    def SCorrelationSIMPLE(self, S1, S2, dt):
-        S1, S2 = np.sort(S1), np.sort(S2)
-        i, j = 0, 0
-        n1, n2 = len(S1), len(S2)
-        total = 0
-        if n1 != n2:
-            total += np.exp(abs(n1-n2))
-        matches = self.match(S1, S2)
-        for i in range(len(matches)):
-            total += abs(S1[matches[i][0]] - S2[matches[i][1]])
-        return total
-
-    def untrained(self):
-        d = self.desired
-        a = self.net['crossings'].all_values()['t'][0]
-
-        if len(d) != len(a):
-            return True
-        
-        if len(d) == len(a) and len(d) > 0:
-            for i in range(len(d)):
-                if abs((d[i] - a[i]) / br.ms) > 1:
-                    return True
-        return False

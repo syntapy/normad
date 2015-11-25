@@ -38,9 +38,9 @@ def resume_update_hidden_weights(self):
 
     ### m input neurons, n hidden neurons, o output neurons
     ### (i, j) denotes the synapse from input i to hidden j
-    ### w[n_o*i+o*j+k] --------------> (i, j, k)
-    ### w[o*j+k:m_n_o:n_o] ----------> (:, j, k)
-    ### w[n_o*i+k:n_o*(i+1)+k:o] ----> (i, :, k)
+    ### w[n*i+j] ---------------------> (i, j, k)
+    ### w[o*j:m_n:n] -----------------> (:, j, k)
+    ### w[n*i:n*(i+1)] ---------------> (i, :, k)
     Sa, Sh = sort(Sa), sort(Sh)
     dw = np.zeros(np.shape(w_ih))
     for j in range(n):
@@ -52,20 +52,19 @@ def resume_update_hidden_weights(self):
                     dw_tmp += resume_kernel(self, s)
                 s_ia = smaller_indices(Si[i], Sa[g])
                 for h in range(len(s_ia)):
-                    s = Si[i] - Sa[s_ia[g]]
+                    s = Si[i] - Sa[g][s_ia[h]]
                     dw_tmp -= resume_kernel(self, s)
-                dw_tmp *= w_ho[n_o*i+o*j]
+                dw_tmp *= w_ho[n*i+j]
                 if Si[i] < Sd[g]:
                     s = Sd[g] - Si[i]
                     dw_tmp += a + resume_kernel(self, s)
                 h = 0
-                if len(Sa[g]) > 0:
-                    while Si[i] <= Sa[g][h]:
-                        s = Sa[g][h] - Si[i]
-                        dw_tmp -= a + resume_kernel(self, s)
-                        h += 1
-                dw_tmp *= w_ho[n_o*i+o*j] / float(m*n)
-            dw[n_o*i+o*j] = dw_tmp
+                while h < len(Sa[g]) and Si[i] <= Sa[g][h] :
+                    s = Sa[g][h] - Si[i]
+                    dw_tmp -= a + resume_kernel(self, s)
+                    h += 1
+                dw_tmp *= w_ho[n*i+j] / float(m*n)
+            dw[n*i+j] = dw_tmp
     return dw
 
 def resume_update_output_weights(self):
@@ -80,9 +79,9 @@ def resume_update_output_weights(self):
     Sa, Sh = sort(Sa), sort(Sh)
     ### m hidden neurons, n output neurons, o synapses per neuron/input pair
     ### (i, j) denotes synapse from hidden i to output j
-    ### w[n*i+o*j] ------------------> (i, j, k)
-    ### w[o*j:m_n:n] ----------------> (:, j, k)
-    ### w[n_o*i+k:n_o*(i+1)+k:o] ----> (i, :, k)
+    ### w[n*i+o*j] ------------------> (i, j)
+    ### w[o*j:m_n:n] ----------------> (:, j)
+    ### w[n*i:n*(i+1)] --------------> (i, :)
     dw = np.zeros(np.shape(w))
     for j in range(n): # output neurons
         for i in range(m): # hidden neurons
@@ -90,10 +89,10 @@ def resume_update_output_weights(self):
             s_dh = smaller_indices(Sd[j], Sh[i])
             s_hd = larger_indices(Sd[j], Sh[i])
             for g in range(len(s_dh)):
-                s = Sd[j] - Sh[s_dh[g]]
+                s = Sd[j] - Sh[i][s_dh[g]]
                 dw_tmp += a - resume_kernel(self, s)
             for g in range(len(s_hd)):
-                s = Sh[s_hd[g]] - Sd[j]
+                s = Sh[i][s_hd[g]] - Sd[j]
                 dw_tmp += a + resume_kernel(self, s)
             for g in range(len(Sh[i])):
                 s_ha = smaller_indices(Sh[i][g], Sa[j])
@@ -101,11 +100,11 @@ def resume_update_output_weights(self):
                     s = Sh[i][g] - Sa[j][s_ha[h]]
                     dw_tmp -= a - resume_kernel(self, s)
             for g in range(len(Sa[i])):
-                s_ah = smaller_indices(Sh[i])
+                s_ah = smaller_indices(Sh[i][g], Sa[j])
                 for h in range(len(s_ah)):
                     s = Sa[i][g] - Sh[i][s_ah[h]]
                     dw_tmp -= a + resume_kernel(self, s)
-            dw[n_o*i+o*j] = dw_tmp
+            dw[n*i+j] = dw_tmp
     return dw
 
 def resume_supervised_update_setup(self):

@@ -32,7 +32,7 @@ load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_hidden=10, N_input=4)$/;"	v
+nn	driver.py	/^nn = lif.net(N_hidden=7, N_input=4)$/;"	v
 normad_supervised_update_setup	train.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
@@ -43,7 +43,7 @@ print_dws	display.py	/^def print_dws(self, dw):$/;"	f
 read_image	lif.py	/^    def read_image(self, index, kind='train'):$/;"	m	class:net
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:net
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
-resume_kernel	train.py	/^def resume_kernel(s):$/;"	f
+resume_kernel	train.py	/^def resume_kernel(self, s):$/;"	f
 resume_supervised_update_setup	train.py	/^def resume_supervised_update_setup(self):$/;"	f
 resume_update_hidden_weights	train.py	/^def resume_update_hidden_weights(self):$/;"	f
 resume_update_output_weights	train.py	/^def resume_update_output_weights(self):$/;"	f

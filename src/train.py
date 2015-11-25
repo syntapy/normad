@@ -21,14 +21,14 @@ def larger_indices(a, B):
             indices.append(i)
     return np.asarray(indices)
 
-def resume_kernel(s):
+def resume_kernel(self, s):
     A = 3.0
     tau=self.net['synapses_hidden'].tau1
     return A*np.exp(-s/tau)
 
 def resume_update_hidden_weights(self):
     a = 1.0     # non-hebbian weight term
-    m, n, o= self.N_input, self.N_hidden, self.N_output
+    m, n, o= self.N_inputs, self.N_hidden, self.N_output
     n_o, m_n_o = n*o, m*n*o
     w_ih = self.net['synapses_hidden'].w[:]
     w_ho = self.net['synapses_output'].w[:]
@@ -46,23 +46,23 @@ def resume_update_hidden_weights(self):
     for j in range(n):
         for i in range(m):
             dw_tmp = 0
-            for g = in range(o):
+            for g in range(o):
                 if Sd[g] <= Si[i]:
                     s = Si[i] - Sd[g]
-                    dw_tmp += resume_kernel(s)
+                    dw_tmp += resume_kernel(self, s)
                 s_ia = smaller_indices(Si[i], Sa[g])
                 for h in range(len(s_ia)):
                     s = Si[i] - Sa[s_ia[g]]
-                    dw_tmp -= resume_kernel(s)
+                    dw_tmp -= resume_kernel(self, s)
                 dw_tmp *= w_ho[n_o*i+o*j]
                 if Si[i] < Sd[g]:
                     s = Sd[g] - Si[i]
-                    dw_tmp += a + resume_kernel(s)
+                    dw_tmp += a + resume_kernel(self, s)
                 h = 0
-                if len(Sa[g][h]) > 0:
+                if len(Sa[g]) > 0:
                     while Si[i] <= Sa[g][h]:
                         s = Sa[g][h] - Si[i]
-                        dw_tmp -= a + resume_kernel(s)
+                        dw_tmp -= a + resume_kernel(self, s)
                         h += 1
                 dw_tmp *= w_ho[n_o*i+o*j] / float(m*n)
             dw[n_o*i+o*j] = dw_tmp
@@ -70,40 +70,41 @@ def resume_update_hidden_weights(self):
 
 def resume_update_output_weights(self):
     a = 1.0     # non-hebbian weight term
-    pudb.set_trace()
+    #pudb.set_trace()
     Sh = self.net['crossings_h'].all_values()['t']
     Sa, Sd = self.actual, self.desired
     m, n, o= self.N_hidden, self.N_output, 1
     n_o, m_n_o = n*o, m*n*o
+    w = self.net['synapses_output'].w[:]
 
     Sa, Sh = sort(Sa), sort(Sh)
     ### m hidden neurons, n output neurons, o synapses per neuron/input pair
-    ### (i, j, k) denotes kth synapse from hidden i to output j
-    ### w[n_o*i+o*j+k] --------------> (i, j, k)
-    ### w[o*j+k:m_n_o:n_o] ----------> (:, j, k)
+    ### (i, j) denotes synapse from hidden i to output j
+    ### w[n*i+o*j] ------------------> (i, j, k)
+    ### w[o*j:m_n:n] ----------------> (:, j, k)
     ### w[n_o*i+k:n_o*(i+1)+k:o] ----> (i, :, k)
     dw = np.zeros(np.shape(w))
     for j in range(n): # output neurons
         for i in range(m): # hidden neurons
             dw_tmp = 0
-            s_dh = smaller_indices(Sd[j], Sh)
-            s_hd = larger_indices(Sd[j], Sh)
+            s_dh = smaller_indices(Sd[j], Sh[i])
+            s_hd = larger_indices(Sd[j], Sh[i])
             for g in range(len(s_dh)):
                 s = Sd[j] - Sh[s_dh[g]]
-                dw_tmp += a - resume_kernel(s)
+                dw_tmp += a - resume_kernel(self, s)
             for g in range(len(s_hd)):
                 s = Sh[s_hd[g]] - Sd[j]
-                dw_tmp += a + resume_kernel(s)
+                dw_tmp += a + resume_kernel(self, s)
             for g in range(len(Sh[i])):
                 s_ha = smaller_indices(Sh[i][g], Sa[j])
                 for h in range(len(s_ha)):
                     s = Sh[i][g] - Sa[j][s_ha[h]]
-                    dw_tmp -= a - resume_kernel(s)
+                    dw_tmp -= a - resume_kernel(self, s)
             for g in range(len(Sa[i])):
                 s_ah = smaller_indices(Sh[i])
                 for h in range(len(s_ah)):
                     s = Sa[i][g] - Sh[i][s_ah[h]]
-                    dw_tmp -= a + resume_kernel(s)
+                    dw_tmp -= a + resume_kernel(self, s)
             dw[n_o*i+o*j] = dw_tmp
     return dw
 
@@ -157,7 +158,7 @@ def supervised_update(self, display=False, method='resume'):
         self.net['synapses_output'].w += self.r*dw[1]
         self.net['synapses_hidden'].w += self.r*dw[0]
     else:
-        dw = self.normad_supervised_update_setup()
+        dw = normad_supervised_update_setup(self)
         self.net.restore()
         self.net['synapses_output'].w += self.r*dw
     self.net.store()

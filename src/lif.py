@@ -112,7 +112,8 @@ class net:
         So.connect('True')
 
         Sh.w[:, :] = '(1000*rand()+750)'
-        So.w[:, :] = '(1000*rand()+750)'
+        So.w[:, :] = '0*(1000*rand()+750)'
+        So.w[0, 1] = '700'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'
@@ -324,6 +325,8 @@ class net:
             self.net.run(T*br.ms)
         else:
             self.net.run(self.T*br.ms)
+        w = self.net['synapses_output'].w
+        pudb.set_trace()
 
     def train(self, a, b, method='resume', threshold=0.7):
         i = 0

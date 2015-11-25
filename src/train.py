@@ -99,7 +99,7 @@ def resume_update_output_weights(self):
                 for h in range(len(s_ha)):
                     s = Sh[i][g] - Sa[j][s_ha[h]]
                     dw_tmp -= a - resume_kernel(self, s)
-            for g in range(len(Sa[i])):
+            for g in range(len(Sh[i])):
                 s_ah = smaller_indices(Sh[i][g], Sa[j])
                 for h in range(len(s_ah)):
                     s = Sa[i][g] - Sh[i][s_ah[h]]

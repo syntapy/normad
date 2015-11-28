@@ -1,5 +1,7 @@
 import numpy as np
 import pudb
+import brian2 as br
+br.prefs.codegen.target = 'weave'  # use the Python fallback
 
 def sort(S):
     if len(S) > 0:
@@ -102,7 +104,8 @@ def resume_update_output_weights(self):
             for g in range(len(Sh[i])):
                 s_ah = smaller_indices(Sh[i][g], Sa[j])
                 for h in range(len(s_ah)):
-                    s = Sa[i][g] - Sh[i][s_ah[h]]
+                    #pudb.set_trace()
+                    s = Sh[i][g] -  Sa[j][s_ah[h]] 
                     dw_tmp -= a + resume_kernel(self, s)
             dw[n*i+j] = dw_tmp
     return dw

@@ -9,6 +9,7 @@ import pudb
 import display
 import spike_correlation
 import train
+br.prefs.codegen.target = 'weave'  # use the Python fallback
 
 class net:
 
@@ -216,7 +217,7 @@ class net:
             S = self.net_out['crossings_o']
 
         if t=='dict':
-            return S.i, S.t/br.second
+            return S.i, S.t
         return S.all_values()['t']
 
     def set_train_spikes(self, indices=[], times=[], desired=[]):
@@ -240,9 +241,12 @@ class net:
     def transfer_spikes(self):
         i, t = self.get_spikes()
         #pudb.set_trace()
-        t -= np.min(t)*br.second
+        if len(t) > 0:
+            t = t / br.second
+            t -= np.min(t)
+            t = t*br.second
         self.net_out.restore()
-        self.net_out['input_out'].set_spikes(indices=i, times=t*br.second)
+        self.net_out['input_out'].set_spikes(indices=i, times=t)
         self.net_out.store()
 
     def uniform_input(self):
@@ -319,7 +323,7 @@ class net:
         if dw_n > 0:
             return dw_t
         return 0
-    
+
     def test(self, N=100, K=250, T=80):
         """
         N: range of number of input synapses to test

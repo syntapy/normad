@@ -23,17 +23,17 @@ def larger_indices(a, B):
 
 def resume_kernel(self, s):
     A = 3.0
-    tau=self.net['synapses_hidden'].tau1
+    tau=self.net_hidden['synapses_hidden'].tau1
     return A*np.exp(-s/tau)
 
 def resume_update_hidden_weights(self):
     a = 1.0     # non-hebbian weight term
     m, n, o= self.N_inputs, self.N_hidden, self.N_output
     n_o, m_n_o = n*o, m*n*o
-    w_ih = self.net['synapses_hidden'].w[:]
-    w_ho = self.net['synapses_output'].w[:]
+    w_ih = self.net_hidden['synapses_hidden'].w[:]
+    w_ho = self.net_out['synapses_output'].w[:]
     Si = self.times
-    Sh = self.net['crossings_h'].all_values()['t']
+    Sh = self.net_hidden['crossings_h'].all_values()['t']
     Sa, Sd = self.actual, self.desired
 
     ### m input neurons, n hidden neurons, o output neurons
@@ -70,11 +70,11 @@ def resume_update_hidden_weights(self):
 def resume_update_output_weights(self):
     a = 1.0     # non-hebbian weight term
     #pudb.set_trace()
-    Sh = self.net['crossings_h'].all_values()['t']
+    Sh = self.net_hidden['crossings_h'].all_values()['t']
     Sa, Sd = self.actual, self.desired
     m, n, o= self.N_hidden, self.N_output, 1
     n_o, m_n_o = n*o, m*n*o
-    w = self.net['synapses_output'].w[:]
+    w = self.net_out['synapses_output'].w[:]
 
     Sa, Sh = sort(Sa), sort(Sh)
     ### m hidden neurons, n output neurons, o synapses per neuron/input pair
@@ -153,14 +153,17 @@ def normad_supervised_update_setup(self):
 def supervised_update(self, display=False, method='resume'):
     if method == 'resume':
         dw = resume_supervised_update_setup(self)
-        self.net.restore()
-        self.net['synapses_output'].w += self.r*dw[1]
-        self.net['synapses_hidden'].w += self.r*dw[0]
+        self.net_out.restore()
+        self.net_hidden.restore()
+        self.net_out['synapses_output'].w += self.r*dw[1]
+        self.net_hidden['synapses_hidden'].w += self.r*dw[0]
     else:
         dw = normad_supervised_update_setup(self)
-        self.net.restore()
+        self.net_out.restore()
+        self.net_hidden.restore()
         self.net['synapses_output'].w += self.r*dw
-    self.net.store()
+    self.net_out.store()
+    self.net_hidden.store()
     if display:
         #self.print_dw_vec(dw, self.r)
         self.print_dws(dw)
@@ -168,7 +171,7 @@ def supervised_update(self, display=False, method='resume'):
 def train_step(self, T=None, method='resume'):
     self.run(T)
     #pudb.set_trace()
-    self.actual = self.net['crossings_o'].all_values()['t']
+    self.actual = self.net_out['crossings_o'].all_values()['t']
     #a = self.net['crossings'].all_values()['t']
     #tdf = self.tdiff_rms()
     supervised_update(self, method=method)

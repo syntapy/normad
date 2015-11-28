@@ -41,10 +41,10 @@ class net:
         self.__groups()
 
     def __groups(self):
-        inputs = br.SpikeGeneratorGroup(self.N_inputs, 
+        inputs_hidden = br.SpikeGeneratorGroup(self.N_inputs, 
                                         indices=np.asarray([]), 
                                         times=np.asarray([])*br.ms, 
-                                        name='input')
+                                        name='input_hidden')
         hidden = br.NeuronGroup(self.N_hidden, \
                                model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
                                         gL = 30                                     : 1 (shared)
@@ -54,6 +54,10 @@ class net:
                                         D                                           : 1''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
+        inputs_out = br.SpikeGeneratorGroup(self.N_hidden, 
+                                        indices=np.asarray([]), 
+                                        times=np.asarray([])*br.ms, 
+                                        name='input_out')
         output = br.NeuronGroup(self.N_output, \
                                model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
                                         gL = 30                                     : 1 (shared)
@@ -66,7 +70,7 @@ class net:
         #hidden = br.Subgroup(neurons, 0, self.N_hidden, name='hidden')
         #output = br.Subgroup(neurons, self.N_hidden, self.N_hidden+self.N_output, name='output')
 
-        Sh = br.Synapses(inputs, hidden,
+        Sh = br.Synapses(inputs_hidden, hidden,
                     model='''
                             tl                                                  : second
                             tp                                                  : second
@@ -85,7 +89,7 @@ class net:
                             f = w*c                                             : 1
                             D_post = w*c*ul                                     : 1 (summed) ''',
                     pre='tp=t', post='tl=t', name='synapses_hidden', dt=self.dta)
-        So = br.Synapses(hidden, output, 
+        So = br.Synapses(inputs_out, output, 
                    model='''tl                                                  : second
                             tp                                                  : second
                             tau1 = 0.0025                                       : second (shared)
@@ -126,10 +130,11 @@ class net:
         #F = br.StateMonitor(S, 'f', record=True, name='monitor_f')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
-        self.net = br.Network(inputs, hidden, output, Sh, So, M, N, Th, To)
-        self.actual = self.net['crossings_o'].all_values()['t']
-        self.w_shape = So.w[:, :].shape
-        self.net.store()
+        self.net_hidden = br.Network(inputs_hidden, hidden, Sh, Th)
+        self.net_out = br.Network(inputs_out, output, So, M, N, To)
+        self.actual = self.net_out['crossings_o'].all_values()['t']
+        self.net_hidden.store()
+        self.net_out.store()
 
     ##################
     ### DATA SETUP ### 
@@ -202,11 +207,23 @@ class net:
     ### SET INPUT / OUTPUT ###
     ##########################
 
+    def get_spikes(self, name='hidden', t='dict'):
+        if name != 'hidden':
+            name = 'output'
+        if name == 'hidden':
+            S = self.net_hidden['crossings_h']
+        elif name == 'output':
+            S = self.net_out['crossings_o']
+
+        if t=='dict':
+            return S.i, S.t/br.second
+        return S.all_values()['t']
+
     def set_train_spikes(self, indices=[], times=[], desired=[]):
-        self.net.restore()
+        self.net_hidden.restore()
         self.indices, self.times, self.desired = indices, times*br.ms, desired*br.ms
-        self.net['input'].set_spikes(indices=self.indices, times=self.times)
-        self.net.store()
+        self.net_hidden['input_hidden'].set_spikes(indices=self.indices, times=self.times)
+        self.net_hidden.store()
 
     def read_image(self, index, kind='train'):
         array = self.data[kind][index]
@@ -216,9 +233,17 @@ class net:
         desired = np.zeros(self.N_output)
         self.T = int(ma.ceil(max(np.max(desired), np.max(times)) + self.tauLP))
         desired[label] = int(ma.ceil(self.T))
-        self.T += 5
+        #self.T += 5
         self.set_train_spikes(indices=indices, times=times, desired=desired)
-        self.net.store()
+        self.net_hidden.store()
+
+    def transfer_spikes(self):
+        i, t = self.get_spikes()
+        #pudb.set_trace()
+        t -= np.min(t)*br.second
+        self.net_out.restore()
+        self.net_out['input_out'].set_spikes(indices=i, times=t*br.second)
+        self.net_out.store()
 
     def uniform_input(self):
         self.net.restore()
@@ -228,8 +253,9 @@ class net:
         self.T = 20
 
     def reset(self):
-        self.net.restore()
-        self.net['synapses'].w[:, :] = '0'
+        self.net_hidden.restore()
+        self.net_out.restore()
+        self.net_hidden['synapses'].w[:, :] = '0'
         self._input_output()
 
     ##################
@@ -278,16 +304,6 @@ class net:
                 r += (actual[i] - desired[i])**2
             return (r / float(n))**0.5
 
-    def test_weight_order(self):
-        n = len(self.net['synapses'].w)
-        for i in range(n):
-            self.net.restore()
-            self.net['synapses'].w[:, :] = '0'
-            self.net['synapses'].w[i] = 30000
-            self.net.store()
-            self.run(self.T)
-            self.plot()
-
     ##########################
     ### TRAINING / RUNNING ###
     ##########################
@@ -320,13 +336,15 @@ class net:
             self.train()
 
     def run(self, T):
-        self.net.restore()
+        self.net_hidden.restore()
+        self.net_out.restore()
         if T != None and T >= self.T:
-            self.net.run(T*br.ms)
+            self.net_hidden.run(T*br.ms)
+            Sh = self.net['crossings_h'].all_values()['t']
         else:
-            self.net.run(self.T*br.ms)
-        #w = self.net['synapses_output'].w
-        #pudb.set_trace()
+            self.net_hidden.run(self.T*br.ms)
+            self.transfer_spikes()
+            self.net_out.run(self.T*br.ms)
 
     def train(self, a, b, method='resume', threshold=0.7):
         i = 0

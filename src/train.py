@@ -111,7 +111,7 @@ def resume_update_output_weights(self):
     return dw
 
 def resume_supervised_update_setup(self):
-    dw = np.empty(2, dtype=object)
+    dw = np.zeros(2, dtype=object)
     dw[1] = resume_update_output_weights(self)
     dw[0] = resume_update_hidden_weights(self)
 

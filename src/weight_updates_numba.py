@@ -1,4 +1,5 @@
 import numpy as np
+import numba
 
 def sort(S):
     if len(S) > 0:
@@ -24,6 +25,7 @@ def resume_kernel(s, tau):
     A = 3.0
     return A*np.exp(-s/tau)
 
+@numba.jit(nopython=True)
 def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, Si, Sh, Sa, Sd, tau):
     a = 1.0     # non-hebbian weight term
     n_o, m_n_o = n*o, m*n*o
@@ -57,6 +59,7 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, Si, Sh, Sa, Sd, tau):
             dw_ih[n*i+j] += dw_tmp
     return dw_ih
 
+@numba.jit(nopython=True)
 def resume_update_output_weights(dw_ho, m, n, o, Sh, Sa, Sd, tau):
     a = 1.0     # non-hebbian weight term
     #pudb.set_trace()

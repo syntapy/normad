@@ -1,0 +1,1 @@
+ctags --exclude=weight_updates_cy.py --exclude=weight_updates_py.py *.py

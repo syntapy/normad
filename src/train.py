@@ -1,9 +1,9 @@
 import numpy as np
 import pudb
 import brian2 as br
-import weight_updates
-br.prefs.codegen.target = 'weave'  # use the Python fallback
+import weight_updates_numba as weight_updates
 
+br.prefs.codegen.target = 'weave'  # use the Python fallback
 def resume_supervised_update_setup(self):
     dw = np.zeros(2, dtype=object)
     Sh = self.net_hidden['crossings_h'].all_values()['t']
@@ -17,6 +17,7 @@ def resume_supervised_update_setup(self):
     dw_ho = np.zeros(np.shape(w_ho))
     dw_ih = np.zeros(np.shape(w_ih))
     tau=self.net_hidden['synapses_hidden'].tau1
+    pudb.set_trace()
     dw[1] = weight_updates.resume_update_output_weights(dw_ho, n, o, 1, Sh, Sa, Sd, tau)
     dw[0] = weight_updates.resume_update_hidden_weights(dw_ih, w_ho, m, n, o, Si, Sh, Sa, Sd, tau)
 

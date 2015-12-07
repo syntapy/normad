@@ -116,8 +116,8 @@ class net:
         Sh.connect('True')
         So.connect('True')
 
-        Sh.w[:, :] = '(1000*rand()+750)'
-        So.w[:, :] = '0*(1000*rand()+750)'
+        Sh.w[:, :] = '(1000*rand()+1750)'
+        So.w[:, :] = '(1000*rand()+1750)'
         #So.w[0, 1] = '700'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
@@ -222,7 +222,7 @@ class net:
 
     def set_train_spikes(self, indices=[], times=[], desired=[]):
         self.net_hidden.restore()
-        self.indices, self.times, self.desired = indices, times*br.ms, desired*br.ms
+        self.indices, self.times, self.desired = indices, times*br.ms, desired
         self.net_hidden['input_hidden'].set_spikes(indices=self.indices, times=self.times)
         self.net_hidden.store()
 

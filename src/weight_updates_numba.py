@@ -21,12 +21,13 @@ def larger_indices(a, B):
             indices.append(i)
     return np.asarray(indices)
 
+@numba.jit(nopython=True)
 def resume_kernel(s, tau):
     A = 3.0
     return A*np.exp(-s/tau)
 
 @numba.jit(nopython=True)
-def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, Si, Sh, Sa, Sd, tau):
+def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ia, ta, tau):
     a = 1.0     # non-hebbian weight term
     n_o, m_n_o = n*o, m*n*o
 
@@ -35,64 +36,63 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, Si, Sh, Sa, Sd, tau):
     ### w[n*i+j] ---------------------> (i, j, k)
     ### w[o*j:m_n:n] -----------------> (:, j, k)
     ### w[n*i:n*(i+1)] ---------------> (i, :, k)
-    for j in range(n):
-        for i in range(m):
-            dw_tmp = 0
-            for g in range(o):
-                if Sd[g] <= Si[i]:
-                    s = Si[i] - Sd[g]
-                    dw_tmp += resume_kernel(s, tau)
-                s_ia = smaller_indices(Si[i], Sa[g])
-                for h in range(len(s_ia)):
-                    s = Si[i] - Sa[g][s_ia[h]]
-                    dw_tmp -= resume_kernel(s, tau)
-                dw_tmp *= w_ho[n*i+j]
-                if Si[i] < Sd[g]:
-                    s = Sd[g] - Si[i]
-                    dw_tmp += a + resume_kernel(s, tau)
-                h = 0
-                while h < len(Sa[g]) and Si[i] <= Sa[g][h] :
-                    s = Sa[g][h] - Si[i]
-                    dw_tmp -= a + resume_kernel(s, tau)
-                    h += 1
-                dw_tmp *= w_ho[n*i+j] / float(m*n)
-            dw_ih[n*i+j] += dw_tmp
+
+    # loop over input neurons
+    for I in range(len(ii)):
+        i = ii[I]
+        # loop over hidden neurons
+        for k in range(n):
+            # loop over output neurons
+            for J in range(len(ta)):
+                j = ia[J]
+                s = ta[j] - ti[i]
+                if s > 0:
+                    dw_ih[o*i+j] -= -resume_kernel(s, tau)*w_ho[o*k+j]
+                else:
+                    dw_ih[o*i+j] -= (a + resume_kernel(s, tau))*w_ho[o*k+j]
+            for j in range(len(d)):
+                if d[j] != 0:
+                    s = d[j] - ti[i]
+                    if s > 0:
+                        dw_i[o*i+j] -= resume_kernel(s, tau)*w_ho[o*k+j]
+                    else:
+                        dw_ih[o*i+j] += a + resume_kernel(s, tau)*w_ho[o*k+j]
+    dw_ih /= (m*n)
     return dw_ih
 
 @numba.jit(nopython=True)
-def resume_update_output_weights(dw_ho, m, n, o, Sh, Sa, Sd, tau):
+def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
     a = 1.0     # non-hebbian weight term
     #pudb.set_trace()
     n_o, m_n_o = n*o, m*n*o
 
     ### m hidden neurons, n output neurons, o synapses per neuron/input pair
-    ### (i, j) denotes synapse from hidden i to output j
+    ### (i, j) denotes synapse from hidden i ta output j
     ### w[n*i+o*j] ------------------> (i, j)
     ### w[o*j:m_n:n] ----------------> (:, j)
     ### w[n*i:n*(i+1)] --------------> (i, :)
-    for j in range(n): # output neurons
-        for i in range(m): # hidden neurons
-            dw_tmp = 0
-            s_dh = smaller_indices(Sd[j], Sh[i])
-            s_hd = larger_indices(Sd[j], Sh[i])
-            for g in range(len(s_dh)):
-                s = Sd[j] - Sh[i][s_dh[g]]
-                dw_tmp += a - resume_kernel(s, tau)
-            for g in range(len(s_hd)):
-                s = Sh[i][s_hd[g]] - Sd[j]
-                dw_tmp += a + resume_kernel(s, tau)
-            for g in range(len(Sh[i])):
-                s_ha = smaller_indices(Sh[i][g], Sa[j])
-                for h in range(len(s_ha)):
-                    s = Sh[i][g] - Sa[j][s_ha[h]]
-                    dw_tmp -= a - resume_kernel(s, tau)
-            for g in range(len(Sh[i])):
-                s_ah = smaller_indices(Sh[i][g], Sa[j])
-                for h in range(len(s_ah)):
-                    #pudb.set_trace()
-                    s = Sh[i][g] -  Sa[j][s_ah[h]] 
-                    dw_tmp -= a + resume_kernel(s, tau)
-            dw_ho[n*i+j] = dw_tmp
+
+    # loop over hidden spikes
+    for I in range(len(ih)):
+        i = ih[I]
+        # loop over output spikes
+        for J in range(len(ia)):
+            j = oh[J]
+            s = ta[J] - th[I]
+            if s > 0:
+                dw_ho[o*i+j] += -resume_kernel(-s, tau)
+            elif:
+                dw_ho[o*i+j] -= a + resume_kernel(s, tau)
+        # loop over desired spikes
+        for j in range(len(d)):
+            if d[j] != 0:
+                s = d[j] - th[I]
+                if s > 0:
+                    dw_ho[o*i+j] += -resume_kernel(-s, tau)
+                else:
+                    dw_ho[o*i+j] += a + resume_kernel(s, tau)
+
+    dw_ho /= n
     return dw_ho
 
 def normad_supervised_update_setup(self):

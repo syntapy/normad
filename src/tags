@@ -47,8 +47,8 @@ read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	cla
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
 resume_kernel	weight_updates_numba.py	/^def resume_kernel(s, tau):$/;"	f
 resume_supervised_update_setup	train.py	/^def resume_supervised_update_setup(self):$/;"	f
-resume_update_hidden_weights	weight_updates_numba.py	/^def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, Si, Sh, Sa, Sd, tau):$/;"	f
-resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_weights(dw_ho, m, n, o, Sh, Sa, Sd, tau):$/;"	f
+resume_update_hidden_weights	weight_updates_numba.py	/^def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ia, ta, tau):$/;"	f
+resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):$/;"	f
 rflatten	lif.py	/^    def rflatten(self, A):$/;"	m	class:net
 rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:lif_tester
 run	lif.py	/^    def run(self, T):$/;"	m	class:net

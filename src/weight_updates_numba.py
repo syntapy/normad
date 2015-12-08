@@ -27,7 +27,7 @@ def resume_kernel(s, tau):
     return A*np.exp(-s/tau)
 
 @numba.jit(nopython=True)
-def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ia, ta, tau):
+def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau):
     a = 1.0     # non-hebbian weight term
     n_o, m_n_o = n*o, m*n*o
 
@@ -54,7 +54,7 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ia, ta, tau):
                 if d[j] != 0:
                     s = d[j] - ti[i]
                     if s > 0:
-                        dw_i[o*i+j] -= resume_kernel(s, tau)*w_ho[o*k+j]
+                        dw_ih[o*i+j] -= resume_kernel(s, tau)*w_ho[o*k+j]
                     else:
                         dw_ih[o*i+j] += a + resume_kernel(s, tau)*w_ho[o*k+j]
     dw_ih /= (m*n)
@@ -77,11 +77,11 @@ def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
         i = ih[I]
         # loop over output spikes
         for J in range(len(ia)):
-            j = oh[J]
+            j = ia[J]
             s = ta[J] - th[I]
             if s > 0:
                 dw_ho[o*i+j] += -resume_kernel(-s, tau)
-            elif:
+            else:
                 dw_ho[o*i+j] -= a + resume_kernel(s, tau)
         # loop over desired spikes
         for j in range(len(d)):

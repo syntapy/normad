@@ -6,23 +6,26 @@ import weight_updates_numba as weight_updates
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 def resume_supervised_update_setup(self):
     dw = np.zeros(2, dtype=object)
+    #pudb.set_trace()
+    a = self.net_hidden['input_hidden']
+    ii, ti = self.indices, self.times
     ih, th = self.net_hidden['crossings_h'].it_
     ia, ta = self.net_out['crossings_o'].it_
     d = self.desired
 
-    pudb.set_trace()
+    #pudb.set_trace()
     m, n, o= self.N_inputs, self.N_hidden, self.N_output
-    Si = self.times
-    Sa, Sd = self.actual, self.desired
-    Sa, Sh = weight_updates.sort(Sa), weight_updates.sort(Sh)
+    #Si = self.times
+    #Sa, Sd = self.actual, self.desired
+    #Sa, Sh = weight_updates.sort(Sa), weight_updates.sort(Sh)
     w_ho = self.net_out['synapses_output'].w[:]
     w_ih = self.net_hidden['synapses_hidden'].w[:]
     dw_ho = np.zeros(np.shape(w_ho))
     dw_ih = np.zeros(np.shape(w_ih))
-    tau=self.net_hidden['synapses_hidden'].tau1
-    pudb.set_trace()
-    dw[1] = weight_updates.resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau)
-    dw[0] = weight_updates.resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ih, th, ia, ta, d, tau)
+    tau=self.net_hidden['synapses_hidden'].tau1 / br.msecond
+    #pudb.set_trace()
+    dw[1] = weight_updates.resume_update_output_weights(dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
+    dw[0] = weight_updates.resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih[:], th[:], ia[:], ta[:], d, tau)
 
     return dw
 
@@ -45,8 +48,8 @@ def supervised_update(self, display=False, method='resume'):
         self.print_dws(dw)
 
 def train_step(self, T=None, method='resume'):
-    self.run(T)
     #pudb.set_trace()
+    self.run(T)
     a = self.net_out['crossings_o']
     self.actual = a.all_values()['t']
     #a = self.net['crossings'].all_values()['t']

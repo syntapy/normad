@@ -3,7 +3,7 @@ import pudb
 import brian2 as br
 import weight_updates_numba as weight_updates
 
-br.prefs.codegen.target = 'weave'  # use the Python fallback
+#br.prefs.codegen.target = 'weave'  # use the Python fallback
 def resume_supervised_update_setup(self):
     dw = np.zeros(2, dtype=object)
     #pudb.set_trace()
@@ -12,6 +12,8 @@ def resume_supervised_update_setup(self):
     ih, th = self.net_hidden['crossings_h'].it_
     ia, ta = self.net_out['crossings_o'].it_
     d = self.desired
+
+    print "\t", ia
 
     #pudb.set_trace()
     m, n, o= self.N_inputs, self.N_hidden, self.N_output
@@ -25,11 +27,12 @@ def resume_supervised_update_setup(self):
     tau=self.net_hidden['synapses_hidden'].tau1 / br.msecond
     #pudb.set_trace()
     dw[1] = weight_updates.resume_update_output_weights(dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
-    dw[0] = weight_updates.resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih[:], th[:], ia[:], ta[:], d, tau)
+    dw[0] = weight_updates.resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
 
     return dw
 
 def supervised_update(self, display=False, method='resume'):
+    #pudb.set_trace()
     if method == 'resume':
         dw = resume_supervised_update_setup(self)
         self.net_out.restore()
@@ -41,6 +44,7 @@ def supervised_update(self, display=False, method='resume'):
         self.net_out.restore()
         self.net_hidden.restore()
         self.net['synapses_output'].w += self.r*dw
+    #pudb.set_trace()
     self.net_out.store()
     self.net_hidden.store()
     if display:
@@ -48,14 +52,11 @@ def supervised_update(self, display=False, method='resume'):
         self.print_dws(dw)
 
 def train_step(self, T=None, method='resume'):
-    #pudb.set_trace()
     self.run(T)
+    #pudb.set_trace()
     a = self.net_out['crossings_o']
     self.actual = a.all_values()['t']
-    #a = self.net['crossings'].all_values()['t']
-    #tdf = self.tdiff_rms()
     supervised_update(self, method=method)
-    #return tdf
 
 def train_epoch(self, a, b, method='resume', dsp=True):
     correct = 0

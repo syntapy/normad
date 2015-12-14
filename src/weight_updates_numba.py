@@ -46,18 +46,18 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d
             for J in range(len(ta)):
                 j = ia[J]
                 s = ta[j] - ti[i]
-                if s > 0:
-                    dw_ih[o*i+j] -= -resume_kernel(s, tau)*w_ho[o*k+j]
+                if s < 0:
+                    dw_ih[n*i+k] += resume_kernel(-s, tau)*w_ho[o*k+j]
                 else:
-                    dw_ih[o*i+j] -= (a + resume_kernel(s, tau))*w_ho[o*k+j]
+                    dw_ih[n*i+k] -= (a + resume_kernel(s, tau))*w_ho[o*k+j]
             for j in range(len(d)):
                 if d[j] != 0:
                     s = d[j] - ti[i]
-                    if s > 0:
-                        dw_ih[o*i+j] -= resume_kernel(s, tau)*w_ho[o*k+j]
+                    if s < 0:
+                        dw_ih[n*i+k] -= resume_kernel(-s, tau)*w_ho[o*k+j]
                     else:
-                        dw_ih[o*i+j] += a + resume_kernel(s, tau)*w_ho[o*k+j]
-    dw_ih /= (m*n)
+                        dw_ih[n*i+k] += a + resume_kernel(s, tau)*w_ho[o*k+j]
+    dw_ih /= float(m*n)
     return dw_ih
 
 @numba.jit(nopython=True)
@@ -79,20 +79,19 @@ def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
         for J in range(len(ia)):
             j = ia[J]
             s = ta[J] - th[I]
-            if s > 0:
-                dw_ho[o*i+j] += -resume_kernel(-s, tau)
+            if s < 0:
+                dw_ho[o*i+j] += resume_kernel(-s, tau)
             else:
                 dw_ho[o*i+j] -= a + resume_kernel(s, tau)
         # loop over desired spikes
         for j in range(len(d)):
             if d[j] != 0:
                 s = d[j] - th[I]
-                if s > 0:
-                    dw_ho[o*i+j] += -resume_kernel(-s, tau)
+                if s < 0:
+                    dw_ho[o*i+j] -= resume_kernel(s, tau)
                 else:
-                    dw_ho[o*i+j] += a + resume_kernel(s, tau)
-
-    dw_ho /= n
+                    dw_ho[o*i+j] += a + resume_kernel(-s, tau)
+    dw_ho /= float(n)
     return dw_ho
 
 def normad_supervised_update_setup(self):

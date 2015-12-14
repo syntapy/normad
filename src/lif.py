@@ -116,9 +116,8 @@ class net:
         Sh.connect('True')
         So.connect('True')
 
-        Sh.w[:, :] = '(1000*rand()+1750)'
-        So.w[:, :] = '(1000*rand()+1750)'
-        #So.w[0, 1] = '700'
+        Sh.w[:, :] = '(800*rand()+75)'
+        So.w[:, :] = '(400*rand()+75)'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'
@@ -229,6 +228,8 @@ class net:
         self.net_hidden.store()
 
     def read_image(self, index, kind='train'):
+        #pudb.set_trace()
+        self.net_hidden.restore()
         array = self.data[kind][index]
         label = self.labels[kind][index]
         times = self.tauLP / array
@@ -242,7 +243,6 @@ class net:
 
     def transfer_spikes(self):
         i, t = self.get_spikes()
-        #pudb.set_trace()
         if len(t) > 0:
             t = t / br.second
             t -= np.min(t)
@@ -351,6 +351,7 @@ class net:
             self.net_hidden.run(self.T*br.ms)
             self.transfer_spikes()
             self.net_out.run(self.T*br.ms)
+        #pudb.set_trace()
 
     def train(self, a, b, method='resume', threshold=0.7):
         i = 0

@@ -22,12 +22,12 @@ def larger_indices(a, B):
             indices.append(i)
     return np.asarray(indices)
 
-@numba.jit(nopython=True)
+#@numba.jit(nopython=True)
 def resume_kernel(s, tau):
     A = 3.0
     return A*np.exp(s/tau)
 
-@numba.jit(nopython=True)
+#@numba.jit(nopython=True)
 def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau):
     a = 1.0     # non-hebbian weight term
     n_o, m_n_o = n*o, m*n*o
@@ -44,22 +44,26 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d
             # loop over output neurons
             for J in range(len(ta)):
                 j = ia[J]
-                s = ta[j] - ti[i]
+                s = ta[J] - ti[I]
                 if s < 0:
+                    #self.am += 1
                     dw_ih[n*i+k] += resume_kernel(s, tau)*w_ho[o*k+j]
                 else:
+                    #self.ap += 1
                     dw_ih[n*i+k] -= (a + resume_kernel(-s, tau))*w_ho[o*k+j]
             for j in range(len(d)):
                 #pudb.set_trace()
-                s = d[j] - ti[i]
+                s = d[j] - ti[I]
                 if s < 0:
+                    #self.dm += 1
                     dw_ih[n*i+k] -= resume_kernel(s, tau)*w_ho[o*k+j]
                 else:
-                    dw_ih[n*i+k] += a + resume_kernel(-s, tau)*w_ho[o*k+j]
+                    #self.dp += 1
+                    dw_ih[n*i+k] += (a + resume_kernel(-s, tau))*w_ho[o*k+j]
     dw_ih /= float(m*n)
     return dw_ih
 
-@numba.jit(nopython=True)
+#@numba.jit(nopython=True)
 def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
     a = 1.0     # non-hebbian weight term
     #pudb.set_trace()
@@ -77,15 +81,19 @@ def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
             j = ia[J]
             s = ta[J] - th[I]
             if s < 0:
+                #self.am += 1
                 dw_ho[o*i+j] += resume_kernel(s, tau)
             else:
+                #self.ap += 1
                 dw_ho[o*i+j] -= a + resume_kernel(-s, tau)
         # loop over desired spikes
         for j in range(len(d)):
             s = d[j] - th[I]
             if s < 0:
+                #self.dm += 1
                 dw_ho[o*i+j] -= resume_kernel(s, tau)
             else:
+                #self.dp += 1
                 dw_ho[o*i+j] += a + resume_kernel(-s, tau)
     dw_ho /= float(n)
     return dw_ho

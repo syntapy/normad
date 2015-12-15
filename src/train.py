@@ -27,8 +27,12 @@ def resume_supervised_update_setup(self):
     #pudb.set_trace()
     tau=self.net_hidden['synapses_hidden'].tau1 / br.msecond
     #pudb.set_trace()
+    self.am, self.dm, self.ap, self.dp = 0, 0, 0, 0
     dw[1] = weight_updates.resume_update_output_weights(dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
+    #print '\t', self.am, self.dm, self.ap, self.dp
+    self.am, self.dm, self.ap, self.dp = 0, 0, 0, 0
     dw[0] = weight_updates.resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
+    #print '\t', self.am, self.dm, self.ap, self.dp
 
     return dw
 
@@ -36,6 +40,7 @@ def supervised_update(self, display=False, method='resume'):
     #pudb.set_trace()
     if method == 'resume':
         dw = resume_supervised_update_setup(self)
+        print '\t', np.mean(dw[1]), np.mean(dw[0])
         self.net_out.restore()
         self.net_hidden.restore()
         self.net_out['synapses_output'].w += self.r*dw[1]

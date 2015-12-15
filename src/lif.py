@@ -20,7 +20,7 @@ class net:
     def __init__(self, N_hidden=20, N_output=10, N_input=4, data='mnist', seed=5):
         self.changes = []
         self.trained = False
-        self.r = 4.0
+        self.r = 0.01
         self.dta = 0.2*br.ms
         self.N_hidden = N_hidden
         self.N_output = N_output
@@ -116,8 +116,10 @@ class net:
         Sh.connect('True')
         So.connect('True')
 
-        Sh.w[:, :] = '(800*rand()+75)'
-        So.w[:, :] = '(400*rand()+75)'
+        Sh.w[:, :] = '(80*rand()+5)'
+        So.w[:, :] = '(40*rand()+5)'
+        #Sh.w[:, :] = '(1000*rand()+750)'
+        #So.w[:, :] = '(1000*rand()+750)'
         #Sh.w[1, 0] = '200'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
@@ -236,10 +238,9 @@ class net:
         times = self.tauLP / array
         indices = np.arange(len(array))
         desired = np.ones(self.N_output) 
-        self.T = int(ma.ceil(max(np.max(desired), np.max(times)) + 2*self.tauLP))
-        desired *= self.T + 4
+        self.T = int(ma.ceil(max(np.max(desired), np.max(times)) + self.tauLP))
+        desired *= 0.001*(self.T + 4)
         desired[label] = int(ma.ceil(self.T))
-        #self.T += 5
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net_hidden.store()
 

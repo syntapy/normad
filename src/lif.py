@@ -118,6 +118,7 @@ class net:
 
         Sh.w[:, :] = '(800*rand()+75)'
         So.w[:, :] = '(400*rand()+75)'
+        #Sh.w[1, 0] = '200'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'
@@ -234,8 +235,9 @@ class net:
         label = self.labels[kind][index]
         times = self.tauLP / array
         indices = np.arange(len(array))
-        desired = np.zeros(self.N_output)
-        self.T = int(ma.ceil(max(np.max(desired), np.max(times)) + self.tauLP))
+        desired = np.ones(self.N_output) 
+        self.T = int(ma.ceil(max(np.max(desired), np.max(times)) + 2*self.tauLP))
+        desired *= self.T + 4
         desired[label] = int(ma.ceil(self.T))
         #self.T += 5
         self.set_train_spikes(indices=indices, times=times, desired=desired)

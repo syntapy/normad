@@ -1,3 +1,4 @@
+import pudb
 import numpy as np
 import numba
 
@@ -24,7 +25,7 @@ def larger_indices(a, B):
 @numba.jit(nopython=True)
 def resume_kernel(s, tau):
     A = 3.0
-    return A*np.exp(-s/tau)
+    return A*np.exp(s/tau)
 
 @numba.jit(nopython=True)
 def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau):
@@ -32,10 +33,8 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d
     n_o, m_n_o = n*o, m*n*o
 
     ### m input neurons, n hidden neurons, o output neurons
-    ### (i, j) denotes the synapse from input i to hidden j
-    ### w[n*i+j] ---------------------> (i, j, k)
-    ### w[o*j:m_n:n] -----------------> (:, j, k)
-    ### w[n*i:n*(i+1)] ---------------> (i, :, k)
+    ### w_ih[n*i + j] acceses the synapse from input i to hidden j
+    ### w_ho[o*i + j] acceses synapses from hidden i to output j
 
     # loop over input neurons
     for I in range(len(ii)):
@@ -47,16 +46,16 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d
                 j = ia[J]
                 s = ta[j] - ti[i]
                 if s < 0:
-                    dw_ih[n*i+k] += resume_kernel(-s, tau)*w_ho[o*k+j]
+                    dw_ih[n*i+k] += resume_kernel(s, tau)*w_ho[o*k+j]
                 else:
-                    dw_ih[n*i+k] -= (a + resume_kernel(s, tau))*w_ho[o*k+j]
+                    dw_ih[n*i+k] -= (a + resume_kernel(-s, tau))*w_ho[o*k+j]
             for j in range(len(d)):
-                if d[j] != 0:
-                    s = d[j] - ti[i]
-                    if s < 0:
-                        dw_ih[n*i+k] -= resume_kernel(-s, tau)*w_ho[o*k+j]
-                    else:
-                        dw_ih[n*i+k] += a + resume_kernel(s, tau)*w_ho[o*k+j]
+                #pudb.set_trace()
+                s = d[j] - ti[i]
+                if s < 0:
+                    dw_ih[n*i+k] -= resume_kernel(s, tau)*w_ho[o*k+j]
+                else:
+                    dw_ih[n*i+k] += a + resume_kernel(-s, tau)*w_ho[o*k+j]
     dw_ih /= float(m*n)
     return dw_ih
 
@@ -67,10 +66,8 @@ def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
     n_o, m_n_o = n*o, m*n*o
 
     ### m hidden neurons, n output neurons, o synapses per neuron/input pair
-    ### (i, j) denotes synapse from hidden i ta output j
-    ### w[n*i+o*j] ------------------> (i, j)
-    ### w[o*j:m_n:n] ----------------> (:, j)
-    ### w[n*i:n*(i+1)] --------------> (i, :)
+    ### w_ih[n*i + j] acceses the synapse from input i to hidden j
+    ### w_ho[o*i + j] acceses synapses from hidden i to output j
 
     # loop over hidden spikes
     for I in range(len(ih)):
@@ -80,17 +77,16 @@ def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
             j = ia[J]
             s = ta[J] - th[I]
             if s < 0:
-                dw_ho[o*i+j] += resume_kernel(-s, tau)
+                dw_ho[o*i+j] += resume_kernel(s, tau)
             else:
-                dw_ho[o*i+j] -= a + resume_kernel(s, tau)
+                dw_ho[o*i+j] -= a + resume_kernel(-s, tau)
         # loop over desired spikes
         for j in range(len(d)):
-            if d[j] != 0:
-                s = d[j] - th[I]
-                if s < 0:
-                    dw_ho[o*i+j] -= resume_kernel(s, tau)
-                else:
-                    dw_ho[o*i+j] += a + resume_kernel(-s, tau)
+            s = d[j] - th[I]
+            if s < 0:
+                dw_ho[o*i+j] -= resume_kernel(s, tau)
+            else:
+                dw_ho[o*i+j] += a + resume_kernel(-s, tau)
     dw_ho /= float(n)
     return dw_ho
 

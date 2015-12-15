@@ -13,7 +13,7 @@ def resume_supervised_update_setup(self):
     ia, ta = self.net_out['crossings_o'].it_
     d = self.desired
 
-    print "\t", ia
+    print "\t", ta
 
     #pudb.set_trace()
     m, n, o= self.N_inputs, self.N_hidden, self.N_output
@@ -24,6 +24,7 @@ def resume_supervised_update_setup(self):
     w_ih = self.net_hidden['synapses_hidden'].w[:]
     dw_ho = np.zeros(np.shape(w_ho))
     dw_ih = np.zeros(np.shape(w_ih))
+    #pudb.set_trace()
     tau=self.net_hidden['synapses_hidden'].tau1 / br.msecond
     #pudb.set_trace()
     dw[1] = weight_updates.resume_update_output_weights(dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)

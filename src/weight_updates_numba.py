@@ -24,12 +24,12 @@ def larger_indices(a, B):
 
 #@numba.jit(nopython=True)
 def resume_kernel(s, tau):
-    A = 3.0
+    A = 0.1
     return A*np.exp(s/tau)
 
 #@numba.jit(nopython=True)
 def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau):
-    a = 1.0     # non-hebbian weight term
+    a = 0.1     # non-hebbian weight term
     n_o, m_n_o = n*o, m*n*o
 
     ### m input neurons, n hidden neurons, o output neurons
@@ -65,7 +65,7 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d
 
 #@numba.jit(nopython=True)
 def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
-    a = 1.0     # non-hebbian weight term
+    a = 0.1     # non-hebbian weight term
     #pudb.set_trace()
     n_o, m_n_o = n*o, m*n*o
 

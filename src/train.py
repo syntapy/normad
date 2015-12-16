@@ -14,6 +14,7 @@ def resume_supervised_update_setup(self):
     d = self.desired
 
     print "\t", ta
+    print "\t", ia
 
     #pudb.set_trace()
     m, n, o= self.N_inputs, self.N_hidden, self.N_output

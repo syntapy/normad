@@ -237,10 +237,10 @@ class net:
         label = self.labels[kind][index]
         times = self.tauLP / array
         indices = np.arange(len(array))
+        self.T = int(ma.ceil(np.max(times)) + self.tauLP)
         desired = np.ones(self.N_output) 
-        self.T = int(ma.ceil(max(np.max(desired), np.max(times)) + self.tauLP))
-        desired *= 0.001*(self.T + 4)
-        desired[label] = int(ma.ceil(self.T))
+        desired *= 0.001*(2*self.T + 4)
+        desired[label] = 0.001*np.ceil(self.T)
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net_hidden.store()
 
@@ -289,11 +289,17 @@ class net:
 
     def neuron_right_outputs(self):
         actual, desired = self.actual, self.desired
+        on = np.min(desired)
+        off = np.max(desired)
+        #pudb.set_trace()
         for i in range(len(desired)):
-            if desired[i] == 0:
-                if len(actual[i]) > 0:
+            if len(actual[i]) != 1:
+                return False
+            if desired[i] == on:
+                if len(actual[i]) != 1:
                     return False
-            else:
+                if actual[i][0] - 
+            elif desired[i] == off:
                 if len(actual[i]) != 1:
                     return False
         return True

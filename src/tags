@@ -23,11 +23,7 @@ _poisson	lift.py	/^    def _poisson(self, r, spacing, Ti, Tf):$/;"	m	class:lif_t
 _prel_SC	spike_correlation.py	/^def _prel_SC(self, Smax, Smin):$/;"	f
 _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"	m	class:lif_tester
 accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
-current	derivation.py	/^current = sp.exp(-(t - tl[i]) \/ tauA) - sp.exp(-(t - tl[i]) \/ tauB)$/;"	v
-diffeq	derivation.py	/^diffeq = sp.Eq(v(t).diff(t), Cm*(-gL*(v(t) - v0) + current(t)))$/;"	v
-ext_modules	setup.py	/^        ext_modules=cythonize("weight_updates.pyx")$/;"	v
 get_spikes	lif.py	/^    def get_spikes(self, name='hidden', t='dict'):$/;"	m	class:net
-i	derivation.py	/^i = 0$/;"	v
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
 lif_tester	lift.py	/^class lif_tester:$/;"	c
 load	lif.py	/^    def load(self):$/;"	m	class:net
@@ -37,6 +33,7 @@ neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self):$/;"	m	class:ne
 nn	driver.py	/^nn = lif.net(N_hidden=16, N_input=4)$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
+performance	lif.py	/^    def performance(self):$/;"	m	class:net
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot_actual	display.py	/^def plot_actual(self):$/;"	f
 plot_desired	display.py	/^def plot_desired(self):$/;"	f
@@ -59,17 +56,14 @@ single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, ne
 smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
 sort	weight_updates_numba.py	/^def sort(S):$/;"	f
 supervised_update	train.py	/^def supervised_update(self, display=False, method='resume'):$/;"	f
-t	derivation.py	/^t = sp.symbols('t')$/;"	v
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
 test	lif.py	/^    def test(self, N=100, K=250, T=80):$/;"	m	class:net
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:lif_tester
 test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:lif_tester
 times_format	display.py	/^def times_format(self):$/;"	f
-tl	derivation.py	/^tl = sp.symbols('tl:4')$/;"	v
 train	lif.py	/^    def train(self, a, b, method='resume', threshold=0.7):$/;"	m	class:net
 train_epoch	train.py	/^def train_epoch(self, a, b, method='resume', dsp=True):$/;"	f
 train_step	train.py	/^def train_step(self, T=None, method='resume'):$/;"	f
-transfer_spikes	lif.py	/^    def transfer_spikes(self):$/;"	m	class:net
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f

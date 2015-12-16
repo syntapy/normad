@@ -2,6 +2,7 @@ import numpy as np
 import pudb
 import brian2 as br
 import weight_updates_numba as weight_updates
+import weight_updates_py
 
 #br.prefs.codegen.target = 'weave'  # use the Python fallback
 def resume_supervised_update_setup(self):
@@ -24,15 +25,14 @@ def resume_supervised_update_setup(self):
     w_ih = self.net['synapses_hidden'].w[:]
     dw_ho = np.zeros(np.shape(w_ho), dtype=np.float64)
     dw_ih = np.zeros(np.shape(w_ih), dtype=np.float64)
-    #pudb.set_trace()
     tau=self.net['synapses_hidden'].tau1 / (1000*br.msecond)
-    #pudb.set_trace()
-    #self.am, self.dm, self.ap, self.dp = 0, 0, 0, 0
-    dw_o = weight_updates.resume_update_output_weights(dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
-    #print '\t', self.am, self.dm, self.ap, self.dp
-    #self.am, self.dm, self.ap, self.dp = 0, 0, 0, 0
-    dw_h = weight_updates.resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
-    #print '\t', self.am, self.dm, self.ap, self.dp
+    dw_o = weight_updates.resume_update_output_weights(\
+                dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
+    dw_h = weight_updates.resume_update_hidden_weights(\
+                dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
+    dw_o_py = weight_updates_py.resume_update_output_weights(self)
+    dw_h_py = weight_updates_py.resume_update_hidden_weights(self)
+    pudb.set_trace()
 
     return dw_o, dw_h
 

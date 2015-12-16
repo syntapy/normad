@@ -112,8 +112,8 @@ class net:
         Sh.connect('True')
         So.connect('True')
 
-        Sh.w[:, :] = '(230*rand()+5)'
-        So.w[:, :] = '(130*rand()+5)'
+        Sh.w[:, :] = '(430*rand()+500)'
+        So.w[:, :] = '(430*rand()+500)'
         #Sh.w[:, :] = '(1000*rand()+750)'
         #So.w[:, :] = '(1000*rand()+750)'
         #Sh.w[1, 0] = '200'

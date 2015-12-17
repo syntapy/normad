@@ -271,6 +271,7 @@ class net:
         return -1
 
     def performance(self):
+        #pudb.set_trace()
         actual, desired = self.actual, self.desired
         on = np.min(desired)
         off = np.max(desired)
@@ -280,8 +281,7 @@ class net:
                 p += 20
             else:
                 for j in range(len(actual[i])):
-                    #pudb.set_trace()
-                    p += ((j+1)**2)*((actual[i][j]/br.msecond) - 1000*desired[i])**2
+                    p += ((j+1)**2)*(actual[i][j] - 1000*desired[i])**2
         return (p / float(len(desired)))**0.5
 
     def neuron_right_outputs(self):

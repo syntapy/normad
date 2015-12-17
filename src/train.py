@@ -26,15 +26,15 @@ def resume_supervised_update_setup(self):
     dw_ho = np.zeros(np.shape(w_ho), dtype=np.float64)
     dw_ih = np.zeros(np.shape(w_ih), dtype=np.float64)
     tau=self.net['synapses_hidden'].tau1 / (1000*br.msecond)
-    dw_o = weight_updates.resume_update_output_weights(\
-                dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
-    dw_h = weight_updates.resume_update_hidden_weights(\
-                dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
+    #dw_o = weight_updates.resume_update_output_weights(\
+    #            dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
+    #dw_h = weight_updates.resume_update_hidden_weights(\
+    #            dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
     dw_o_py = weight_updates_py.resume_update_output_weights(self)
     dw_h_py = weight_updates_py.resume_update_hidden_weights(self)
-    pudb.set_trace()
+    #pudb.set_trace()
 
-    return dw_o, dw_h
+    return dw_o_py, dw_h_py
 
 def supervised_update(self, display=False, method='resume'):
     #pudb.set_trace()

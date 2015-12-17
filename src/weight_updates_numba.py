@@ -24,6 +24,7 @@ def larger_indices(a, B):
 
 #@numba.jit(nopython=True)
 def resume_kernel(s, tau):
+    #pudb.set_trace()
     A = 1.0
     return A*np.exp(s/tau)
 

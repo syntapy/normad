@@ -30,7 +30,7 @@ load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_hidden=16, N_input=4)$/;"	v
+nn	driver.py	/^nn = lif.net(N_hidden=26, N_input=4)$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net

@@ -20,7 +20,7 @@ class net:
     def __init__(self, N_hidden=20, N_output=10, N_input=4, data='mnist', seed=5):
         self.changes = []
         self.trained = False
-        self.r = 1.00
+        self.r = 1.0
         self.dta = 0.2*br.ms
         self.N_hidden = N_hidden
         self.N_output = N_output
@@ -281,7 +281,8 @@ class net:
                 p += 20
             else:
                 for j in range(len(actual[i])):
-                    p += ((j+1)**2)*(actual[i][j] - 1000*desired[i])**2
+                    #pudb.set_trace()
+                    p += ((j+1)**2)*(actual[i][j]/br.msecond - 1000*desired[i])**2
         return (p / float(len(desired)))**0.5
 
     def neuron_right_outputs(self):

@@ -48,10 +48,11 @@ def resume_update_hidden_weights(self):
     ### w[n*i:n*(i+1)] ---------------> (i, :, k)
     Sa, Sh = sort(Sa, trim=False), sort(Sh, trim=True)
     dw = np.zeros(np.shape(w_ih))
+    #pudb.set_trace()
     for j in range(n):
         for i in range(m):
-            dw_tmp = 0
             for g in range(o):
+                dw_tmp = 0
                 if Sd[g] <= Si[i]:
                     s = Sd[g] - Si[i] 
                     dw_tmp -= resume_kernel(self, s)
@@ -64,10 +65,9 @@ def resume_update_hidden_weights(self):
                     dw_tmp += resume_kernel(self, s)
                 s_ai = larger_indices(Si[i], Sa[g])
                 for h in range(len(s_ai)):
-                    s = Si[i] - Sa[g][s_ia[h]]
+                    s = Si[i] - Sa[g][s_ai[h]]
                     dw_tmp -= a + resume_kernel(self, s)
-                dw_tmp *= w_ho[o*j+g]
-            dw[o*j+g] = dw_tmp
+                dw[n*i+j] += dw_tmp * w_ho[o*j+g]
     return dw / float(m*n)
 
 def resume_update_output_weights(self):

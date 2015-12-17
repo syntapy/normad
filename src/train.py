@@ -26,15 +26,25 @@ def resume_supervised_update_setup(self):
     dw_ho = np.zeros(np.shape(w_ho), dtype=np.float64)
     dw_ih = np.zeros(np.shape(w_ih), dtype=np.float64)
     tau=self.net['synapses_hidden'].tau1 / (1000*br.msecond)
-    #dw_o = weight_updates.resume_update_output_weights(\
-    #            dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
-    #dw_h = weight_updates.resume_update_hidden_weights(\
-    #            dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
-    dw_o_py = weight_updates_py.resume_update_output_weights(self)
-    dw_h_py = weight_updates_py.resume_update_hidden_weights(self)
+    dw_o = weight_updates.resume_update_output_weights(\
+                dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
+    dw_h = weight_updates.resume_update_hidden_weights(\
+                dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
+    #dw_o_py = weight_updates_py.resume_update_output_weights(self)
+    #dw_h_py = weight_updates_py.resume_update_hidden_weights(self)
+
+    #ocmp = np.allclose(dw_h, dw_h_py, rtol=4*(1e-2), atol=3e-1)
+    #hcmp = np.allclose(dw_o, dw_o_py, rtol=4*(1e-2), atol=3e-1)
+    #if not ocmp or not hcmp:
+    #    pudb.set_trace()
+
+
+    #print "\tDIFFS:"
+    #print "\t\tout:\t", dw_o - dw_o_py
+    #print "\t\thidden:\t", dw_h - dw_h_py
     #pudb.set_trace()
 
-    return dw_o_py, dw_h_py
+    return dw_o, dw_h
 
 def supervised_update(self, display=False, method='resume'):
     #pudb.set_trace()

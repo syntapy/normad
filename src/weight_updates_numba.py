@@ -66,6 +66,7 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d
 
 #@numba.jit(nopython=True)
 def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
+    #pudb.set_trace()
     a = 0.1     # non-hebbian weight term
     #pudb.set_trace()
     n_o, m_n_o = n*o, m*n*o

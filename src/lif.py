@@ -51,7 +51,7 @@ class net:
                                         gL = 30                                     : 1 (shared)
                                         El = -70                                    : 1 (shared)
                                         vt = 20                                     : 1 (shared)
-                                        Cm = 3.0                                    : 1 (shared)
+                                        Cm = 6.0                                    : 1 (shared)
                                         D                                           : 1''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
@@ -116,7 +116,7 @@ class net:
         So.w[:, :] = '(430*rand()+500)'
         #Sh.w[:, :] = '(1000*rand()+750)'
         #So.w[:, :] = '(1000*rand()+750)'
-        #Sh.w[1, 0] = '200'
+        #So.w[1, 0] = '200'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'
@@ -233,8 +233,10 @@ class net:
         indices = np.arange(len(array))
         self.T = int(ma.ceil(np.max(times)) + self.tauLP)
         desired = np.ones(self.N_output) 
-        desired *= 0.001*(self.T + 6)
-        desired[label] = 0.001*np.ceil(self.T)
+        desired *= 0.001*(self.T - 2)
+        #desired[:5] += 0.001*(3)
+        #desired[5:] *= 0.001*(self.T + 3)
+        #desired[0] = 0.001*np.ceil(self.T + 0)
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net.store()
 
@@ -339,19 +341,28 @@ class net:
     def run(self, T):
         self.net.restore()
         if T != None and T >= self.T:
-            self.net.run(T*br.ms)
-            Sh = self.net['crossings_h'].all_values()['t']
+            self.net.run(2*T*br.ms)
+            #Sh = self.net['crossings_h'].all_values()['t']
         else:
-            self.net.run(self.T*br.ms)
+            self.net.run(2*self.T*br.ms)
 
     def train(self, a, b, method='resume', threshold=0.7):
         #pudb.set_trace()
-        i = 0
+        i, j, k = 0, 0, 0
         #self.r = 1
+        pmin = 10000
         while True:
             i += 1
+            j += 1
             print "Epoch ", i
             correct, p = train.train_epoch(self, a, b, method=method)
+            if p < pmin:
+                pmin = p
+                j = 0
+            if j > 20:
+                #self.r /= 2
+                #j = 0
+                pudb.set_trace()
             print "performance: ", p
             #p_correct = float(correct) / (b - a)
             #print  ": %", p_correct, " correct"

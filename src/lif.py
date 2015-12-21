@@ -17,9 +17,10 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=20, N_output=10, N_input=4, data='mnist', seed=5):
+    def __init__(self, N_hidden=20, N_output=1, N_input=4, data='mnist', seed=5):
         self.changes = []
         self.trained = False
+        self.rb = 1.0
         self.r = 1.0
         self.dta = 0.2*br.ms
         self.N_hidden = N_hidden
@@ -35,7 +36,7 @@ class net:
         if data == 'mnist':
             self.load()
             self.N_inputs = len(self.data['train'][0])
-            self.N_output = 10
+            #self.N_output = 10
         else:
             self.N_inputs = N_inputs
         #pudb.set_trace()
@@ -51,7 +52,7 @@ class net:
                                         gL = 30                                     : 1 (shared)
                                         El = -70                                    : 1 (shared)
                                         vt = 20                                     : 1 (shared)
-                                        Cm = 6.0                                    : 1 (shared)
+                                        Cm = 12.0                                    : 1 (shared)
                                         D                                           : 1''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
@@ -112,7 +113,7 @@ class net:
         Sh.connect('True')
         So.connect('True')
 
-        Sh.w[:, :] = '(430*rand()+500)'
+        Sh.w[:, :] = '(40*rand()+600)'
         So.w[:, :] = '(430*rand()+500)'
         #Sh.w[:, :] = '(1000*rand()+750)'
         #So.w[:, :] = '(1000*rand()+750)'
@@ -224,7 +225,7 @@ class net:
         s = self.net['input']
         self.net.store()
 
-    def read_image(self, index, kind='train'):
+    def read_image(self, index, kind='train', ch=False):
         #pudb.set_trace()
         self.net.restore()
         array = self.data[kind][index]
@@ -233,12 +234,14 @@ class net:
         indices = np.arange(len(array))
         self.T = int(ma.ceil(np.max(times)) + self.tauLP)
         desired = np.ones(self.N_output) 
-        desired *= 0.001*(self.T - 2)
+        desired *= 0.001*(self.T + 8)
         #desired[:5] += 0.001*(3)
         #desired[5:] *= 0.001*(self.T + 3)
-        #desired[0] = 0.001*np.ceil(self.T + 0)
+        if ch == True:
+            desired[0] = 0.001*np.ceil(self.T + 4)
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net.store()
+        return label
 
     def uniform_input(self):
         self.net.restore()
@@ -346,27 +349,27 @@ class net:
         else:
             self.net.run(2*self.T*br.ms)
 
-    def train(self, a, b, method='resume', threshold=0.7):
+    def train(self, a, b=None, method='resume', threshold=0.7):
         #pudb.set_trace()
         i, j, k = 0, 0, 0
         #self.r = 1
         pmin = 10000
+        ch = False
+        if b == None:
+            images = a
+        else:
+            images = range(a, b)
         while True:
             i += 1
             j += 1
             print "Epoch ", i
-            correct, p = train.train_epoch(self, a, b, method=method)
+            correct, p = train.train_epoch(\
+                            self, images, method=method, ch=ch)
             if p < pmin:
                 pmin = p
                 j = 0
-            if j > 20:
-                #self.r /= 2
-                #j = 0
+            self.r = self.rb*(pmin**2)
+            if p < 0.35:
+                ch = True
                 pudb.set_trace()
             print "performance: ", p
-            #p_correct = float(correct) / (b - a)
-            #print  ": %", p_correct, " correct"
-            #if p_correct > threshold:
-            #    break
-            #self.r = 32 / (1 + 1024*p_correct)
-        #return p_correct

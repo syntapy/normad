@@ -4,7 +4,7 @@ import brian2 as br
 import weight_updates_numba as weight_updates
 import weight_updates_py
 
-#br.prefs.codegen.target = 'weave'  # use the Python fallback
+br.prefs.codegen.target = 'weave'  # use the Python fallback
 def resume_supervised_update_setup(self):
     #pudb.set_trace()
     a = self.net['input']
@@ -75,16 +75,24 @@ def train_step(self, T=None, method='resume'):
     self.run(T)
     #pudb.set_trace()
     a = self.net['crossings_o']
+    b = self.net['crossings_h']
     self.actual = a.all_values()['t']
+    self.hidden = b.all_values()['t']
     supervised_update(self, method=method)
 
-def train_epoch(self, a, b, method='resume', dsp=True):
+def train_epoch(self, images, method='resume', dsp=True, ch=False):
     correct = 0
-    for i in range(a, b):
-        self.read_image(i)
+    #i, j = a, 0
+    p = 0
+    for i in images:
+        #for i in range(a, b):
+        label = self.read_image(i, ch=ch)
+        #if label == 0:
+        #j += 1
         train_step(self, method=method)
+        p += self.performance()
         print "\tImage ", i, " trained"
         if self.neuron_right_outputs():
             correct += 1
-    p = self.performance()
+        #i += 1
     return correct, p

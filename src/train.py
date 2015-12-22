@@ -5,7 +5,7 @@ import weight_updates_numba as weight_updates
 import weight_updates_py
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
-def resume_supervised_update_setup(self):
+def resume_supervised_update_setup(self, hidden=True):
     #pudb.set_trace()
     a = self.net['input']
     ii, ti = self.indices, self.times
@@ -28,8 +28,11 @@ def resume_supervised_update_setup(self):
     tau=self.net['synapses_hidden'].tau1 / (1000*br.msecond)
     dw_o = weight_updates.resume_update_output_weights(\
                 dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
-    dw_h = weight_updates.resume_update_hidden_weights(\
-                dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
+    if hidden == True:
+        dw_h = weight_updates.resume_update_hidden_weights(\
+                    dw_ih, w_ho, m, n, o, ii, ti/br.second, ih[:], th[:], ia[:], ta[:], d, tau)
+        return dw_o, dw_h
+    return dw_o
     #dw_o_py = weight_updates_py.resume_update_output_weights(self)
     #dw_h_py = weight_updates_py.resume_update_hidden_weights(self)
 
@@ -44,43 +47,34 @@ def resume_supervised_update_setup(self):
     #print "\t\thidden:\t", dw_h - dw_h_py
     #pudb.set_trace()
 
-    return dw_o, dw_h
 
-def supervised_update(self, display=False, method='resume'):
-    #pudb.set_trace()
-    #pudb.set_trace()
-    dw_o, dw_h = resume_supervised_update_setup(self)
-    #print '\t', np.mean(dw[1]), np.mean(dw[0])
-    #w_o = self.net['synapses_output'].w
-    #w_h = self.net['synapses_hidden'].w
-    #w_o_OLD = w_o
-    #w_h_OLD = w_h
-    #print '\t', dw_o
-    #print "- "*10
-    #print '\t', dw_h
-    #print "="*10
-    #print np.mean(w_o), np.mean(w_h)
-    self.net.restore()
-    #pudb.set_trace()
-    self.net['synapses_output'].w += self.r*dw_o[:]
-    self.net['synapses_hidden'].w += self.r*dw_h[:]
-    w_o = self.net['synapses_output'].w
-    w_h = self.net['synapses_output'].w
-    self.net.store()
+def supervised_update(self, display=False, method='resume', hidden=True):
+    if hidden == True:
+        dw_o, dw_h = resume_supervised_update_setup(self, hidden=hidden)
+        self.net.restore()
+        self.net['synapses_output'].w += self.r*dw_o[:]
+        self.net['synapses_hidden'].w += self.r*dw_h[:]
+        w_o = self.net['synapses_output'].w
+        w_h = self.net['synapses_output'].w
+        self.net.store()
+    else:
+        dw_o = resume_supervised_update_setup(self, hidden=hidden)
+        self.net.restore()
+        self.net['synapses_output'].w += self.r*dw_o[:]
+        w_o = self.net['synapses_output'].w
+        w_h = self.net['synapses_output'].w
+        self.net.store()
 
-    #print '\t', np.max(np.abs(w_o_OLD - w_o))
-    #print '\t', np.max(np.abs(w_h_OLD - w_h))
-
-def train_step(self, T=None, method='resume'):
+def train_step(self, T=None, method='resume', hidden=True):
     self.run(T)
     #pudb.set_trace()
     a = self.net['crossings_o']
     b = self.net['crossings_h']
     self.actual = a.all_values()['t']
     self.hidden = b.all_values()['t']
-    supervised_update(self, method=method)
+    supervised_update(self, method=method, hidden=hidden)
 
-def train_epoch(self, images, method='resume', dsp=True, ch=False):
+def train_epoch(self, images, method='resume', dsp=True, ch=False, hidden=True):
     correct = 0
     #i, j = a, 0
     p = 0
@@ -89,7 +83,7 @@ def train_epoch(self, images, method='resume', dsp=True, ch=False):
         label = self.read_image(i, ch=ch)
         #if label == 0:
         #j += 1
-        train_step(self, method=method)
+        train_step(self, method=method, hidden=hidden)
         p += self.performance()
         print "\tImage ", i, " trained"
         if self.neuron_right_outputs():

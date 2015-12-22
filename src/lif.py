@@ -17,7 +17,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=20, N_output=1, N_input=4, data='mnist', seed=5):
+    def __init__(self, N_hidden=20, N_output=10, N_input=4, data='mnist', seed=5):
         self.changes = []
         self.trained = False
         self.rb = 1.0
@@ -52,7 +52,7 @@ class net:
                                         gL = 30                                     : 1 (shared)
                                         El = -70                                    : 1 (shared)
                                         vt = 20                                     : 1 (shared)
-                                        Cm = 12.0                                    : 1 (shared)
+                                        Cm = 12.0                                   : 1 (shared)
                                         D                                           : 1''',
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
@@ -238,6 +238,7 @@ class net:
         #desired[:5] += 0.001*(3)
         #desired[5:] *= 0.001*(self.T + 3)
         if ch == True:
+            print "\t\tMODIFED DESIRED!!!"
             desired[0] = 0.001*np.ceil(self.T + 4)
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net.store()
@@ -350,26 +351,30 @@ class net:
             self.net.run(2*self.T*br.ms)
 
     def train(self, a, b=None, method='resume', threshold=0.7):
-        #pudb.set_trace()
         i, j, k = 0, 0, 0
-        #self.r = 1
         pmin = 10000
+        p = pmin
         ch = False
         if b == None:
             images = a
         else:
             images = range(a, b)
+        hidden = False
         while True:
             i += 1
             j += 1
             print "Epoch ", i
+            pold = p
             correct, p = train.train_epoch(\
-                            self, images, method=method, ch=ch)
+                            self, images, method=method, ch=ch, hidden=hidden)
+            hidden = False
+            if i > 1 and p - pold == 0:
+                hidden = True
             if p < pmin:
                 pmin = p
                 j = 0
             self.r = self.rb*(pmin**2)
-            if p < 0.35:
+            if p < 0.41:
                 ch = True
                 pudb.set_trace()
-            print "performance: ", p
+            print "p, pmin: ", p, "\, ", pmin

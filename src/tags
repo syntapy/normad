@@ -31,7 +31,7 @@ load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_hidden=16, N_input=4)$/;"	v
+nn	driver.py	/^nn = lif.net(N_hidden=6, N_input=4)$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -44,7 +44,7 @@ read_image	lif.py	/^    def read_image(self, index, kind='train', ch=False):$/;"
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:net
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
 resume_kernel	weight_updates_numba.py	/^def resume_kernel(s, tau):$/;"	f
-resume_supervised_update_setup	train.py	/^def resume_supervised_update_setup(self):$/;"	f
+resume_supervised_update_setup	train.py	/^def resume_supervised_update_setup(self, hidden=True):$/;"	f
 resume_update_hidden_weights	weight_updates_numba.py	/^def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau):$/;"	f
 resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):$/;"	f
 rflatten	lif.py	/^    def rflatten(self, A):$/;"	m	class:net
@@ -56,7 +56,7 @@ setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:lif_tester
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
 smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
 sort	weight_updates_numba.py	/^def sort(S):$/;"	f
-supervised_update	train.py	/^def supervised_update(self, display=False, method='resume'):$/;"	f
+supervised_update	train.py	/^def supervised_update(self, display=False, method='resume', hidden=True):$/;"	f
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
 test	lif.py	/^    def test(self, N=100, K=250, T=80):$/;"	m	class:net
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:lif_tester
@@ -64,7 +64,7 @@ test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:lif_tester
 times_format	display.py	/^def times_format(self):$/;"	f
 train	lif.py	/^    def train(self, a, b=None, method='resume', threshold=0.7):$/;"	m	class:net
-train_epoch	train.py	/^def train_epoch(self, images, method='resume', dsp=True, ch=False):$/;"	f
-train_step	train.py	/^def train_step(self, T=None, method='resume'):$/;"	f
+train_epoch	train.py	/^def train_epoch(self, images, method='resume', dsp=True, ch=False, hidden=True):$/;"	f
+train_step	train.py	/^def train_step(self, T=None, method='resume', hidden=True):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f

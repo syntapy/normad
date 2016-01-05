@@ -17,7 +17,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=20, N_output=10, N_input=4, data='mnist', seed=5):
+    def __init__(self, N_hidden=5, N_output=1, N_input=4, data='mnist', seed=5):
         self.changes = []
         self.trained = False
         self.rb = 1.0
@@ -41,6 +41,22 @@ class net:
             self.N_inputs = N_inputs
         #pudb.set_trace()
         self.__groups()
+
+    def rand_weights(self):
+        #Sh.w[:, :] = '(1000*rand()+750)'
+        #So.w[:, :] = '(1000*rand()+750)'
+        #So.w[1, 0] = '200'
+        Sh = self.net['synapses_hidden']
+        So = self.net['synapses_output']
+        Sh.connect('True')
+        So.connect('True')
+        Sh.w[:, :] = '(40*rand()+600)'
+        So.w[:, :] = '(430*rand()+500)'
+        Sh.tl[:, :] = '-1*second'
+        Sh.tp[:, :] = '-1*second'
+        So.tl[:, :] = '-1*second'
+        So.tp[:, :] = '-1*second'
+        self.net.store()
 
     def __groups(self):
         inputs = br.SpikeGeneratorGroup(self.N_inputs, 
@@ -110,18 +126,7 @@ class net:
 
         #Rh.connect('i!=j')
         #Ro.connect('i!=j')
-        Sh.connect('True')
-        So.connect('True')
 
-        Sh.w[:, :] = '(40*rand()+600)'
-        So.w[:, :] = '(430*rand()+500)'
-        #Sh.w[:, :] = '(1000*rand()+750)'
-        #So.w[:, :] = '(1000*rand()+750)'
-        #So.w[1, 0] = '200'
-        Sh.tl[:, :] = '-1*second'
-        Sh.tp[:, :] = '-1*second'
-        So.tl[:, :] = '-1*second'
-        So.tp[:, :] = '-1*second'
         hidden.v[:] = -70
         output.v[:] = -70
         M = br.StateMonitor(output, 'v', record=True, name='monitor_v')
@@ -132,6 +137,7 @@ class net:
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
         self.net = br.Network(inputs, hidden, Sh, Th, output, So, M, N, To)
         self.actual = self.net['crossings_o'].all_values()['t']
+        self.rand_weights()
         self.net.store()
 
     ##################
@@ -350,7 +356,7 @@ class net:
         else:
             self.net.run(2*self.T*br.ms)
 
-    def train(self, a, b=None, method='resume', threshold=0.7):
+    def train(self, iteration, a, b=None, method='resume', threshold=0.7):
         i, j, k = 0, 0, 0
         pmin = 10000
         p = pmin
@@ -363,18 +369,17 @@ class net:
         while True:
             i += 1
             j += 1
-            print "Epoch ", i
+            print "Iter-Epoch ", iteration, ", ", i
             pold = p
-            correct, p = train.train_epoch(\
-                            self, images, method=method, ch=ch, hidden=hidden)
+            correct, p = train.train_epoch(self, images, method=method, ch=ch, hidden=hidden)
             hidden = False
             if i > 1 and p - pold == 0:
                 hidden = True
             if p < pmin:
                 pmin = p
                 j = 0
-            self.r = self.rb*(pmin**2)
-            if p < 0.41:
-                ch = True
-                pudb.set_trace()
+            self.r = self.rb*(p**2)
             print "p, pmin: ", p, "\, ", pmin
+            if i > 300:
+                self.net.restore()
+                return pmin

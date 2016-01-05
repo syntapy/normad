@@ -13,7 +13,7 @@ SCorrelation	spike_correlation.py	/^def SCorrelation(self, S1, S2):$/;"	f
 SCorrelationSIMPLE	spike_correlation.py	/^def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	f
 SCorrelationSlow	spike_correlation.py	/^def SCorrelationSlow(self, S1, S2, dt=0.05):$/;"	f
 __groups	lif.py	/^    def __groups(self):$/;"	m	class:net	file:
-__init__	lif.py	/^    def __init__(self, N_hidden=20, N_output=2, N_input=4, data='mnist', seed=5):$/;"	m	class:net
+__init__	lif.py	/^    def __init__(self, N_hidden=5, N_output=1, N_input=4, data='mnist', seed=5):$/;"	m	class:net
 __init__	lift.py	/^    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):$/;"	m	class:lif_tester
 _equal_len_SC	spike_correlation.py	/^def _equal_len_SC(self, S1, S2):$/;"	f
 _equal_len_SC	spike_correlation.py	/^def _equal_len_SC(self, Smax, Smin):$/;"	f
@@ -31,15 +31,17 @@ load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_hidden=6, N_input=4)$/;"	v
+nn	driver.py	/^nn = lif.net(N_hidden=6, N_input=4, seed=(37485)%20)$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot_actual	display.py	/^def plot_actual(self):$/;"	f
 plot_desired	display.py	/^def plot_desired(self):$/;"	f
+pmins	driver.py	/^pmins = np.zeros(60)$/;"	v
 print_dw_vec	display.py	/^def print_dw_vec(self, dw, r):$/;"	f
 print_dws	display.py	/^def print_dws(self, dw):$/;"	f
+rand_weights	lif.py	/^    def rand_weights(self):$/;"	m	class:net
 read_image	lif.py	/^    def read_image(self, index, kind='train', ch=False):$/;"	m	class:net
 read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:net
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
@@ -63,7 +65,7 @@ test	lift.py	/^    def test(self, classes=1):$/;"	m	class:lif_tester
 test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:lif_tester
 times_format	display.py	/^def times_format(self):$/;"	f
-train	lif.py	/^    def train(self, a, b=None, method='resume', threshold=0.7):$/;"	m	class:net
+train	lif.py	/^    def train(self, iteration, a, b=None, method='resume', threshold=0.7):$/;"	m	class:net
 train_epoch	train.py	/^def train_epoch(self, images, method='resume', dsp=True, ch=False, hidden=True):$/;"	f
 train_step	train.py	/^def train_step(self, T=None, method='resume', hidden=True):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net

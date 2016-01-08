@@ -35,6 +35,7 @@ class net:
         self.data, self.labels = None, None
         if data == 'mnist':
             self.load()
+            #pudb.set_trace()
             self.N_inputs = len(self.data['train'][0])
             #self.N_output = 10
         else:
@@ -42,16 +43,17 @@ class net:
         #pudb.set_trace()
         self.__groups()
 
-    def rand_weights(self):
+    def rand_weights(self, test=False):
         #Sh.w[:, :] = '(1000*rand()+750)'
         #So.w[:, :] = '(1000*rand()+750)'
         #So.w[1, 0] = '200'
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
-        Sh.connect('True')
-        So.connect('True')
-        Sh.w[:, :] = '(40*rand()+600)'
-        So.w[:, :] = '(430*rand()+500)'
+        if test==False:
+            Sh.connect('True')
+            So.connect('True')
+        Sh.w[:, :] = '(40*rand()+1200)'
+        So.w[:, :] = '(430*rand()+1000)'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'
@@ -241,6 +243,7 @@ class net:
         self.T = int(ma.ceil(np.max(times)) + self.tauLP)
         desired = np.ones(self.N_output) 
         desired *= 0.001*(self.T + 8)
+        #print "\t\t desired: ", desired
         #desired[:5] += 0.001*(3)
         #desired[5:] *= 0.001*(self.T + 3)
         if ch == True:

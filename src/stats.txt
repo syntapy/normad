@@ -1,4 +1,5 @@
 4 inputs, 6 hidden, 1 output
+quadratic relationship between learning rate and p
 trained 300 epochs per weight seed
 60 seeds
 
@@ -6,3 +7,15 @@ mean p: 4.2
 stdev p: 4.47
 min p: 0
 max p: 19.9
+
+
+
+4 inputs, 6 hidden, 1 output
+linear relationship between learning rate and p
+trained 300 epochs per weight seed
+60 seeds
+
+mean p: 26.7
+stdev p: 20.2
+min p: 0.4
+max p: 55

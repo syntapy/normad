@@ -46,19 +46,19 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d
             for J in range(len(ta)):
                 j = ia[J]
                 s = ta[J] - ti[I]
-                if s < 0:
+                if s <= 0:
                     #self.am += 1
                     dw_ih[n*i+k] += resume_kernel(s, tau)*w_ho[o*k+j]
-                else:
+                elif s >= 0 :
                     #self.ap += 1
                     dw_ih[n*i+k] -= (a + resume_kernel(-s, tau))*w_ho[o*k+j]
             for j in range(len(d)):
                 #pudb.set_trace()
                 s = d[j] - ti[I]
-                if s < 0:
+                if s <= 0:
                     #self.dm += 1
                     dw_ih[n*i+k] -= resume_kernel(s, tau)*w_ho[o*k+j]
-                else:
+                elif s >= 0:
                     #self.dp += 1
                     dw_ih[n*i+k] += (a + resume_kernel(-s, tau))*w_ho[o*k+j]
     dw_ih /= float(m*n)
@@ -82,16 +82,16 @@ def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
         for J in range(len(ia)):
             j = ia[J]
             s = ta[J] - th[I]
-            if s < 0:
+            if s <= 0:
                 #self.am += 1
                 dw_ho[o*i+j] += resume_kernel(s, tau)
-            else:
+            elif s >= 0:
                 #self.ap += 1
                 dw_ho[o*i+j] -= a + resume_kernel(-s, tau)
         # loop over desired spikes
         for j in range(len(d)):
             s = d[j] - th[I]
-            if s < 0:
+            if s <= 0:
                 #self.dm += 1
                 dw_ho[o*i+j] -= resume_kernel(s, tau)
             else:

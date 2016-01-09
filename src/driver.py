@@ -8,10 +8,10 @@ import brian2 as br
 N = 60
 pmins = np.zeros(N)
 iters = np.zeros(N)
-nn = lif.net(N_hidden=6, N_input=4, seed=(35495)%20)
+nn = lif.net(N_hidden=3, N_input=4, seed=(35495)%20)
 for i in range(N):
-    nn.rand_weights(test=True)
     iters[i], pmins[i] = nn.train(i, [0])
+    nn.rand_weights(test=True)
 
 print "P:"
 print "Mean\t Stdev\t min\t max\t"

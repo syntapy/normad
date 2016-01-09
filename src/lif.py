@@ -52,8 +52,8 @@ class net:
         if test==False:
             Sh.connect('True')
             So.connect('True')
-        Sh.w[:, :] = '(40*rand()+1200)'
-        So.w[:, :] = '(430*rand()+1000)'
+        Sh.w[:, :] = '(40*rand()+400)'
+        So.w[:, :] = '(230*rand()+130)'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'
@@ -90,6 +90,7 @@ class net:
                     model='''
                             tl                                                  : second
                             tp                                                  : second
+                            tauC = 5                                            : 1 (shared)
                             tau1 = 0.0025                                       : second (shared)
                             tau2 = 0.000625                                     : second (shared)
                             tauL = 0.010                                        : second (shared)
@@ -101,13 +102,14 @@ class net:
                             ul = (sign(t - tl - 3*ms) + 1.0) / 2                : 1
                             u = (sign(t) + 1.0) / 2                             : 1
 
-                            c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
+                            c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
                             f = w*c                                             : 1
                             D_post = w*c*ul                                     : 1 (summed) ''',
                     pre='tp=t', post='tl=t', name='synapses_hidden', dt=self.dta)
         So = br.Synapses(hidden, output, 
                    model='''tl                                                  : second
                             tp                                                  : second
+                            tauC = 5                                            : 1 (shared)
                             tau1 = 0.0025                                       : second (shared)
                             tau2 = 0.000625                                     : second (shared)
                             tauL = 0.010                                        : second (shared)
@@ -119,7 +121,7 @@ class net:
                             ul = (sign(t - tl - 3*ms) + 1.0) / 2                : 1
                             u = (sign(t) + 1.0) / 2                             : 1
 
-                            c = 100*exp((tp - t)/tau1) - exp((tp - t)/tau2)     : 1
+                            c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
                             f = w*c                                             : 1
                             D_post = w*c*ul                                     : 1 (summed) ''',
                    pre='tp=t', post='tl=t', name='synapses_output', dt=self.dta)
@@ -381,7 +383,7 @@ class net:
             if p < pmin:
                 pmin = p
                 j = 0
-            self.r = self.rb*(min(p, 4)**2) / 2.0
+            self.r = self.rb*(min(p, 4)**2) / 4.0
             print "p, pmin: ", p, "\, ", pmin
             if i > 500 or pmin < 0.4:
                 self.net.restore()

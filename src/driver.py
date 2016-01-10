@@ -1,7 +1,7 @@
 import numpy as np
-import lift
+#import lift
 import pudb
-import train
+#import train
 import lif
 import brian2 as br
 

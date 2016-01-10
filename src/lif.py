@@ -406,7 +406,7 @@ class net:
             if p < pmin:
                 pmin = p
                 j = 0
-            self.r = self.rb*(min(p, 4)**2) / 4.0
+            self.r = self.rb*(min(p, 4)**2) / 0.25
             #print "p, pmin: ", p, "\, ", pmin
             if i > 500 or pmin < 0.4:
                 self.net.restore()

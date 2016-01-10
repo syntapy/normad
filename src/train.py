@@ -72,58 +72,64 @@ def supervised_update(self, iteration, display=False, method='resume', hidden=Tr
         w_h = self.net['synapses_output'].w
         self.net.store()
 
-def synaptic_scaling_step(w, m, n, spikes):
+def synaptic_scaling_step(w, m, n, tomod, spikes):
     f = 0.02
     ### m neuron layer to n neuron layer
     ### w[n*i + j] acceses the synapse from neuron i to neuron j
 
     mod = False
-    for j in spikes:
+    for j in tomod:
         if len(spikes[j]) > 1:
             w[j:m*n:n] *= 1 - f
-            mod = True
         elif len(spikes[j]) < 1:
             w[j:m*n:n] *= 1 + f
-            mod = True
-    return mod
+
+
+def print_times(self):
+    a = self.net['crossings_o']
+    b = self.net['crossings_h']
+
+    actual = a.all_values()['t']
+    hidden = b.all_values()['t']
+    
+    print "\n\t\t[", hidden, "] [", actual, "]"
 
 def synaptic_scaling(self):
+    w_ih = self.net['synapses_hidden'].w
+    w_ho = self.net['synapses_output'].w
+
     a = self.net['crossings_o']
     b = self.net['crossings_h']
 
     actual = a.all_values()['t']
     hidden = b.all_values()['t']
 
-    #pudb.set_trace()
-    w_ih = self.net['synapses_hidden'].w
-    w_ho = self.net['synapses_output'].w
-
-    self.net.restore()
-    print "[", hidden,
-    moda = synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, hidden)
-    print "] [",
-    modb = synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, actual)
-    print "]", actual,
-    self.net.store()
-    print "\n",
-
-    return moda or modb
+    print "[", hidden, "] [", actual, "]"
+    tomod_a = [i for i in actual if len(actual[i]) != 1]
+    tomod_h = [i for i in hidden if len(hidden[i]) != 1]
+    if tomod_a != [] or tomod_h != []:
+        self.net.restore()
+        synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, tomod_h, hidden)
+        synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, tomod_a, actual)
+        self.net.store()
+        return True
+    return False
 
 def train_step(self, iteration, T=None, method='resume', hidden=True):
     mod = True
     i = 1
-    #w_ih = self.net['synapses_hidden'].w
-    #w_ho = self.net['synapses_output'].w
     while mod:
         self.run(T)
         print "\t run_try", i,
         mod = synaptic_scaling(self)
         i += 1
 
+    print "\t train",
+    print_times(self)
+    supervised_update(self, iteration, method=method, hidden=hidden)
     #self.actual = self.net['crossings_o'].all_values()
     #self.save_weights()
-    self.run(T)
-    supervised_update(self, iteration, method=method, hidden=hidden)
+    #self.run(T)
 
 def train_epoch(self, iteration, images, method='resume', dsp=True, ch=False, hidden=True):
     correct = 0

@@ -31,10 +31,10 @@ def resume_supervised_update_setup(self, hidden=True):
     dw_ho = np.zeros(np.shape(w_ho), dtype=np.float64)
     dw_ih = np.zeros(np.shape(w_ih), dtype=np.float64)
     tau = self.net['synapses_hidden'].tau1 / (1000*br.msecond)
-    dw_o = -1*weight_updates.resume_update_output_weights(\
+    dw_o = weight_updates.resume_update_output_weights(\
                 dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
     if hidden == True:
-        dw_h = -1*weight_updates.resume_update_hidden_weights(\
+        dw_h = weight_updates.resume_update_hidden_weights(\
                     dw_ih, w_ho, m, n, o, ii, ti/br.second, \
                     ih[:], th[:], ia[:], ta[:], d, tau)
         return dw_o, dw_h
@@ -53,7 +53,9 @@ def resume_supervised_update_setup(self, hidden=True):
     #print "\t\thidden:\t", dw_h - dw_h_py
     #pudb.set_trace()
 
-def supervised_update(self, display=False, method='resume', hidden=True):
+def supervised_update(self, iteration, display=False, method='resume', hidden=True):
+    #if iteration == 3:
+    #    pudb.set_trace()
     if hidden == True:
         dw_o, dw_h = resume_supervised_update_setup(self, hidden=hidden)
         self.net.restore()
@@ -107,7 +109,7 @@ def synaptic_scaling(self):
 
     return moda or modb
 
-def train_step(self, T=None, method='resume', hidden=True):
+def train_step(self, iteration, T=None, method='resume', hidden=True):
     mod = True
     i = 1
     #w_ih = self.net['synapses_hidden'].w
@@ -118,11 +120,12 @@ def train_step(self, T=None, method='resume', hidden=True):
         mod = synaptic_scaling(self)
         i += 1
 
+    #self.actual = self.net['crossings_o'].all_values()
     #self.save_weights()
-    #pudb.set_trace()
-    supervised_update(self, method=method, hidden=hidden)
+    self.run(T)
+    supervised_update(self, iteration, method=method, hidden=hidden)
 
-def train_epoch(self, images, method='resume', dsp=True, ch=False, hidden=True):
+def train_epoch(self, iteration, images, method='resume', dsp=True, ch=False, hidden=True):
     correct = 0
     #i, j = a, 0
     p = 0
@@ -131,7 +134,7 @@ def train_epoch(self, images, method='resume', dsp=True, ch=False, hidden=True):
         label = self.read_image(i, ch=ch)
         #if label == 0:
         #j += 1
-        train_step(self, method=method, hidden=hidden)
+        train_step(self, iteration, method=method, hidden=hidden)
         p += self.performance()
         print "\tImage ", i, " trained"
         if self.neuron_right_outputs():

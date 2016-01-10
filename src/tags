@@ -8,7 +8,6 @@ F	spike_correlation.py	/^def F(self, S, t):$/;"	f
 L	spike_correlation.py	/^def L(self, t1, t2):$/;"	f
 LNonOverlap	spike_correlation.py	/^def LNonOverlap(self, Smax, Smin):$/;"	f
 LOverlapPrevious	spike_correlation.py	/^def LOverlapPrevious(self, Smax, Smin, index):$/;"	f
-N	driver.py	/^N = 60$/;"	v
 SC_step	spike_correlation.py	/^def SC_step(self, total, t1, t2, int1, int2, i, j, S1, S2):$/;"	f
 SCorrelation	spike_correlation.py	/^def SCorrelation(self, S1, S2):$/;"	f
 SCorrelationSIMPLE	spike_correlation.py	/^def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	f
@@ -23,10 +22,8 @@ _input_output	lift.py	/^    def _input_output(self, classes=1):$/;"	m	class:lif_
 _poisson	lift.py	/^    def _poisson(self, r, spacing, Ti, Tf):$/;"	m	class:lif_tester
 _prel_SC	spike_correlation.py	/^def _prel_SC(self, Smax, Smin):$/;"	f
 _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"	m	class:lif_tester
-a	driver.py	/^a = [1, 21, 34, 37, 51, 56, 63, 68, 69, 75]$/;"	v
 accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
 get_spikes	lif.py	/^    def get_spikes(self, name='hidden', t='dict'):$/;"	m	class:net
-iters	driver.py	/^iters = np.zeros(N)$/;"	v
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
 lif_tester	lift.py	/^class lif_tester:$/;"	c
 load	lif.py	/^    def load(self):$/;"	m	class:net
@@ -40,7 +37,6 @@ performance	lif.py	/^    def performance(self):$/;"	m	class:net
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot_actual	display.py	/^def plot_actual(self):$/;"	f
 plot_desired	display.py	/^def plot_desired(self):$/;"	f
-pmins	driver.py	/^pmins = np.zeros(N)$/;"	v
 print_dw_vec	display.py	/^def print_dw_vec(self, dw, r):$/;"	f
 print_dws	display.py	/^def print_dws(self, dw):$/;"	f
 rand_weights	lif.py	/^    def rand_weights(self, test=False):$/;"	m	class:net
@@ -60,7 +56,7 @@ setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:lif_tester
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
 smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
 sort	weight_updates_numba.py	/^def sort(S):$/;"	f
-supervised_update	train.py	/^def supervised_update(self, display=False, method='resume', hidden=True):$/;"	f
+supervised_update	train.py	/^def supervised_update(self, itreation, display=False, method='resume', hidden=True):$/;"	f
 synaptic_scaling	train.py	/^def synaptic_scaling(self):$/;"	f
 synaptic_scaling_step	train.py	/^def synaptic_scaling_step(w, m, n, spikes):$/;"	f
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
@@ -70,7 +66,7 @@ test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:lif_tester
 times_format	display.py	/^def times_format(self):$/;"	f
 train	lif.py	/^    def train(self, iteration, a, b=None, method='resume', threshold=0.7):$/;"	m	class:net
-train_epoch	train.py	/^def train_epoch(self, images, method='resume', dsp=True, ch=False, hidden=True):$/;"	f
-train_step	train.py	/^def train_step(self, T=None, method='resume', hidden=True):$/;"	f
+train_epoch	train.py	/^def train_epoch(self, iteration, images, method='resume', dsp=True, ch=False, hidden=True):$/;"	f
+train_step	train.py	/^def train_step(self, iteration, T=None, method='resume', hidden=True):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f

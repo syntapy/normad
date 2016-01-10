@@ -259,7 +259,7 @@ class net:
 
     def read_image(self, index, kind='train', ch=False):
         #pudb.set_trace()
-        self.net.restore()
+        #self.net.restore()
         array = self.data[kind][index]
         label = self.labels[kind][index]
         times = self.tauLP / array
@@ -399,7 +399,7 @@ class net:
             print "Iter-Epoch ", iteration, ", ", i
             pold = p
             correct, p = \
-                train.train_epoch(self, images, method=method, ch=ch, hidden=hidden)
+                train.train_epoch(self, i, images, method=method, ch=ch, hidden=hidden)
             hidden = False
             if i > 1 and p - pold == 0:
                 hidden = True
@@ -407,7 +407,7 @@ class net:
                 pmin = p
                 j = 0
             self.r = self.rb*(min(p, 4)**2) / 4.0
-            print "p, pmin: ", p, "\, ", pmin
+            #print "p, pmin: ", p, "\, ", pmin
             if i > 500 or pmin < 0.4:
                 self.net.restore()
                 return i, pmin

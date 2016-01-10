@@ -33,7 +33,7 @@ load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_hidden=6, N_input=4, seed=(35495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(N_hidden=3, N_input=4, seed=(35495)%20)$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -45,7 +45,7 @@ print_dw_vec	display.py	/^def print_dw_vec(self, dw, r):$/;"	f
 print_dws	display.py	/^def print_dws(self, dw):$/;"	f
 rand_weights	lif.py	/^    def rand_weights(self, test=False):$/;"	m	class:net
 read_image	lif.py	/^    def read_image(self, index, kind='train', ch=False):$/;"	m	class:net
-read_weights	lif.py	/^    def read_weights(self, fname='weights.txt'):$/;"	m	class:net
+read_weights	lif.py	/^    def read_weights(self):$/;"	m	class:net
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
 resume_kernel	weight_updates_numba.py	/^def resume_kernel(s, tau):$/;"	f
 resume_supervised_update_setup	train.py	/^def resume_supervised_update_setup(self, hidden=True):$/;"	f
@@ -54,7 +54,7 @@ resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_
 rflatten	lif.py	/^    def rflatten(self, A):$/;"	m	class:net
 rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:lif_tester
 run	lif.py	/^    def run(self, T):$/;"	m	class:net
-save_weights	lif.py	/^    def save_weights(self, fname='weights.txt'):$/;"	m	class:net
+save_weights	lif.py	/^    def save_weights(self):$/;"	m	class:net
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
 setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:lif_tester
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net

@@ -75,74 +75,70 @@ class net:
                                         method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                                         reset='v=El', name='hidden', dt=self.dta)
         output = br.NeuronGroup(self.N_output, \
-                               model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
-                                        gL = 30                                     : 1 (shared)
-                                        El = -70                                    : 1 (shared)
-                                        vt = 20                                     : 1 (shared)
-                                        Cm = 3.0                                    : 1 (shared)
-                                        D                                           : 1''',
-                                        method='rk2', refractory=0*br.ms, threshold='v>=vt', 
-                                        reset='v=El', name='output', dt=self.dta)
+                            model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
+                                        gL = 30          : 1 (shared)
+                                        El = -70         : 1 (shared)
+                                        vt = 20          : 1 (shared)
+                                        Cm = 3.0         : 1 (shared)
+                                        D                : 1''',
+                                        method='rk2', refractory=0*br.ms, 
+                                        threshold='v>=vt', reset='v=El', 
+                                        name='output', dt=self.dta)
         #hidden = br.Subgroup(neurons, 0, self.N_hidden, name='hidden')
         #output = br.Subgroup(neurons, self.N_hidden, self.N_hidden+self.N_output, name='output')
 
         Sh = br.Synapses(inputs, hidden,
                     model='''
-                            tl                                                  : second
-                            tp                                                  : second
-                            tauC = 5                                            : 1 (shared)
-                            tau1 = 0.0025                                       : second (shared)
-                            tau2 = 0.000625                                     : second (shared)
-                            tauL = 0.010                                        : second (shared)
-                            tauLp = 0.1*tauL                                    : second (shared)
+                            tl                                    : second
+                            tp                                    : second
+                            tauC = 5                              : 1 (shared)
+                            tau1 = 0.0025                         : second (shared)
+                            tau2 = 0.000625                       : second (shared)
+                            tauL = 0.010                          : second (shared)
+                            tauLp = 0.1*tauL                      : second (shared)
 
-                            w                                                   : 1
+                            w                                     : 1
 
-                            up = (sign(t - tp) + 1.0) / 2                       : 1
-                            ul = (sign(t - tl - 3*ms) + 1.0) / 2                : 1
-                            u = (sign(t) + 1.0) / 2                             : 1
+                            up = (sign(t - tp) + 1.0) / 2         : 1
+                            ul = (sign(t - tl - 3*ms) + 1.0) / 2  : 1
+                            u = (sign(t) + 1.0) / 2               : 1
 
-                            c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
-                            f = w*c                                             : 1
-                            D_post = w*c*ul                                     : 1 (summed) ''',
+                      c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
+                            f = w*c                               : 1
+                            D_post = w*c*ul                       : 1 (summed) ''',
                     pre='tp=t', post='tl=t', name='synapses_hidden', dt=self.dta)
         So = br.Synapses(hidden, output, 
-                   model='''tl                                                  : second
-                            tp                                                  : second
-                            tauC = 5                                            : 1 (shared)
-                            tau1 = 0.0025                                       : second (shared)
-                            tau2 = 0.000625                                     : second (shared)
-                            tauL = 0.010                                        : second (shared)
-                            tauLp = 0.1*tauL                                    : second (shared)
+                   model='''tl                                   : second
+                            tp                                   : second
+                            tauC = 5                             : 1 (shared)
+                            tau1 = 0.0025                        : second (shared)
+                            tau2 = 0.000625                      : second (shared)
+                            tauL = 0.010                         : second (shared)
+                            tauLp = 0.1*tauL                     : second (shared)
 
-                            w                                                   : 1
+                            w                                    : 1
 
-                            up = (sign(t - tp) + 1.0) / 2                       : 1
-                            ul = (sign(t - tl - 3*ms) + 1.0) / 2                : 1
-                            u = (sign(t) + 1.0) / 2                             : 1
+                            up = (sign(t - tp) + 1.0) / 2        : 1
+                            ul = (sign(t - tl - 3*ms) + 1.0) / 2 : 1
+                            u = (sign(t) + 1.0) / 2              : 1
 
-                            c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
-                            f = w*c                                             : 1
-                            D_post = w*c*ul                                     : 1 (summed) ''',
+                     c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
+                            f = w*c                              : 1
+                            D_post = w*c*ul                      : 1 (summed) ''',
                    pre='tp=t', post='tl=t', name='synapses_output', dt=self.dta)
-        #Rh = br.Synapses(hidden, hidden, pre='c_post=0', name='winner_take_all_a', dt=self.dta)
-        #Ro = br.Synapses(output, output, pre='c_post=0', name='winner_take_all_b', dt=self.dta)
-
-        #Rh.connect('i!=j')
-        #Ro.connect('i!=j')
 
         hidden.v[:] = -70
         output.v[:] = -70
         M = br.StateMonitor(output, 'v', record=True, name='monitor_v')
         N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
-        #O = br.StateMonitor(S, 'tp', record=True, name='monitor_o')
-        #F = br.StateMonitor(S, 'f', record=True, name='monitor_f')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
         self.net = br.Network(inputs, hidden, Sh, Th, output, So, M, N, To)
         self.actual = self.net['crossings_o'].all_values()['t']
-        self.rand_weights()
+        #self.rand_weights()
         self.net.store()
+        #pudb.set_trace()
+        self.read_weights()
 
     ##################
     ### DATA SETUP ### 
@@ -190,26 +186,52 @@ class net:
         del train_labels
         del test_labels
 
-    def save_weights(self, fname='weights.txt'):
+    def save_weights(self):
         folder = '../files/'
-        F = open(folder + fname, 'w')
-        s = self.net['synapses']
-        n = len(s.w[:])
+        hidden, output = 'synapses_hidden', 'synapses_output'
+        Fh = open(folder + hidden + '.txt', 'w')
+        Fo = open(folder + output + '.txt', 'w')
+        Wh = self.net[hidden]
+        Wo = self.net[output]
+        m = len(Wh.w[:])
+        n = len(Wo.w[:])
+        for i in range(m):
+            Fh.write(str(Wh.w[i]))
+            Fh.write('\n')
         for i in range(n):
-            F.write(str(s.w[i]))
-            F.write('\n')
-        F.close()
+            Fo.write(str(Wo.w[i]))
+            Fo.write('\n')
+        Fh.close()
+        Fo.close()
 
-    def read_weights(self, fname='weights.txt'):
+    def read_weights(self):
+        #pudb.set_trace()
+        self.net.restore()
         folder = '../files/'
-        F = open(folder + fname, 'r')
-        string = F.readlines()
-        n = len(string)
-        weights = np.empty(n, dtype=float)
+        hidden, output = 'synapses_hidden', 'synapses_output'
+        Fh = open(folder + hidden + '.txt', 'r')
+        Fo = open(folder + output + '.txt', 'r')
+        string_h, string_o = Fh.readlines(), Fo.readlines()
+        m, n = len(string_h), len(string_o)
+        weights_h = np.empty(m, dtype=float)
+        weights_o = np.empty(n, dtype=float)
+        for i in xrange(m):
+            weights_h[i] = float(string_h[i][:-1])
         for i in xrange(n):
-            weights[i] = float(string[i][:-1])
+            weights_o[i] = float(string_o[i][:-1])
 
-        self.net['synapses'].w[:] = weights[:]
+        h = self.net[hidden]
+        o = self.net[output]
+        if len(h.w) == 0 or len(o.w) == 0:
+            h.connect('True')
+            o.connect('True')
+        h.w[:] = weights_h[:]
+        o.w[:] = weights_o[:]
+        h.tl[:, :] = '-1*second'
+        h.tp[:, :] = '-1*second'
+        o.tl[:, :] = '-1*second'
+        o.tp[:, :] = '-1*second'
+        self.net.store()
 
     ##########################
     ### SET INPUT / OUTPUT ###
@@ -370,13 +392,14 @@ class net:
             images = a
         else:
             images = range(a, b)
-        hidden = False
+        hidden = True
         while True:
             i += 1
             j += 1
             print "Iter-Epoch ", iteration, ", ", i
             pold = p
-            correct, p = train.train_epoch(self, images, method=method, ch=ch, hidden=hidden)
+            correct, p = \
+                train.train_epoch(self, images, method=method, ch=ch, hidden=hidden)
             hidden = False
             if i > 1 and p - pold == 0:
                 hidden = True

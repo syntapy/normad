@@ -15,6 +15,11 @@ def resume_supervised_update_setup(self, hidden=True):
 
     #print "\t", ta
     #print "\t", ia
+    a = self.net['crossings_o']
+    b = self.net['crossings_h']
+
+    actual_s = a.all_values()['t']
+    hidden_s = b.all_values()['t']
 
     #pudb.set_trace()
     m, n, o= self.N_inputs, self.N_hidden, self.N_output
@@ -26,10 +31,10 @@ def resume_supervised_update_setup(self, hidden=True):
     dw_ho = np.zeros(np.shape(w_ho), dtype=np.float64)
     dw_ih = np.zeros(np.shape(w_ih), dtype=np.float64)
     tau = self.net['synapses_hidden'].tau1 / (1000*br.msecond)
-    dw_o = weight_updates.resume_update_output_weights(\
+    dw_o = -1*weight_updates.resume_update_output_weights(\
                 dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
     if hidden == True:
-        dw_h = weight_updates.resume_update_hidden_weights(\
+        dw_h = -1*weight_updates.resume_update_hidden_weights(\
                     dw_ih, w_ho, m, n, o, ii, ti/br.second, \
                     ih[:], th[:], ia[:], ta[:], d, tau)
         return dw_o, dw_h
@@ -71,18 +76,13 @@ def synaptic_scaling_step(w, m, n, spikes):
     ### w[n*i + j] acceses the synapse from neuron i to neuron j
 
     mod = False
-
     for j in spikes:
         if len(spikes[j]) > 1:
             w[j:m*n:n] *= 1 - f
             mod = True
-            print " -",
         elif len(spikes[j]) < 1:
             w[j:m*n:n] *= 1 + f
             mod = True
-            print " +",
-        else:
-            print " =",
     return mod
 
 def synaptic_scaling(self):
@@ -112,13 +112,14 @@ def train_step(self, T=None, method='resume', hidden=True):
     i = 1
     #w_ih = self.net['synapses_hidden'].w
     #w_ho = self.net['synapses_output'].w
-    #pudb.set_trace()
     while mod:
         self.run(T)
-        print "\t\t\t run_try", i,
+        print "\t run_try", i,
         mod = synaptic_scaling(self)
         i += 1
 
+    #self.save_weights()
+    #pudb.set_trace()
     supervised_update(self, method=method, hidden=hidden)
 
 def train_epoch(self, images, method='resume', dsp=True, ch=False, hidden=True):
@@ -135,5 +136,4 @@ def train_epoch(self, images, method='resume', dsp=True, ch=False, hidden=True):
         print "\tImage ", i, " trained"
         if self.neuron_right_outputs():
             correct += 1
-        #i += 1
     return correct, p

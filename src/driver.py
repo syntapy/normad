@@ -11,7 +11,7 @@ import brian2 as br
 nn = lif.net(N_hidden=3, N_input=4, seed=(35495)%20)
 #for i in range(N):
 #iters[i], pmins[i] = 
-nn.train(0, [0])
+nn.train(0, range(10))
 
 #nn.rand_weights(test=True)
 #print "P:"

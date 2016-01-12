@@ -17,7 +17,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=5, N_output=1, N_input=4, data='mnist', seed=5):
+    def __init__(self, N_hidden=5, N_output=10, N_input=4, data='mnist', seed=5):
         self.changes = []
         self.trained = False
         self.rb = 1.0
@@ -40,7 +40,6 @@ class net:
             #self.N_output = 10
         else:
             self.N_inputs = N_inputs
-        #pudb.set_trace()
         self.__groups()
 
     def rand_weights(self, test=False):
@@ -66,14 +65,14 @@ class net:
                                         times=np.asarray([])*br.ms, 
                                         name='input')
         hidden = br.NeuronGroup(self.N_hidden, \
-                               model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
-                                        gL = 30                                     : 1 (shared)
-                                        El = -70                                    : 1 (shared)
-                                        vt = 20                                     : 1 (shared)
-                                        Cm = 12.0                                   : 1 (shared)
-                                        D                                           : 1''',
-                                        method='rk2', refractory=0*br.ms, threshold='v>=vt', 
-                                        reset='v=El', name='hidden', dt=self.dta)
+                   model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
+                            gL = 30                                     : 1 (shared)
+                            El = -70                                    : 1 (shared)
+                            vt = 20                                     : 1 (shared)
+                            Cm = 12.0                                   : 1 (shared)
+                            D                                           : 1''',
+                            method='rk2', refractory=0*br.ms, threshold='v>=vt', 
+                            reset='v=El', name='hidden', dt=self.dta)
         output = br.NeuronGroup(self.N_output, \
                             model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
                                         gL = 30          : 1 (shared)
@@ -84,8 +83,6 @@ class net:
                                         method='rk2', refractory=0*br.ms, 
                                         threshold='v>=vt', reset='v=El', 
                                         name='output', dt=self.dta)
-        #hidden = br.Subgroup(neurons, 0, self.N_hidden, name='hidden')
-        #output = br.Subgroup(neurons, self.N_hidden, self.N_hidden+self.N_output, name='output')
 
         Sh = br.Synapses(inputs, hidden,
                     model='''
@@ -133,12 +130,13 @@ class net:
         N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
+        Sh.connect('True')
+        So.connect('True')
         self.net = br.Network(inputs, hidden, Sh, Th, output, So, M, N, To)
+        self.rand_weights()
         self.actual = self.net['crossings_o'].all_values()['t']
-        #self.rand_weights()
         self.net.store()
-        #pudb.set_trace()
-        self.read_weights()
+        #self.read_weights()
 
     ##################
     ### DATA SETUP ### 
@@ -257,9 +255,7 @@ class net:
         s = self.net['input']
         self.net.store()
 
-    def read_image(self, index, kind='train', ch=False):
-        #pudb.set_trace()
-        #self.net.restore()
+    def read_image(self, index, kind='train'):
         array = self.data[kind][index]
         label = self.labels[kind][index]
         times = self.tauLP / array
@@ -267,12 +263,7 @@ class net:
         self.T = int(ma.ceil(np.max(times)) + self.tauLP)
         desired = np.ones(self.N_output) 
         desired *= 0.001*(self.T + 8)
-        #print "\t\t desired: ", desired
-        #desired[:5] += 0.001*(3)
-        #desired[5:] *= 0.001*(self.T + 3)
-        if ch == True:
-            print "\t\tMODIFED DESIRED!!!"
-            desired[0] = 0.001*np.ceil(self.T + 4)
+        desired[label] *= 0.8
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net.store()
         return label
@@ -325,6 +316,7 @@ class net:
         return (p / float(len(desired)))**0.5
 
     def neuron_right_outputs(self):
+        #pudb.set_trace()
         actual, desired = self.actual, self.desired
         #pudb.set_trace()
         for i in range(len(desired)):
@@ -383,23 +375,45 @@ class net:
         else:
             self.net.run(2*self.T*br.ms)
 
-    def train(self, iteration, a, b=None, method='resume', threshold=0.7):
+    def preset_weights(self, images):
+        if op.isfile("../files/synapses_hidden.txt") and op.isfile("../files/synapses_output.txt"):
+            self.read_weights()
+            
+        else:
+            #self.rand_weights(test=True)
+            #self.save_weights()
+            mod = True
+            k = 0
+            while mod and k < 1000:
+                k += 1
+                mod = False
+                for i in images:
+                    self.read_image(i)
+                    self.run(None)
+                    print "\t run_try", i,
+                    train.print_times(self)
+                    if train.synaptic_scaling(self):
+                        mod = True
+            #pudb.set_trace()
+            self.save_weights()
+
+    def train(self, iteration, images, method='resume', threshold=0.7):
+        print "PRESETTING WEIGHTS"
+        self.preset_weights(images)
+        #pudb.set_trace()
         i, j, k = 0, 0, 0
         pmin = 10000
         p = pmin
-        ch = False
-        if b == None:
-            images = a
-        else:
-            images = range(a, b)
+        #ch = False
         hidden = True
+        print "TRAINING"
         while True:
             i += 1
             j += 1
             print "Iter-Epoch ", iteration, ", ", i
             pold = p
-            correct, p = \
-                train.train_epoch(self, i, images, method=method, ch=ch, hidden=hidden)
+            N, correct, p = \
+                train.train_epoch(self, i, images, method=method, hidden=hidden)
             hidden = False
             if i > 1 and p - pold == 0:
                 hidden = True
@@ -407,7 +421,8 @@ class net:
                 pmin = p
                 j = 0
             self.r = self.rb*(min(p, 4)**2) / 0.25
-            #print "p, pmin: ", p, "\, ", pmin
-            if i > 500 or pmin < 0.4:
+            #print "p, pmin: ", p, ", ", pmin
+            print "percent right: ", float(correct) / N
+            if float(correct) / N > 0.85:
                 self.net.restore()
                 return i, pmin

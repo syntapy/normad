@@ -89,8 +89,8 @@ class net:
                             tl                                    : second
                             tp                                    : second
                             tauC = 5                              : 1 (shared)
-                            tau1 = 0.0025                         : second (shared)
-                            tau2 = 0.000625                       : second (shared)
+                            tau1 = 0.0050                         : second (shared)
+                            tau2 = 0.001250                       : second (shared)
                             tauL = 0.010                          : second (shared)
                             tauLp = 0.1*tauL                      : second (shared)
 
@@ -102,14 +102,14 @@ class net:
 
                       c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
                             f = w*c                               : 1
-                            D_post = w*c*ul                       : 1 (summed) ''',
+                            D_post = f*ul                         : 1 (summed) ''',
                     pre='tp=t', post='tl=t', name='synapses_hidden', dt=self.dta)
         So = br.Synapses(hidden, output, 
                    model='''tl                                   : second
                             tp                                   : second
                             tauC = 5                             : 1 (shared)
-                            tau1 = 0.0025                        : second (shared)
-                            tau2 = 0.000625                      : second (shared)
+                            tau1 = 0.0050                        : second (shared)
+                            tau2 = 0.001250                      : second (shared)
                             tauL = 0.010                         : second (shared)
                             tauLp = 0.1*tauL                     : second (shared)
 
@@ -121,7 +121,7 @@ class net:
 
                      c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
                             f = w*c                              : 1
-                            D_post = w*c*ul                      : 1 (summed) ''',
+                            D_post = f*ul                        : 1 (summed) ''',
                    pre='tp=t', post='tl=t', name='synapses_output', dt=self.dta)
 
         hidden.v[:] = -70
@@ -259,6 +259,10 @@ class net:
         array = self.data[kind][index]
         label = self.labels[kind][index]
         times = self.tauLP / array
+        #pudb.set_trace()
+        m = np.max(times)
+        times -= np.min(times)
+        times *= m / np.max(times)
         indices = np.arange(len(array))
         self.T = int(ma.ceil(np.max(times)) + self.tauLP)
         desired = np.ones(self.N_output) 
@@ -318,9 +322,13 @@ class net:
     def neuron_right_outputs(self):
         #pudb.set_trace()
         actual, desired = self.actual, self.desired
+        if len(actual[label]) == 0:
+            return False
         #pudb.set_trace()
-        for i in range(len(desired)):
-            if len(actual[i]) != 1:
+        indices = range(len(desired))
+        indices.pop(label)
+        for i in indices:
+            if len(actual[i]) > 0 and actual[i] <= actual[label][0]:
                 return False
         return True
 
@@ -399,7 +407,7 @@ class net:
 
     def train(self, iteration, images, method='resume', threshold=0.7):
         print "PRESETTING WEIGHTS"
-        self.preset_weights(images)
+        #self.preset_weights(images)
         #pudb.set_trace()
         i, j, k = 0, 0, 0
         pmin = 10000
@@ -420,7 +428,7 @@ class net:
             if p < pmin:
                 pmin = p
                 j = 0
-            self.r = self.rb*(min(p, 4)**2) / 0.25
+            self.r = self.rb*(min(1, 4)**2) / 0.25
             #print "p, pmin: ", p, ", ", pmin
             print "percent right: ", float(correct) / N
             if float(correct) / N > 0.85:

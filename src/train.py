@@ -75,15 +75,15 @@ def supervised_update(self, iteration, display=False, method='resume', hidden=Tr
         self.net.store()
 
 def synaptic_scaling_step(w, m, n, tomod, spikes):
-    f = 0.02
+    f = 0.20
     ### m neuron layer to n neuron layer
     ### w[n*i + j] acceses the synapse from neuron i to neuron j
 
     mod = False
     for j in tomod:
-        if len(spikes[j]) > 1:
+        if len(spikes[j]) > 3:
             w[j:m*n:n] *= 1 - f
-        elif len(spikes[j]) < 1:
+        elif len(spikes[j]) == 0:
             w[j:m*n:n] *= 1 + f
 
 def print_times(self):
@@ -106,16 +106,14 @@ def synaptic_scaling(self):
     hidden = b.all_values()['t']
 
     #print "\n\t\t[", hidden, "]\n\t\t[", actual, "]\n"
-    tomod_a = [i for i in actual if len(actual[i]) != 1]
-    tomod_h = [i for i in hidden if len(hidden[i]) != 1]
+    tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > 3]
+    tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(actual[i]) > 3]
     if tomod_a != [] or tomod_h != []:
         self.net.restore()
         synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, tomod_h, hidden)
         synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, tomod_a, actual)
         self.net.store()
-
         return True
-
     return False
 
 def train_step(self, iteration, T=None, method='resume', hidden=True):
@@ -124,6 +122,8 @@ def train_step(self, iteration, T=None, method='resume', hidden=True):
     while mod:
         self.run(T)
         print "\t run_try", i,
+        if i == 70:
+            pudb.set_trace()
         print_times(self)
         mod = synaptic_scaling(self)
         i += 1
@@ -146,8 +146,8 @@ def train_epoch(self, iteration, images, method='resume', hidden=True):
         #if label == 0:
         #j += 1
         train_step(self, iteration, method=method, hidden=hidden)
-        p += self.performance()
+        #p += self.performance()
         print "\tImage ", i, " trained"
-        if self.neuron_right_outputs():
+        if self.neuron_right_outputs(label):
             correct += 1
-    return len(images), correct, p
+    return len(images), correct#, p

@@ -10,7 +10,7 @@ import brian2 as br
 #iters = np.zeros(N)
 nn = lif.net(N_hidden=5, N_input=4, seed=(35495)%20)
 #pudb.set_trace()
-indices = nn.indices(1, [0, 1])
+indices = nn.indices(1, [0])
 
 #print indices
 

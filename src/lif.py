@@ -52,7 +52,7 @@ class net:
             Sh.connect('True')
             So.connect('True')
         Sh.w[:, :] = '(40*rand()+40)'
-        So.w[:, :] = '(230*rand()+10)'
+        So.w[:, :] = '(23*rand()+10)'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'

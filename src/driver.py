@@ -8,7 +8,7 @@ import brian2 as br
 #N = 60
 #pmins = np.zeros(N)
 #iters = np.zeros(N)
-nn = lif.net(N_hidden=5, N_input=4, seed=(35495)%20)
+nn = lif.net(N_output=1, N_hidden=5, N_input=4, seed=(35495)%20)
 #pudb.set_trace()
 indices = nn.indices(1, [0])
 

@@ -454,9 +454,9 @@ class net:
             hidden = False
             #if i > 1 and p - pold == 0:
             #    hidden = True
-            #if p < pmin:
-            #    pmin = p
-            #    j = 0
+            if p < pmin:
+                pmin = p
+                j = 0
             self.r = self.rb*(min(p, 4)**2) / 4
             print "p, pmin: ", p, ", ", pmin, ", ",
             print float(correct) / N

@@ -146,9 +146,11 @@ def train_epoch(self, iteration, images, method='resume', hidden=True):
         #if label == 0:
         #j += 1
         train_step(self, iteration, method=method, hidden=hidden)
-        #p += self.performance()
-        print "*",
+        p += self.performance()
         if self.neuron_right_outputs(label):
+            print "*",
             correct += 1
+        else:
+            print "-",
     print " ",
-    return len(images), correct#, p
+    return len(images), correct, p

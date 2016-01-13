@@ -51,8 +51,8 @@ class net:
         if test==False:
             Sh.connect('True')
             So.connect('True')
-        Sh.w[:, :] = '(40*rand()+400)'
-        So.w[:, :] = '(230*rand()+130)'
+        Sh.w[:, :] = '(40*rand()+40)'
+        So.w[:, :] = '(230*rand()+10)'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'
@@ -71,7 +71,7 @@ class net:
                             vt = 20                                     : 1 (shared)
                             Cm = 12.0                                   : 1 (shared)
                             D                                           : 1''',
-                            method='rk2', refractory=80*br.ms, threshold='v>=vt', 
+                            method='rk2', refractory=3*br.ms, threshold='v>=vt', 
                             reset='v=El', name='hidden', dt=self.dta)
         output = br.NeuronGroup(self.N_output, \
                             model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
@@ -80,7 +80,7 @@ class net:
                                         vt = 20          : 1 (shared)
                                         Cm = 3.0         : 1 (shared)
                                         D                : 1''',
-                                        method='rk2', refractory=80*br.ms, 
+                                        method='rk2', refractory=3*br.ms, 
                                         threshold='v>=vt', reset='v=El', 
                                         name='output', dt=self.dta)
 
@@ -352,8 +352,11 @@ class net:
         indices.pop(label)
         if len(actual[label]) == 0:
             return False
+        actual[label].sort()
         for i in indices:
-            if len(actual[i]) > 0 and actual[i] <= actual[label][0]:
+            #pudb.set_trace()
+            actual[i].sort()
+            if len(actual[i]) > 0 and actual[i][0] <= actual[label][0]:
                 return False
         return True
 
@@ -446,7 +449,7 @@ class net:
             #print "Iter-Epoch ", iteration, ", ", i
             print i, " - ",
             pold = p
-            N, correct = \
+            N, correct, p = \
                 train.train_epoch(self, i, images, method=method, hidden=hidden)
             hidden = False
             #if i > 1 and p - pold == 0:
@@ -454,8 +457,8 @@ class net:
             #if p < pmin:
             #    pmin = p
             #    j = 0
-            self.r = self.rb*(min(1, 4)**2) / 4
-            #print "p, pmin: ", p, ", ", pmin
+            self.r = self.rb*(min(p, 4)**2) / 4
+            print "p, pmin: ", p, ", ", pmin, ", ",
             print float(correct) / N
             if float(correct) / N > 0.85:
                 self.net.restore()

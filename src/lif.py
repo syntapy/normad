@@ -65,22 +65,22 @@ class net:
                                         times=np.asarray([])*br.ms, 
                                         name='input')
         hidden = br.NeuronGroup(self.N_hidden, \
-                   model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
+                   model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
                             gL = 30                                     : 1 (shared)
                             El = -70                                    : 1 (shared)
                             vt = 20                                     : 1 (shared)
                             Cm = 12.0                                   : 1 (shared)
                             D                                           : 1''',
-                            method='rk2', refractory=0*br.ms, threshold='v>=vt', 
+                            method='rk2', refractory=80*br.ms, threshold='v>=vt', 
                             reset='v=El', name='hidden', dt=self.dta)
         output = br.NeuronGroup(self.N_output, \
-                            model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1
+                            model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
                                         gL = 30          : 1 (shared)
                                         El = -70         : 1 (shared)
                                         vt = 20          : 1 (shared)
                                         Cm = 3.0         : 1 (shared)
                                         D                : 1''',
-                                        method='rk2', refractory=0*br.ms, 
+                                        method='rk2', refractory=80*br.ms, 
                                         threshold='v>=vt', reset='v=El', 
                                         name='output', dt=self.dta)
 
@@ -88,7 +88,7 @@ class net:
                     model='''
                             tl                                    : second
                             tp                                    : second
-                            tauC = 5                              : 1 (shared)
+                            tauC = 5                              : 1      (shared)
                             tau1 = 0.0050                         : second (shared)
                             tau2 = 0.001250                       : second (shared)
                             tauL = 0.010                          : second (shared)
@@ -270,7 +270,30 @@ class net:
         desired[label] *= 0.8
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net.store()
+
         return label
+
+    def indices(self, N, numbers):
+        n = len(numbers)
+        indices = []
+        count = [0]*n
+
+        index = 1
+        while True:
+            print "index: ", index
+            label = self.labels['train'][index]
+            #if label == 0 or label == 8:
+            #    pudb.set_trace()
+            if label in numbers:
+                index_put = [i for i in range(n) if numbers[i] == label][0]
+                if count[index_put] < N:
+                    count[index_put] += 1
+                    indices.append(index)
+            #b = [count[i] == N for i in range(n)]
+            if count == [N]*n:
+                break
+            index += 1
+        return indices
 
     def uniform_input(self):
         self.net.restore()
@@ -319,7 +342,7 @@ class net:
                     p += ((j+1)**2)*(actual[i][j]/br.msecond - 1000*desired[i])**2
         return (p / float(len(desired)))**0.5
 
-    def neuron_right_outputs(self):
+    def neuron_right_outputs(self, label):
         #pudb.set_trace()
         actual, desired = self.actual, self.desired
         if len(actual[label]) == 0:
@@ -327,6 +350,8 @@ class net:
         #pudb.set_trace()
         indices = range(len(desired))
         indices.pop(label)
+        if len(actual[label]) == 0:
+            return False
         for i in indices:
             if len(actual[i]) > 0 and actual[i] <= actual[label][0]:
                 return False
@@ -418,19 +443,20 @@ class net:
         while True:
             i += 1
             j += 1
-            print "Iter-Epoch ", iteration, ", ", i
+            #print "Iter-Epoch ", iteration, ", ", i
+            print i, " - ",
             pold = p
-            N, correct, p = \
+            N, correct = \
                 train.train_epoch(self, i, images, method=method, hidden=hidden)
             hidden = False
-            if i > 1 and p - pold == 0:
-                hidden = True
-            if p < pmin:
-                pmin = p
-                j = 0
-            self.r = self.rb*(min(1, 4)**2) / 0.25
+            #if i > 1 and p - pold == 0:
+            #    hidden = True
+            #if p < pmin:
+            #    pmin = p
+            #    j = 0
+            self.r = self.rb*(min(1, 4)**2) / 4
             #print "p, pmin: ", p, ", ", pmin
-            print "percent right: ", float(correct) / N
+            print float(correct) / N
             if float(correct) / N > 0.85:
                 self.net.restore()
                 return i, pmin

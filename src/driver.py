@@ -9,9 +9,16 @@ import brian2 as br
 #pmins = np.zeros(N)
 #iters = np.zeros(N)
 nn = lif.net(N_hidden=3, N_input=4, seed=(35495)%20)
+#pudb.set_trace()
+indices = nn.indices(1, [0, 1])
+
+#print indices
+
+#print [nn.labels['train'][i] for i in indices]
+
 #for i in range(N):
 #iters[i], pmins[i] = 
-nn.train(0, range(10))
+nn.train(0, indices)
 
 #nn.rand_weights(test=True)
 #print "P:"

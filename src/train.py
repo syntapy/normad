@@ -81,9 +81,9 @@ def synaptic_scaling_step(w, m, n, tomod, spikes):
 
     mod = False
     for j in tomod:
-        if len(spikes[j]) > 3:
-            w[j:m*n:n] *= 1 - f
-        elif len(spikes[j]) == 0:
+        #if len(spikes[j]) > 3:
+        #    w[j:m*n:n] *= 1 - f
+        if len(spikes[j]) == 0:
             w[j:m*n:n] *= 1 + f
 
 def print_times(self):
@@ -121,14 +121,14 @@ def train_step(self, iteration, T=None, method='resume', hidden=True):
     i = 1
     while mod:
         self.run(T)
-        print "\t run_try", i,
+        #print "\t run_try", i,
         if i == 70:
             pudb.set_trace()
-        print_times(self)
+        #print_times(self)
         mod = synaptic_scaling(self)
         i += 1
 
-    print "\t train",
+    #print "\t train",
     #print_times(self)
     supervised_update(self, iteration, method=method, hidden=hidden)
     #self.actual = self.net['crossings_o'].all_values()
@@ -147,7 +147,8 @@ def train_epoch(self, iteration, images, method='resume', hidden=True):
         #j += 1
         train_step(self, iteration, method=method, hidden=hidden)
         #p += self.performance()
-        print "\tImage ", i, " trained"
+        print "*",
         if self.neuron_right_outputs(label):
             correct += 1
+    print " ",
     return len(images), correct#, p

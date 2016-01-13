@@ -29,7 +29,7 @@ lif_tester	lift.py	/^class lif_tester:$/;"	c
 load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 net	lif.py	/^class net:$/;"	c
-neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self):$/;"	m	class:net
+neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
 nn	driver.py	/^nn = lif.net(N_hidden=3, N_input=4, seed=(35495)%20)$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net

@@ -71,7 +71,7 @@ class net:
                             vt = 20                                     : 1 (shared)
                             Cm = 12.0                                   : 1 (shared)
                             D                                           : 1''',
-                            method='rk2', refractory=3*br.ms, threshold='v>=vt', 
+                            method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                             reset='v=El', name='hidden', dt=self.dta)
         output = br.NeuronGroup(self.N_output, \
                             model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
@@ -80,7 +80,7 @@ class net:
                                         vt = 20          : 1 (shared)
                                         Cm = 3.0         : 1 (shared)
                                         D                : 1''',
-                                        method='rk2', refractory=3*br.ms, 
+                                        method='rk2', refractory=0*br.ms, 
                                         threshold='v>=vt', reset='v=El', 
                                         name='output', dt=self.dta)
 
@@ -280,7 +280,7 @@ class net:
 
         index = 1
         while True:
-            print "index: ", index
+            #print "index: ", index
             label = self.labels['train'][index]
             #if label == 0 or label == 8:
             #    pudb.set_trace()
@@ -434,7 +434,7 @@ class net:
             self.save_weights()
 
     def train(self, iteration, images, method='resume', threshold=0.7):
-        print "PRESETTING WEIGHTS"
+        #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
         #pudb.set_trace()
         i, j, k = 0, 0, 0
@@ -442,6 +442,8 @@ class net:
         p = pmin
         #ch = False
         hidden = True
+        self.net.run(5*br.ms)
+        self.net.restore()
         print "TRAINING"
         while True:
             i += 1

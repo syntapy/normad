@@ -8,12 +8,12 @@ import brian2 as br
 #N = 60
 #pmins = np.zeros(N)
 #iters = np.zeros(N)
-nn = lif.net(N_output=1, N_hidden=5, N_input=4, seed=(35495)%20)
+numbers = [0, 1]
+nn = lif.net(N_output=len(numbers), N_hidden=8, N_input=4, seed=(35495)%20)
+indices = nn.indices(8, numbers)
 #pudb.set_trace()
-indices = nn.indices(1, [0])
 
 #print indices
-
 #print [nn.labels['train'][i] for i in indices]
 
 #for i in range(N):

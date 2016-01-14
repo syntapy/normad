@@ -106,8 +106,9 @@ def synaptic_scaling(self):
     hidden = b.all_values()['t']
 
     #print "\n\t\t[", hidden, "]\n\t\t[", actual, "]\n"
+    #pudb.set_trace()
     tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > 3]
-    tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(actual[i]) > 3]
+    tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > 3]
     if tomod_a != [] or tomod_h != []:
         self.net.restore()
         synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, tomod_h, hidden)
@@ -153,4 +154,4 @@ def train_epoch(self, iteration, images, method='resume', hidden=True):
         else:
             print "-",
     print " ",
-    return len(images), correct, p
+    return len(images), correct, p / len(images)

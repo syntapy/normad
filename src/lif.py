@@ -186,11 +186,10 @@ class net:
         del train_labels
         del test_labels
 
-    def save_weights(self):
-        folder = '../files/'
+    def save_weights(self, file_h, file_o):
         hidden, output = 'synapses_hidden', 'synapses_output'
-        Fh = open(folder + hidden + '.txt', 'w')
-        Fo = open(folder + output + '.txt', 'w')
+        Fh = open(file_h, 'w')
+        Fo = open(file_o, 'w')
         Wh = self.net[hidden]
         Wo = self.net[output]
         m = len(Wh.w[:])
@@ -204,13 +203,11 @@ class net:
         Fh.close()
         Fo.close()
 
-    def read_weights(self):
-        #pudb.set_trace()
+    def read_weights(self, file_h, file_o):
         self.net.restore()
-        folder = '../files/'
         hidden, output = 'synapses_hidden', 'synapses_output'
-        Fh = open(folder + hidden + '.txt', 'r')
-        Fo = open(folder + output + '.txt', 'r')
+        Fh = open(file_h, 'r')
+        Fo = open(file_o, 'r')
         string_h, string_o = Fh.readlines(), Fo.readlines()
         m, n = len(string_h), len(string_o)
         weights_h = np.empty(m, dtype=float)
@@ -414,38 +411,43 @@ class net:
             self.net.run(2*self.T*br.ms)
 
     def preset_weights(self, images):
-        if op.isfile("../files/synapses_hidden.txt") and op.isfile("../files/synapses_output.txt"):
+        folder = "../files/"
+        name_h, name_o = "synapses_hidden-", "synapses_output-"
+        param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
+        file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
+        if op.isfile(file_h) and op.isfile(file_o):
             #pudb.set_trace()
-            self.read_weights()
-        else:
-            #self.rand_weights(test=True)
-            #self.save_weights()
-            mod = True
-            k = 0
-            np.random.shuffle(images)
-            n = min(len(images), 1)
-            self.run(None)
-            self.net.restore()
-            while mod:
-                #k += 1
-                mod = False
+            self.read_weights(file_h, file_o)
+            #self.verify_weights(file_h, file_o)
+        #self.rand_weights(test=True)
+        #self.save_weights()
+        mod = True
+        k = 0
+        np.random.shuffle(images)
+        n = min(len(images), 1)
+        self.run(None)
+        self.net.restore()
+        while mod:
+            #k += 1
+            mod = False
+            #pudb.set_trace()
+            print k,
+            for i in images[:n]:
+                print "!",
+                self.read_image(i)
+                self.run(None)
+                #print "\t run_try", i,
+                #train.print_times(self)
                 #pudb.set_trace()
-                print k,
-                for i in images[:n]:
-                    print "!",
-                    self.read_image(i)
-                    self.run(None)
-                    #print "\t run_try", i,
-                    #train.print_times(self)
-                    #pudb.set_trace()
-                    if train.synaptic_scaling(self):
-                        mod = True
-                    self.net.restore()
-                print
-            #pudb.set_trace()
-            self.save_weights()
+                if train.synaptic_scaling(self, 1):
+                    mod = True
+                self.net.restore()
+            print
+        self.save_weights(file_h, file_o)
 
     def train(self, iteration, images, method='resume', threshold=0.7):
+        self.run(None)
+        self.net.restore()
         print "PRESETTING WEIGHTS"
         self.preset_weights(images)
         #pudb.set_trace()
@@ -454,13 +456,11 @@ class net:
         p = pmin
         #ch = False
         print "TRAINING"
-        self.run(None)
-        self.net.restore()
         while True:
             i += 1
             j += 1
             #print "Iter-Epoch ", iteration, ", ", i
-            print i, " - ",
+            print i, ":",
             pold = p
             N, correct, p = train.train_epoch(self, i, images, method=method)
             #if i > 1 and p - pold == 0:

@@ -2,3 +2,5 @@
 *.swp
 snn
 data
+out.txt
+play.py

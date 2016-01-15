@@ -440,6 +440,7 @@ class net:
                     #pudb.set_trace()
                     if train.synaptic_scaling(self):
                         mod = True
+                    self.net.restore()
                 print
             #pudb.set_trace()
             self.save_weights()
@@ -453,6 +454,8 @@ class net:
         p = pmin
         #ch = False
         print "TRAINING"
+        self.run(None)
+        self.net.restore()
         while True:
             i += 1
             j += 1

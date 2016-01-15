@@ -57,8 +57,10 @@ def supervised_update(self, iteration, display=False, method='resume'):
     #if iteration == 3:
     #    pudb.set_trace()
     #if hidden == True:
+    #pudb.set_trace()
     dw_o, dw_h = resume_supervised_update_setup(self)
-    #print "MAX:", np.max(np.max(dw_o), np.max(dw_h)),
+    a, b = np.abs(dw_o).max(), np.abs(dw_h).max()
+    #print "MAX:", max(a, b),
     self.actual = self.net['crossings_o'].all_values()['t']
     self.net.restore()
     self.net['synapses_output'].w += self.r*dw_o[:]
@@ -76,7 +78,7 @@ def supervised_update(self, iteration, display=False, method='resume'):
     #    w_h = self.net['synapses_output'].w
     #    self.net.store()
 
-def synaptic_scaling_step(w, m, n, tomod, spikes):
+def synaptic_scaling_step(w, m, n, tomod, spikes, max_spikes):
     f = 0.20
     ### m neuron layer to n neuron layer
     ### w[n*i + j] acceses the synapse from neuron i to neuron j
@@ -84,7 +86,7 @@ def synaptic_scaling_step(w, m, n, tomod, spikes):
     mod = False
     #pudb.set_trace()
     for j in tomod:
-        if len(spikes[j]) > 1:
+        if len(spikes[j]) > max_spikes:
             w[j:m*n:n] *= 1 - f
         if len(spikes[j]) == 0:
             w[j:m*n:n] *= 1 + f
@@ -98,7 +100,7 @@ def print_times(self):
     
     print "\n\t\t[", hidden, "]\n\t\t[", actual, "]\n"
 
-def synaptic_scaling(self):
+def synaptic_scaling(self, max_spikes):
     w_ih = self.net['synapses_hidden'].w
     w_ho = self.net['synapses_output'].w
 
@@ -115,19 +117,19 @@ def synaptic_scaling(self):
     #print w_ih
     #print hidden
     #pudb.set_trace()
-    tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > 1]
-    tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > 1]
+    tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
+    tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > max_spikes]
     if tomod_a != [] or tomod_h != []:
         self.net.restore()
-        synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, tomod_h, hidden)
-        synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, tomod_a, actual)
+        synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, tomod_h, hidden, max_spikes)
+        synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, tomod_a, actual, max_spikes)
         self.net.store()
 
         w_ih_diff = w_ih - self.net['synapses_hidden'].w
         w_ho_diff = w_ho - self.net['synapses_output'].w
-        print 
+        #print 
         return True
-    self.net.restore()
+    #self.net.restore()
     return False
 
 def train_step(self, iteration, T=None, method='resume', hidden=True):
@@ -136,7 +138,7 @@ def train_step(self, iteration, T=None, method='resume', hidden=True):
     while mod:
         self.run(T)
         print "!",
-        mod = synaptic_scaling(self)
+        mod = synaptic_scaling(self, 5)
         #if i == 100:
         #pudb.set_trace()
         i += 1
@@ -146,9 +148,6 @@ def train_step(self, iteration, T=None, method='resume', hidden=True):
     #print "\t train",
     #print_times(self)
     supervised_update(self, iteration, method=method)
-    #self.actual = self.net['crossings_o'].all_values()
-    #pudb.set_trace()
-    #self.run(T)
 
 def train_epoch(self, iteration, images, method='resume', hidden=True):
     correct = 0

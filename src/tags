@@ -24,7 +24,7 @@ _prel_SC	spike_correlation.py	/^def _prel_SC(self, Smax, Smin):$/;"	f
 _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"	m	class:lif_tester
 accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
 get_spikes	lif.py	/^    def get_spikes(self, name='hidden', t='dict'):$/;"	m	class:net
-indices	driver.py	/^indices = nn.indices(8, numbers)$/;"	v
+indices	driver.py	/^indices = nn.indices(1, numbers)$/;"	v
 indices	lif.py	/^    def indices(self, N, numbers):$/;"	m	class:net
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
 lif_tester	lift.py	/^class lif_tester:$/;"	c
@@ -32,9 +32,9 @@ load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_output=len(numbers), N_hidden=5, N_input=4, seed=(35495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(N_output=len(numbers), N_hidden=16, N_input=4, seed=(35495)%20)$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
-numbers	driver.py	/^numbers = [0, 1]$/;"	v
+numbers	driver.py	/^numbers = [0]$/;"	v
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
@@ -61,7 +61,7 @@ setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:lif_tester
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
 smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
 sort	weight_updates_numba.py	/^def sort(S):$/;"	f
-supervised_update	train.py	/^def supervised_update(self, iteration, display=False, method='resume', hidden=True):$/;"	f
+supervised_update	train.py	/^def supervised_update(self, iteration, display=False, method='resume'):$/;"	f
 synaptic_scaling	train.py	/^def synaptic_scaling(self):$/;"	f
 synaptic_scaling_step	train.py	/^def synaptic_scaling_step(w, m, n, tomod, spikes):$/;"	f
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net

@@ -18,6 +18,7 @@ class net:
     ###################
 
     def __init__(self, N_hidden=5, N_output=10, N_input=4, data='mnist', seed=5):
+        #pudb.set_trace()
         self.changes = []
         self.trained = False
         self.rb = 1.0
@@ -33,6 +34,7 @@ class net:
         self.a_post, self.d_post = [], []
         self.a_pre, self.d_pre = [], []
         self.data, self.labels = None, None
+        self.T = 40
         if data == 'mnist':
             self.load()
             #pudb.set_trace()
@@ -48,9 +50,9 @@ class net:
         #So.w[1, 0] = '200'
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
-        if test==False:
-            Sh.connect('True')
-            So.connect('True')
+        #if test==False:
+        #    Sh.connect('True')
+        #    So.connect('True')
         Sh.w[:, :] = '(40*rand()+40)'
         So.w[:, :] = '(23*rand()+10)'
         Sh.tl[:, :] = '-1*second'
@@ -264,10 +266,10 @@ class net:
         times -= np.min(times)
         times *= m / np.max(times)
         indices = np.arange(len(array))
-        self.T = int(ma.ceil(np.max(times)) + self.tauLP)
+        #self.T = int(ma.ceil(np.max(times)) + self.tauLP)
         desired = np.ones(self.N_output) 
-        desired *= 0.001*(self.T + 8)
-        desired[label] *= 0.8
+        desired *= 0.001*(35)
+        desired[label] *= 0.7
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net.store()
 
@@ -413,37 +415,43 @@ class net:
 
     def preset_weights(self, images):
         if op.isfile("../files/synapses_hidden.txt") and op.isfile("../files/synapses_output.txt"):
+            #pudb.set_trace()
             self.read_weights()
-            
         else:
             #self.rand_weights(test=True)
             #self.save_weights()
             mod = True
             k = 0
-            while mod and k < 1000:
-                k += 1
+            np.random.shuffle(images)
+            n = min(len(images), 1)
+            self.run(None)
+            self.net.restore()
+            while mod:
+                #k += 1
                 mod = False
-                for i in images:
+                #pudb.set_trace()
+                print k,
+                for i in images[:n]:
+                    print "!",
                     self.read_image(i)
                     self.run(None)
-                    print "\t run_try", i,
-                    train.print_times(self)
+                    #print "\t run_try", i,
+                    #train.print_times(self)
+                    #pudb.set_trace()
                     if train.synaptic_scaling(self):
                         mod = True
+                print
             #pudb.set_trace()
             self.save_weights()
 
     def train(self, iteration, images, method='resume', threshold=0.7):
-        #print "PRESETTING WEIGHTS"
-        #self.preset_weights(images)
+        print "PRESETTING WEIGHTS"
+        self.preset_weights(images)
         #pudb.set_trace()
         i, j, k = 0, 0, 0
         pmin = 10000
         p = pmin
         #ch = False
-        hidden = True
-        self.net.run(5*br.ms)
-        self.net.restore()
         print "TRAINING"
         while True:
             i += 1
@@ -451,9 +459,7 @@ class net:
             #print "Iter-Epoch ", iteration, ", ", i
             print i, " - ",
             pold = p
-            N, correct, p = \
-                train.train_epoch(self, i, images, method=method, hidden=hidden)
-            hidden = False
+            N, correct, p = train.train_epoch(self, i, images, method=method)
             #if i > 1 and p - pold == 0:
             #    hidden = True
             if p < pmin:

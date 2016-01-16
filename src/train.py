@@ -93,12 +93,20 @@ def synaptic_scaling_step(w, m, n, tomod, spikes, max_spikes):
 
 def print_times(self):
     a = self.net['crossings_o']
-    b = self.net['crossings_h']
+    #b = self.net['crossings_h']
+    #sa = self.net['synapses_hidden']
+    #sb = self.net['synapses_output']
 
     actual = a.all_values()['t']
-    hidden = b.all_values()['t']
+    #hidden = b.all_values()['t']
+    #desired = self.desired
+    #w_ho = sb.w
+    #w_ih = sa.w
     
-    print "\n\t\t[", hidden, "]\n\t\t[", actual, "]\n"
+    #print "\n\t\t[(", np.std(w_ih), ", ", np.mean(w_ih), ") (", np.std(w_ho), ",", np.mean(w_ho), ")]"#\n\t\t[", actual, "]\n"
+    #print "HIDDEN: ", hidden
+    print "ACTUAL: ", actual
+    #print "DESIRED: ", desired
 
 def synaptic_scaling(self, max_spikes):
     w_ih = self.net['synapses_hidden'].w
@@ -137,7 +145,7 @@ def train_step(self, iteration, T=None, method='resume', hidden=True):
     i = 1
     while mod:
         self.run(T)
-        print "!",
+        #print "!",
         mod = synaptic_scaling(self, 5)
         #if i == 100:
         #pudb.set_trace()
@@ -154,17 +162,33 @@ def train_epoch(self, iteration, images, method='resume', hidden=True):
     #i, j = a, 0
     p = 0
     for i in images:
-        #for i in range(a, b):
-        label = self.read_image(i)
-        #if label == 0:
-        #j += 1
-        train_step(self, iteration, method=method)
-        p += self.performance()
+        k = 0
+        while True:
+            #for i in range(a, b):
+            label = self.read_image(i)
+            #if label == 0:
+            #j += 1
+            train_step(self, iteration, method=method)
+            #print "%0.2f" % self.performance(),
+            #print self.actual
+            p = self.performance()
+            if k == 0:
+                p_old = p
+            if p_old > p / 0.7 or p < 0.4:
+                break
+            k += 1
+            #if self.neuron_right_outputs(label):
+            #    break
+        #if iteration == 5:
+        #    pudb.set_trace()
+        #print_times(self)
+        #p += self.performance()
         if self.neuron_right_outputs(label):
-            print "*",
+            print "(*", k, ",", p, ")",
             correct += 1
         else:
-            print "-",
+            print "(-", k, ",", p, ")",
+            #print "-", k,
         #print label, ", ", self.actual
     print " ",
     return len(images), correct, p / len(images)

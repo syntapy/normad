@@ -32,7 +32,7 @@ load	lif.py	/^    def load(self):$/;"	m	class:net
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_output=len(numbers), N_hidden=16, N_input=4, seed=(35495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(N_output=len(numbers), N_hidden=64, N_input=4, seed=(35495)%20)$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 numbers	driver.py	/^numbers = [0, 1, 2]$/;"	v
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
@@ -44,6 +44,7 @@ preset_weights	lif.py	/^    def preset_weights(self, images):$/;"	m	class:net
 print_dw_vec	display.py	/^def print_dw_vec(self, dw, r):$/;"	f
 print_dws	display.py	/^def print_dws(self, dw):$/;"	f
 print_times	train.py	/^def print_times(self):$/;"	f
+print_zeros	lif.py	/^        def print_zeros(i, max_order=4):$/;"	f	function:net.train
 rand_weights	lif.py	/^    def rand_weights(self, test=False):$/;"	m	class:net
 read_image	lif.py	/^    def read_image(self, index, kind='train'):$/;"	m	class:net
 read_weights	lif.py	/^    def read_weights(self, file_h, file_o):$/;"	m	class:net

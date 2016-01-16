@@ -22,7 +22,7 @@ class net:
         self.changes = []
         self.trained = False
         self.rb = 1.0
-        self.r = 1.0
+        self.r = 10.0
         self.dta = 0.2*br.ms
         self.N_hidden = N_hidden
         self.N_output = N_output
@@ -71,7 +71,7 @@ class net:
                             gL = 30                                     : 1 (shared)
                             El = -70                                    : 1 (shared)
                             vt = 20                                     : 1 (shared)
-                            Cm = 12.0                                   : 1 (shared)
+                            Cm = 06.0                                   : 1 (shared)
                             D                                           : 1''',
                             method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                             reset='v=El', name='hidden', dt=self.dta)
@@ -109,7 +109,7 @@ class net:
         So = br.Synapses(hidden, output, 
                    model='''tl                                   : second
                             tp                                   : second
-                            tauC = 5                             : 1 (shared)
+                            tauC = 5                             : 1      (shared)
                             tau1 = 0.0050                        : second (shared)
                             tau2 = 0.001250                      : second (shared)
                             tauL = 0.010                         : second (shared)
@@ -261,11 +261,12 @@ class net:
         #pudb.set_trace()
         m = np.max(times)
         times -= np.min(times)
-        times *= m / np.max(times)
+        #times *= m / np.max(times)
+        times *= 0.7
         indices = np.arange(len(array))
         #self.T = int(ma.ceil(np.max(times)) + self.tauLP)
         desired = np.ones(self.N_output) 
-        desired *= 0.001*(35)
+        desired *= 0.001*(31)
         desired[label] *= 0.7
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net.store()
@@ -403,30 +404,25 @@ class net:
             self.train()
 
     def run(self, T):
-        self.net.restore()
+        #self.net.restore()
         if T != None and T >= self.T:
-            self.net.run(2*T*br.ms)
+            self.net.run(T*br.ms)
             #Sh = self.net['crossings_h'].all_values()['t']
         else:
-            self.net.run(2*self.T*br.ms)
+            self.net.run(self.T*br.ms)
 
     def preset_weights(self, images):
-        folder = "../files/"
+        folder = "../weights/"
         name_h, name_o = "synapses_hidden-", "synapses_output-"
         param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
         file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
         if op.isfile(file_h) and op.isfile(file_o):
             #pudb.set_trace()
             self.read_weights(file_h, file_o)
-            #self.verify_weights(file_h, file_o)
-        #self.rand_weights(test=True)
-        #self.save_weights()
         mod = True
         k = 0
         np.random.shuffle(images)
         n = min(len(images), 1)
-        self.run(None)
-        self.net.restore()
         while mod:
             #k += 1
             mod = False
@@ -446,8 +442,12 @@ class net:
         self.save_weights(file_h, file_o)
 
     def train(self, iteration, images, method='resume', threshold=0.7):
-        self.run(None)
-        self.net.restore()
+        def print_zeros(i, max_order=4):
+            for j in range(1, 4):
+                if i < 10**j:
+                    print ' ',
+        #self.run(None)
+        #self.net.restore()
         print "PRESETTING WEIGHTS"
         self.preset_weights(images)
         #pudb.set_trace()
@@ -455,12 +455,22 @@ class net:
         pmin = 10000
         p = pmin
         #ch = False
-        print "TRAINING"
+        print "TRAINING - ",
+        print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
         while True:
             i += 1
             j += 1
             #print "Iter-Epoch ", iteration, ", ", i
-            print i, ":",
+            print i,# ":",
+            #if i == 47:
+            #    
+            #    folder = "../weights/"
+            #    name_h, name_o = "synapses_hidden-", "synapses_output-"
+            #    param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
+            #    file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
+            #    self.save_weights(file_h, file_o)
+            #pudb.set_trace()
+            print_zeros(i)
             pold = p
             N, correct, p = train.train_epoch(self, i, images, method=method)
             #if i > 1 and p - pold == 0:
@@ -471,6 +481,6 @@ class net:
             self.r = self.rb*(min(p, 4)**2) / 4
             print "p, pmin: ", p, ", ", pmin, ", ",
             print float(correct) / N
-            if float(correct) / N > 0.85:
-                self.net.restore()
-                return i, pmin
+            #if float(correct) / N > 0.85:
+            #    self.net.restore()
+            #    return i, pmin

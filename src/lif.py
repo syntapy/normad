@@ -372,7 +372,6 @@ class net:
 
     def performance(self):
         if self.data == 'mnist':
-            #pudb.set_trace()
             actual, desired = self.actual, self.desired
             on = np.min(desired)
             off = np.max(desired)
@@ -391,9 +390,9 @@ class net:
             if len(actual) != 1:
                 return "nan"
             if self.label == 0:
-                return abs(actual[0] - self.xl) / abs(actual[0] - self.xe)
+                return abs(actual[0] - 1000*self.xl) / abs(actual[0] - 1000*self.xe)
             else:
-                return abs(actual[0] - self.xe) / abs(actual[0] - self.xl)
+                return abs(actual[0] - 1000*self.xe) / abs(actual[0] - 1000*self.xl)
 
     def mnist_right_outputs(self, label):
         #pudb.set_trace()
@@ -536,3 +535,18 @@ class net:
                 j = 0
             print "i, p, pmin: ", i, p, pmin
             self.r = self.rb*(min(p, 4)**2) / 4
+            if p < 1:
+                break
+    
+    def test(self, images):
+        test_result = []
+        times = []
+        print "======= R e s u l t s ========"
+        print "times \t\t actual \t\t desired"
+        for i in images:
+            label = self.read_image(i)
+            self.run(None)
+            p = self.performance()
+            actual, desired = self.actual, self.desired
+            print self.times, "\t\t", self.actual, "\t\t", self.desired
+            self.net.restore()

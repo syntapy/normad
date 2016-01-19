@@ -115,31 +115,39 @@ def synaptic_scaling(self, max_spikes):
     w_ih = self.net['synapses_hidden'].w
     w_ho = self.net['synapses_output'].w
 
-    a = self.net['crossings_o']
-    b = self.net['crossings_h']
+    #a = self.net['synapses_hidden']
+    #b = self.net['synapses_output']
 
-    actual = a.all_values()['t']
-    hidden = b.all_values()['t']
-    desired = self.desired
+    if False: #np.min(w_ih) < 1:
+        np.clip(w_ih, 1, 10000, out=w_ih)
+    elif False: #np.min(w_ho) < 1:
+        np.clip(w_ho, 1, 10000, out=w_ho)
+    else:
+        a = self.net['crossings_o']
+        b = self.net['crossings_h']
 
-    #print "\n\t\t[", hidden, "]\n\t\t[", actual, "]\n"
-    #print w_ho
-    #print actual, "\t", desired, "\n"
-    #print w_ih
-    #print hidden
-    #pudb.set_trace()
-    tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
-    tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > max_spikes]
-    if tomod_a != [] or tomod_h != []:
-        self.net.restore()
-        synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, tomod_h, hidden, max_spikes)
-        synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, tomod_a, actual, max_spikes)
-        self.net.store()
+        actual = a.all_values()['t']
+        hidden = b.all_values()['t']
+        desired = self.desired
 
-        w_ih_diff = w_ih - self.net['synapses_hidden'].w
-        w_ho_diff = w_ho - self.net['synapses_output'].w
-        #print 
-        return True
+        #print "\n\t\t[", hidden, "]\n\t\t[", actual, "]\n"
+        #print w_ho
+        #print actual, "\t", desired, "\n"
+        #print w_ih
+        #print hidden
+        #pudb.set_trace()
+        tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
+        tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > max_spikes]
+        if tomod_a != [] or tomod_h != []:
+            self.net.restore()
+            synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, tomod_h, hidden, max_spikes)
+            synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, tomod_a, actual, max_spikes)
+            self.net.store()
+
+            w_ih_diff = w_ih - self.net['synapses_hidden'].w
+            w_ho_diff = w_ho - self.net['synapses_output'].w
+            #print 
+            return True
     #self.net.restore()
     return False
 
@@ -163,11 +171,19 @@ def train_epoch(self, iteration, images, method='resume', hidden=True):
         k = 0
         label = self.read_image(i)
         train_step(self, iteration, method=method)
-        #print "%0.2f" % self.performance(),
-        #print self.actual
-        p = self.performance()
+        p_init = self.performance()
+        while True:
+            train_step(self, iteration, method=method)
+            #print "%0.2f" % self.performance(),
+            #print self.actual
+            p = self.performance()
+            print "\t ", k, i, p
+            #if p < 2 and (p < 0.5*p_init or k > 100 or p < 0.3):
+            #    break
+            break
+            k += 1
+        #print "\t============="
         p_total += p
-        print "\t i, p = ", i, p
         #print_times(self)
     print " ",
 

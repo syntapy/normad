@@ -10,7 +10,7 @@ import brian2 as br
 #iters = np.zeros(N)
 #numbers = [0, 1, 2]
 #pudb.set_trace()
-nn = lif.net(N_hidden=8, seed=(35495)%20, data='xor')
+nn = lif.net(N_hidden=16, seed=(35495)%20, data='xor')
 #indices = nn.indices(1, numbers)
 #print indices
 #print [nn.labels['train'][i] for i in indices]
@@ -18,6 +18,7 @@ nn = lif.net(N_hidden=8, seed=(35495)%20, data='xor')
 #for i in range(N):
 #iters[i], pmins[i] = 
 nn.train(0, range(4))
+nn.test(range(4))
 
 #nn.rand_weights(test=True)
 #print "P:"

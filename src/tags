@@ -32,7 +32,7 @@ matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	class:net
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_hidden=8, seed=(35495)%20, data='xor')$/;"	v
+nn	driver.py	/^nn = lif.net(N_hidden=16, seed=(35495)%20, data='xor')$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -68,6 +68,7 @@ synaptic_scaling	train.py	/^def synaptic_scaling(self, max_spikes):$/;"	f
 synaptic_scaling_step	train.py	/^def synaptic_scaling_step(w, m, n, tomod, spikes, max_spikes):$/;"	f
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
 test	lif.py	/^    def test(self, N=100, K=250, T=80):$/;"	m	class:net
+test	lif.py	/^    def test(self, images):$/;"	m	class:net
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:lif_tester
 test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:lif_tester

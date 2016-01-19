@@ -17,7 +17,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=5, N_output=10, N_input=4, data='mnist', seed=5):
+    def __init__(self, N_hidden=5, N_output=1, N_input=4, data='mnist', seed=5):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
@@ -35,11 +35,15 @@ class net:
         self.a_pre, self.d_pre = [], []
         self.data, self.labels = None, None
         self.T = 40
+        self.data=data
         if data == 'mnist':
             self.load()
             #pudb.set_trace()
             self.N_inputs = len(self.data['train'][0])
             #self.N_output = 10
+        elif data == 'xor':
+            self.N_inputs = 3
+            self.N_output = 1
         else:
             self.N_inputs = N_inputs
         self.__groups()
@@ -254,7 +258,7 @@ class net:
         s = self.net['input']
         self.net.store()
 
-    def read_image(self, index, kind='train'):
+    def set_mnist_times(self, index, kind='train'):
         array = self.data[kind][index]
         label = self.labels[kind][index]
         times = self.tauLP / array
@@ -271,6 +275,45 @@ class net:
         self.set_train_spikes(indices=indices, times=times, desired=desired)
         self.net.store()
 
+        return label
+
+    def set_xor_times(self, index):
+        indices = np.asarray([0, 1, 2])
+        if index == 0:
+            times = np.asarray([6, 6, 0])
+            label = 0
+        elif index == 1:
+            times = np.asarray([1, 1, 0])
+            label = 0
+        elif index == 2:
+            times = np.asarray([1, 6, 0])
+            label = 1
+        elif index == 3:
+            times = np.asarray([6, 1, 0])
+            label = 1
+        self.xl = 31*0.001
+        self.xe = 25*0.001
+        times = times*0.001
+        desired = np.asarray([self.xl])
+        desired -= label*(self.xl - self.xe)
+
+        self.set_train_spikes(indices=indices, times=times, desired=desired)
+        self.net.store()
+
+        return label
+
+    def read_image(self, index, kind='train'):
+        if self.data == 'mnist':
+            label = self.set_mnist_times(index, kind=kind)
+        elif self.data == 'xor':
+            """
+                0: 00 -> 6 6 0 -> ONE
+                1: 11 -> 1 1 0 -> ONE
+                2: 01 -> 1 6 0 -> ZERO
+                3: 10 -> 6 1 0 -> ZERO
+            """
+            label = self.set_xor_times(index)
+        self.label = label
         return label
 
     def indices(self, N, numbers):
@@ -328,21 +371,31 @@ class net:
         return -1
 
     def performance(self):
-        #pudb.set_trace()
-        actual, desired = self.actual, self.desired
-        on = np.min(desired)
-        off = np.max(desired)
-        p = 0
-        for i in range(len(desired)):
-            if len(actual[i]) == 0:
-                p += 20
+        if self.data == 'mnist':
+            #pudb.set_trace()
+            actual, desired = self.actual, self.desired
+            on = np.min(desired)
+            off = np.max(desired)
+            p = 0
+            for i in range(len(desired)):
+                if len(actual[i]) == 0:
+                    p += 20
+                else:
+                    for j in range(len(actual[i])):
+                        #pudb.set_trace()
+                        p += ((j+1)**2)*(actual[i][j]/br.msecond - 1000*desired[i])**2
+            return (p / float(len(desired)))**0.5
+        elif self.data == 'xor':
+            #pudb.set_trace()
+            actual, desired = self.actual[0] / br.ms, self.desired
+            if len(actual) != 1:
+                return "nan"
+            if self.label == 0:
+                return abs(actual[0] - self.xl) / abs(actual[0] - self.xe)
             else:
-                for j in range(len(actual[i])):
-                    #pudb.set_trace()
-                    p += ((j+1)**2)*(actual[i][j]/br.msecond - 1000*desired[i])**2
-        return (p / float(len(desired)))**0.5
+                return abs(actual[0] - self.xe) / abs(actual[0] - self.xl)
 
-    def neuron_right_outputs(self, label):
+    def mnist_right_outputs(self, label):
         #pudb.set_trace()
         actual, desired = self.actual, self.desired
         if len(actual[label]) == 0:
@@ -359,6 +412,20 @@ class net:
             if len(actual[i]) > 0 and actual[i][0] <= actual[label][0]:
                 return False
         return True
+
+    #def xor_right_outputs(self, label):
+    #    actual, desired = self.actual / br.ms, self.desired
+    #    if len(actual[0]) != 0
+    #        return False
+    #
+    #    if actual[0]:
+        
+    def neuron_right_outputs(self, label):
+        if self.data == 'mnist':
+            return self.mnist_right_outputs(label)
+        elif self.data == 'xor':
+            print pudb.set_trace()
+            #    return self.xor_right_outputs(label)
 
     def tdiff_rms(self):
         """ OUTDATED FUNCTION """
@@ -461,26 +528,11 @@ class net:
             i += 1
             j += 1
             #print "Iter-Epoch ", iteration, ", ", i
-            print i,# ":",
-            #if i == 47:
-            #    
-            #    folder = "../weights/"
-            #    name_h, name_o = "synapses_hidden-", "synapses_output-"
-            #    param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
-            #    file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
-            #    self.save_weights(file_h, file_o)
-            #pudb.set_trace()
             print_zeros(i)
             pold = p
-            N, correct, p = train.train_epoch(self, i, images, method=method)
-            #if i > 1 and p - pold == 0:
-            #    hidden = True
+            p = train.train_epoch(self, i, images, method=method)
             if p < pmin:
                 pmin = p
                 j = 0
+            print "i, p, pmin: ", i, p, pmin
             self.r = self.rb*(min(p, 4)**2) / 4
-            print "p, pmin: ", p, ", ", pmin, ", ",
-            print float(correct) / N
-            #if float(correct) / N > 0.85:
-            #    self.net.restore()
-            #    return i, pmin

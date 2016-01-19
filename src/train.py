@@ -62,6 +62,9 @@ def supervised_update(self, iteration, display=False, method='resume'):
     a, b = np.abs(dw_o).max(), np.abs(dw_h).max()
     #print "MAX:", max(a, b),
     self.actual = self.net['crossings_o'].all_values()['t']
+    #print self.self.label
+    #print self.actual[0] / br.ms
+    #print self.desired
     self.net.restore()
     self.net['synapses_output'].w += self.r*dw_o[:]
     self.net['synapses_hidden'].w += self.r*dw_h[:]
@@ -151,44 +154,21 @@ def train_step(self, iteration, T=None, method='resume', hidden=True):
         #pudb.set_trace()
         i += 1
 
-    #self.save_weights()
-    #pudb.set_trace()
-    #print "\t train",
-    #print_times(self)
     supervised_update(self, iteration, method=method)
 
 def train_epoch(self, iteration, images, method='resume', hidden=True):
     correct = 0
-    #i, j = a, 0
-    p = 0
+    p, p_total = 0, 0
     for i in images:
         k = 0
-        while True:
-            #for i in range(a, b):
-            label = self.read_image(i)
-            #if label == 0:
-            #j += 1
-            train_step(self, iteration, method=method)
-            #print "%0.2f" % self.performance(),
-            #print self.actual
-            p = self.performance()
-            if k == 0:
-                p_old = p
-            if p_old > p / 0.7 or p < 0.4:
-                break
-            k += 1
-            #if self.neuron_right_outputs(label):
-            #    break
-        #if iteration == 5:
-        #    pudb.set_trace()
+        label = self.read_image(i)
+        train_step(self, iteration, method=method)
+        #print "%0.2f" % self.performance(),
+        #print self.actual
+        p = self.performance()
+        p_total += p
+        print "\t i, p = ", i, p
         #print_times(self)
-        #p += self.performance()
-        if self.neuron_right_outputs(label):
-            print "(*", k, ",", p, ")",
-            correct += 1
-        else:
-            print "(-", k, ",", p, ")",
-            #print "-", k,
-        #print label, ", ", self.actual
     print " ",
-    return len(images), correct, p / len(images)
+
+    return p_total

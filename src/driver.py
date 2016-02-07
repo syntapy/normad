@@ -10,7 +10,7 @@ import brian2 as br
 #iters = np.zeros(N)
 #numbers = [0, 1, 2]
 #pudb.set_trace()
-nn = lif.net(N_hidden=5, seed=(35495)%20, data='xor')
+nn = lif.net(N_hidden=5, seed=(35495)%20)
 #indices = nn.indices(1, numbers)
 #print indices
 #print [nn.labels['train'][i] for i in indices]

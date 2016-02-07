@@ -58,8 +58,17 @@ class net:
         #if test==False:
         #    Sh.connect('True')
         #    So.connect('True')
-        Sh.w[:, :] = '(40*rand()+40)'
-        So.w[:, :] = '(23*rand()+10)'
+        Sh.w[:, :, :] = '50'
+        So.w[:, :, :] = '20'
+        So.w[:, 0, :] = 0
+        """
+        index (i, j, k) -> hidden i, out j, sub_c k
+                            m hiddens, n outs, o subs
+        w[i*n_o + j*o + k]
+        """
+        pudb.set_trace()
+        Sh.delay[:, :] = '11*rand()*ms'
+        So.delay[:, :] = '11*rand()*ms'
         Sh.tl[:, :] = '-1*second'
         Sh.tp[:, :] = '-1*second'
         So.tl[:, :] = '-1*second'

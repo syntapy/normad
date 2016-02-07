@@ -17,7 +17,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=5, N_output=1, N_input=4, data='mnist', seed=5):
+    def __init__(self, N_hidden=5, N_output=2, N_input=4, N_subc=3, data='mnist', seed=5):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
@@ -26,6 +26,7 @@ class net:
         self.dta = 0.2*br.ms
         self.N_hidden = N_hidden
         self.N_output = N_output
+        self.N_subc=N_subc
         self.tauLP = 5.0
         #self.tauIN = 5.0
         self.seed = seed
@@ -136,8 +137,8 @@ class net:
         N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
-        Sh.connect('True')
-        So.connect('True')
+        Sh.connect('True', n=self.N_subc)
+        So.connect('True', n=self.N_subc)
         self.net = br.Network(inputs, hidden, Sh, Th, output, So, M, N, To)
         self.rand_weights()
         self.actual = self.net['crossings_o'].all_values()['t']

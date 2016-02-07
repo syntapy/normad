@@ -151,17 +151,20 @@ def synaptic_scaling(self, max_spikes):
     #self.net.restore()
     return False
 
-def train_step(self, iteration, T=None, method='resume', hidden=True):
+def synaptic_scalling_wrap(self, max_spikes):
     mod = True
     i = 1
     while mod:
-        self.run(T)
+        self.run(None)
         #print "!",
-        mod = synaptic_scaling(self, 5)
+        mod = synaptic_scaling(self, max_spikes)
         #if i == 100:
         #pudb.set_trace()
         i += 1
 
+def train_step(self, iteration, T=None, method='resume', hidden=True):
+
+    synaptic_scalling_wrap(self, 1)
     supervised_update(self, iteration, method=method)
 
 def train_epoch(self, iteration, images, method='resume', hidden=True):
@@ -177,6 +180,8 @@ def train_epoch(self, iteration, images, method='resume', hidden=True):
             #print "%0.2f" % self.performance(),
             #print self.actual
             p = self.performance()
+            if type(p) == str:
+                pudb.set_trace()
             print "\t ", k, i, p
             #if p < 2 and (p < 0.5*p_init or k > 100 or p < 0.3):
             #    break

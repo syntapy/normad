@@ -190,7 +190,12 @@ class net:
         del train_labels
         del test_labels
 
-    def save_weights(self, file_h, file_o):
+    def save_weights(self, file_h=None, file_o=None):
+        if file_h == None or file_o == None:
+            folder = "../weights/"
+            name_h, name_o = "synapses_hidden-", "synapses_output-"
+            param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
+            file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
         hidden, output = 'synapses_hidden', 'synapses_output'
         Fh = open(file_h, 'w')
         Fo = open(file_o, 'w')
@@ -207,7 +212,12 @@ class net:
         Fh.close()
         Fo.close()
 
-    def read_weights(self, file_h, file_o):
+    def read_weights(self, file_h=None, file_o=None):
+        if file_h == None or file_o == None:
+            folder = "../weights/"
+            name_h, name_o = "synapses_hidden-", "synapses_output-"
+            param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
+            file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
         self.net.restore()
         hidden, output = 'synapses_hidden', 'synapses_output'
         Fh = open(file_h, 'r')
@@ -381,18 +391,21 @@ class net:
                     p += 20
                 else:
                     for j in range(len(actual[i])):
-                        #pudb.set_trace()
                         p += ((j+1)**2)*(actual[i][j]/br.msecond - 1000*desired[i])**2
             return (p / float(len(desired)))**0.5
         elif self.data == 'xor':
             #pudb.set_trace()
             actual, desired = self.actual[0] / br.ms, self.desired
             if len(actual) != 1:
-                return "nan"
-            if self.label == 0:
-                return abs(actual[0] - 1000*self.xl) / abs(actual[0] - 1000*self.xe)
-            else:
-                return abs(actual[0] - 1000*self.xe) / abs(actual[0] - 1000*self.xl)
+                train.synaptic_scalling_wrap(self, 1)
+                #pudb.set_trace()
+                #return "nan"
+            #pudb.set_trace()
+            return abs(actual[0] - 1000*self.desired[0])
+            #if self.label == 0:
+            #    return abs(actual[0] - 1000*self.xl) / abs(actual[0] - 1000*self.xe)
+            #else:
+            #    return abs(actual[0] - 1000*self.xe) / abs(actual[0] - 1000*self.xl)
 
     def mnist_right_outputs(self, label):
         #pudb.set_trace()
@@ -454,20 +467,20 @@ class net:
             return dw_t
         return 0
 
-    def test(self, N=100, K=250, T=80):
-        """
-        N: range of number of input synapses to test
-        K: number of runs for each parameter set
-        T: time (ms) for each run
-        """
+    #def test(self, N=100, K=250, T=80):
+    #    """
+    #    N: range of number of input synapses to test
+    #    K: number of runs for each parameter set
+    #    T: time (ms) for each run
+    #    """
 
-        self.T = T
-        self.n_inputs(2*self.N, 6*self.N)
-        self.n_outputs(1, int(self.N / 10))
-        for i in range(K):
-            self.__groups()
-            self._input_output()
-            self.train()
+    #    self.T = T
+    #    self.n_inputs(2*self.N, 6*self.N)
+    #    self.n_outputs(1, int(self.N / 10))
+    #    for i in range(K):
+    #        self.__groups()
+    #        self._input_output()
+    #        self.train()
 
     def run(self, T):
         #self.net.restore()
@@ -476,6 +489,7 @@ class net:
             #Sh = self.net['crossings_h'].all_values()['t']
         else:
             self.net.run(self.T*br.ms)
+        self.actual = self.net['crossings_o'].all_values()['t']
 
     def preset_weights(self, images):
         folder = "../weights/"
@@ -484,7 +498,7 @@ class net:
         file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
         if op.isfile(file_h) and op.isfile(file_o):
             #pudb.set_trace()
-            self.read_weights(file_h, file_o)
+            self.read_weights(file_h=file_h, file_o=file_o)
         mod = True
         k = 0
         np.random.shuffle(images)
@@ -505,7 +519,7 @@ class net:
                     mod = True
                 self.net.restore()
             print
-        self.save_weights(file_h, file_o)
+        self.save_weights(file_h=file_h, file_o=file_o)
 
     def train(self, iteration, images, method='resume', threshold=0.7):
         def print_zeros(i, max_order=4):
@@ -537,6 +551,7 @@ class net:
             self.r = self.rb*(min(p, 4)**2) / 4
             if p < 1:
                 break
+        self.save_weights()
     
     def test(self, images):
         test_result = []

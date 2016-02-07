@@ -46,7 +46,7 @@ print_times	train.py	/^def print_times(self):$/;"	f
 print_zeros	lif.py	/^        def print_zeros(i, max_order=4):$/;"	f	function:net.train
 rand_weights	lif.py	/^    def rand_weights(self, test=False):$/;"	m	class:net
 read_image	lif.py	/^    def read_image(self, index, kind='train'):$/;"	m	class:net
-read_weights	lif.py	/^    def read_weights(self, file_h, file_o):$/;"	m	class:net
+read_weights	lif.py	/^    def read_weights(self, file_h=None, file_o=None):$/;"	m	class:net
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
 resume_kernel	weight_updates_numba.py	/^def resume_kernel(s, tau):$/;"	f
 resume_supervised_update_setup	train.py	/^def resume_supervised_update_setup(self, hidden=True):$/;"	f
@@ -55,7 +55,7 @@ resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_
 rflatten	lif.py	/^    def rflatten(self, A):$/;"	m	class:net
 rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:lif_tester
 run	lif.py	/^    def run(self, T):$/;"	m	class:net
-save_weights	lif.py	/^    def save_weights(self, file_h, file_o):$/;"	m	class:net
+save_weights	lif.py	/^    def save_weights(self, file_h=None, file_o=None):$/;"	m	class:net
 set_mnist_times	lif.py	/^    def set_mnist_times(self, index, kind='train'):$/;"	m	class:net
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
 set_xor_times	lif.py	/^    def set_xor_times(self, index):$/;"	m	class:net
@@ -66,8 +66,8 @@ sort	weight_updates_numba.py	/^def sort(S):$/;"	f
 supervised_update	train.py	/^def supervised_update(self, iteration, display=False, method='resume'):$/;"	f
 synaptic_scaling	train.py	/^def synaptic_scaling(self, max_spikes):$/;"	f
 synaptic_scaling_step	train.py	/^def synaptic_scaling_step(w, m, n, tomod, spikes, max_spikes):$/;"	f
+synaptic_scalling_wrap	train.py	/^def synaptic_scalling_wrap(self, max_spikes):$/;"	f
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
-test	lif.py	/^    def test(self, N=100, K=250, T=80):$/;"	m	class:net
 test	lif.py	/^    def test(self, images):$/;"	m	class:net
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:lif_tester
 test_SC	lift.py	/^    def test_SC(self):$/;"	m	class:lif_tester

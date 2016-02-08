@@ -7,6 +7,7 @@ import weight_updates_py
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 def resume_supervised_update_setup(self, hidden=True):
     #pudb.set_trace()
+    Ap, Am, a_nh = 1.2, 0.5, 0.05
     a = self.net['input']
     ii, ti = self.indices, self.times
     ih, th = self.net['crossings_h'].it_
@@ -23,6 +24,7 @@ def resume_supervised_update_setup(self, hidden=True):
 
     #pudb.set_trace()
     m, n, o= self.N_inputs, self.N_hidden, self.N_output
+    p = self.N_subc
     #Si = self.times
     #Sa, Sd = self.actual, self.desired
     #Sa, Sh = weight_updates.sort(Sa), weight_updates.sort(Sh)
@@ -30,13 +32,18 @@ def resume_supervised_update_setup(self, hidden=True):
     w_ih = self.net['synapses_hidden'].w[:]
     dw_ho = np.zeros(np.shape(w_ho), dtype=np.float64)
     dw_ih = np.zeros(np.shape(w_ih), dtype=np.float64)
+    delay_ho = self.net['synapses_output'].delay
+    delay_ih = self.net['synapses_hidden'].delay
     tau = self.net['synapses_hidden'].tau1 / (1000*br.msecond)
     dw_o = weight_updates.resume_update_output_weights(\
-                dw_ho, m, n, o, ih[:], th[:], ia[:], ta[:], d, tau)
+                dw_ho, m, n, o, p, ih[:], th[:], ia[:], ta[:], d, tau, \
+                Ap, Am, a_nh)
     #if hidden == True:
     dw_h = weight_updates.resume_update_hidden_weights(\
-                dw_ih, w_ho, m, n, o, ii, ti/br.second, \
-                ih[:], th[:], ia[:], ta[:], d, tau)
+                dw_ih, w_ho, delay_ih, delay_ho, \
+                m, n, o, p, ii, ti/br.second, \
+                ih[:], th[:], ia[:], ta[:], d, tau, \
+                Ap, Am, a_nh)
     return dw_o, dw_h
     #return dw_o
     #dw_o_py = weight_updates_py.resume_update_output_weights(self)
@@ -163,7 +170,6 @@ def synaptic_scalling_wrap(self, max_spikes):
         i += 1
 
 def train_step(self, iteration, T=None, method='resume', hidden=True):
-
     synaptic_scalling_wrap(self, 1)
     supervised_update(self, iteration, method=method)
 

@@ -13,7 +13,7 @@ SCorrelation	spike_correlation.py	/^def SCorrelation(self, S1, S2):$/;"	f
 SCorrelationSIMPLE	spike_correlation.py	/^def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	f
 SCorrelationSlow	spike_correlation.py	/^def SCorrelationSlow(self, S1, S2, dt=0.05):$/;"	f
 __groups	lif.py	/^    def __groups(self):$/;"	m	class:net	file:
-__init__	lif.py	/^    def __init__(self, N_hidden=5, N_output=1, N_input=4, data='mnist', seed=5):$/;"	m	class:net
+__init__	lif.py	/^    def __init__(self, N_hidden=5, N_output=2, N_input=4, N_subc=3, data_set='mnist', seed=5):$/;"	m	class:net
 __init__	lift.py	/^    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):$/;"	m	class:lif_tester
 _equal_len_SC	spike_correlation.py	/^def _equal_len_SC(self, S1, S2):$/;"	f
 _equal_len_SC	spike_correlation.py	/^def _equal_len_SC(self, Smax, Smin):$/;"	f
@@ -32,7 +32,7 @@ matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	class:net
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_hidden=16, seed=(35495)%20, data='xor')$/;"	v
+nn	driver.py	/^nn = lif.net(N_hidden=5, seed=(35495)%20)$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -50,8 +50,8 @@ read_weights	lif.py	/^    def read_weights(self, file_h=None, file_o=None):$/;"	
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
 resume_kernel	weight_updates_numba.py	/^def resume_kernel(s, tau):$/;"	f
 resume_supervised_update_setup	train.py	/^def resume_supervised_update_setup(self, hidden=True):$/;"	f
-resume_update_hidden_weights	weight_updates_numba.py	/^def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau):$/;"	f
-resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):$/;"	f
+resume_update_hidden_weights	weight_updates_numba.py	/^def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau, Ap, Am, a_nh):$/;"	f
+resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_weights(dw_ho, m, n, o, p, ih, th, ia, ta, d, tau):$/;"	f
 rflatten	lif.py	/^    def rflatten(self, A):$/;"	m	class:net
 rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:lif_tester
 run	lif.py	/^    def run(self, T):$/;"	m	class:net

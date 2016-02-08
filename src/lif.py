@@ -17,7 +17,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=5, N_output=2, N_input=4, N_subc=3, data='mnist', seed=5):
+    def __init__(self, N_hidden=5, N_output=2, N_input=4, N_subc=3, data_set='mnist', seed=5):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
@@ -36,13 +36,14 @@ class net:
         self.a_pre, self.d_pre = [], []
         self.data, self.labels = None, None
         self.T = 40
-        self.data=data
-        if data == 'mnist':
+        self.data_set=data_set
+        if data_set == 'mnist':
+            self.N_output = 10
             self.load()
             #pudb.set_trace()
             self.N_inputs = len(self.data['train'][0])
             #self.N_output = 10
-        elif data == 'xor':
+        elif data_set == 'xor':
             self.N_inputs = 3
             self.N_output = 1
         else:
@@ -66,13 +67,13 @@ class net:
                             m hiddens, n outs, o subs
         w[i*n_o + j*o + k]
         """
-        pudb.set_trace()
-        Sh.delay[:, :] = '11*rand()*ms'
-        So.delay[:, :] = '11*rand()*ms'
-        Sh.tl[:, :] = '-1*second'
-        Sh.tp[:, :] = '-1*second'
-        So.tl[:, :] = '-1*second'
-        So.tp[:, :] = '-1*second'
+        #pudb.set_trace()
+        Sh.delay[:, :, :] = '11*rand()*ms'
+        So.delay[:, :, :] = '11*rand()*ms'
+        Sh.tl[:, :, :] = '-1*second'
+        Sh.tp[:, :, :] = '-1*second'
+        So.tl[:, :, :] = '-1*second'
+        So.tp[:, :, :] = '-1*second'
         self.net.store()
 
     def __groups(self):
@@ -323,9 +324,9 @@ class net:
         return label
 
     def read_image(self, index, kind='train'):
-        if self.data == 'mnist':
+        if self.data_set == 'mnist':
             label = self.set_mnist_times(index, kind=kind)
-        elif self.data == 'xor':
+        elif self.data_set == 'xor':
             """
                 0: 00 -> 6 6 0 -> ONE
                 1: 11 -> 1 1 0 -> ONE
@@ -562,7 +563,7 @@ class net:
             if p < 1:
                 break
         self.save_weights()
-    
+
     def test(self, images):
         test_result = []
         times = []

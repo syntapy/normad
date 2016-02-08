@@ -24,18 +24,16 @@ def larger_indices(a, B):
 
 #@numba.jit(nopython=True)
 def resume_kernel(s, tau):
-    #pudb.set_trace()
-    A = 1.0
-    return A*np.exp(s/tau)
+    return np.exp(s/tau)
 
 #@numba.jit(nopython=True)
-def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau):
-    a = 0.1     # non-hebbian weight term
+def resume_update_hidden_weights(dw_ih, w_ho, delay_ih, delay_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau, Ap, Am, a_nh):
     n_o, m_n_o = n*o, m*n*o
+    n_p, o_p = n*p, o*p
 
     ### m input neurons, n hidden neurons, o output neurons
-    ### w_ih[n*i + j] acceses the synapse from input i to hidden j
-    ### w_ho[o*i + j] acceses synapses from hidden i to output j
+    ### w_ih[n_p*i + p*j + k] acceses the kth synapse from input i to hidden j
+    ### w_ho[o_p*i + p*j + k] acceses the kth synapse from hidden i to output j
 
     # loop over input neurons
     for I in range(len(ii)):
@@ -45,35 +43,33 @@ def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d
             # loop over output neurons
             for J in range(len(ta)):
                 j = ia[J]
-                s = ta[J] - ti[I]
+                index_ih = n_p*i+p*k
+                index_ho = o_p*k+p*j
+                delay = delay_ih[index_ih:index_ih+p]
+                s = ta[J] - ti[I] - delay
                 if s <= 0:
-                    #self.am += 1
-                    dw_ih[n*i+k] += resume_kernel(s, tau)*w_ho[o*k+j]
-                elif s >= 0 :
-                    #self.ap += 1
-                    dw_ih[n*i+k] -= (a + resume_kernel(-s, tau))*w_ho[o*k+j]
+                    dw_ih[index_ih:index_ih+p] += Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho:index_ho+p])
+                if s >= 0 :
+                    dw_ih[index_ih:index_ih+p] -= (a_nh + Ap*resume_kernel(-s, tau))*np.abs(w_ho[index_ho:index_ho+p])
             for j in range(len(d)):
-                #pudb.set_trace()
-                s = d[j] - ti[I]
+                index_ih = n_p*i+p*k
+                index_ho = o_p*k+p*j
+                delay = delay_ih[index_ih:index_ih+p]
+                s = d[j] - ti[I] - delay
                 if s <= 0:
-                    #self.dm += 1
-                    dw_ih[n*i+k] -= resume_kernel(s, tau)*w_ho[o*k+j]
-                elif s >= 0:
-                    #self.dp += 1
-                    dw_ih[n*i+k] += (a + resume_kernel(-s, tau))*w_ho[o*k+j]
-    dw_ih /= float(m*n)
+                    dw_ih[index_ih:index_ih+p] -= Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho:index_ho+p])
+                if s >= 0:
+                    dw_ih[index_ih:index_ih+p] += (a_nh + Ap*resume_kernel(-s, tau))*np.abs(w_ho[index_ho:index_ho+p])
+    dw_ih /= float(m_n*p*p)
     return dw_ih
 
 #@numba.jit(nopython=True)
-def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
-    #pudb.set_trace()
-    a = 0.1     # non-hebbian weight term
-    #pudb.set_trace()
+def resume_update_output_weights(dw_ho, m, n, o, p, ih, th, ia, ta, d, tau):
     n_o, m_n_o = n*o, m*n*o
+    n_p, o_p = n*p, o*p
 
-    ### m hidden neurons, n output neurons, o synapses per neuron/input pair
-    ### w_ih[n*i + j] acceses the synapse from input i to hidden j
-    ### w_ho[o*i + j] acceses synapses from hidden i to output j
+    ### n hidden neurons, o output neurons, p synapses per neuron/input pair
+    ### w_ho[o_p*i + p*j + k] acceses the kth synapses from hidden i to output j
 
     # loop over hidden spikes
     for I in range(len(ih)):
@@ -81,23 +77,23 @@ def resume_update_output_weights(dw_ho, m, n, o, ih, th, ia, ta, d, tau):
         # loop over output spikes
         for J in range(len(ia)):
             j = ia[J]
-            s = ta[J] - th[I]
+            index_ho = o_p*k+p*j
+            delay = delay_ho[index_ho:index_ho+p]
+            s = ta[J] - th[I] - delay
             if s <= 0:
-                #self.am += 1
-                dw_ho[o*i+j] += resume_kernel(s, tau)
-            elif s >= 0:
-                #self.ap += 1
-                dw_ho[o*i+j] -= a + resume_kernel(-s, tau)
+                dw_ho[index_ho:index_ho+p] += Am*resume_kernel(s, tau)
+            if s >= 0:
+                dw_ho[index_ho:index_ho+p] -= a_nh + Ap*resume_kernel(-s, tau)
         # loop over desired spikes
         for j in range(len(d)):
-            s = d[j] - th[I]
+            index_ho = o_p*k+p*j
+            delay = delay_ho[index_ho:index_ho+p]
+            s = d[j] - th[I] - delay
             if s <= 0:
-                #self.dm += 1
-                dw_ho[o*i+j] -= resume_kernel(s, tau)
-            else:
-                #self.dp += 1
-                dw_ho[o*i+j] += a + resume_kernel(-s, tau)
-    dw_ho /= float(n)
+                dw_ho[index_ho:index_ho+p] -= Am*resume_kernel(s, tau)
+            if s >= 0:
+                dw_ho[index_ho:index_ho+p] += a_nh + Ap*resume_kernel(-s, tau)
+    dw_ho /= float(n_p)
     return dw_ho
 
 def normad_supervised_update_setup(self):

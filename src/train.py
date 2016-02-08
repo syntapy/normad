@@ -7,7 +7,11 @@ import weight_updates_py
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 def resume_supervised_update_setup(self, hidden=True):
     #pudb.set_trace()
+
+    #STDP Parameters
     Ap, Am, a_nh = 1.2, 0.5, 0.05
+    tau = 0.005
+
     a = self.net['input']
     ii, ti = self.indices, self.times
     ih, th = self.net['crossings_h'].it_
@@ -34,7 +38,6 @@ def resume_supervised_update_setup(self, hidden=True):
     dw_ih = np.zeros(np.shape(w_ih), dtype=np.float64)
     delay_ho = self.net['synapses_output'].delay
     delay_ih = self.net['synapses_hidden'].delay
-    tau = self.net['synapses_hidden'].tau1 / (1000*br.msecond)
     dw_o = weight_updates.resume_update_output_weights(\
                 dw_ho, m, n, o, p, ih[:], th[:], ia[:], ta[:], d, tau, \
                 Ap, Am, a_nh)
@@ -61,45 +64,27 @@ def resume_supervised_update_setup(self, hidden=True):
     #pudb.set_trace()
 
 def supervised_update(self, iteration, display=False, method='resume'):
-    #if iteration == 3:
-    #    pudb.set_trace()
-    #if hidden == True:
-    #pudb.set_trace()
     dw_o, dw_h = resume_supervised_update_setup(self)
     a, b = np.abs(dw_o).max(), np.abs(dw_h).max()
-    #print "MAX:", max(a, b),
     self.actual = self.net['crossings_o'].all_values()['t']
-    #print self.self.label
-    #print self.actual[0] / br.ms
-    #print self.desired
     self.net.restore()
     self.net['synapses_output'].w += self.r*dw_o[:]
     self.net['synapses_hidden'].w += self.r*dw_h[:]
     w_o = self.net['synapses_output'].w
     w_h = self.net['synapses_output'].w
     self.net.store()
-    #else:
-    #    dw_o = resume_supervised_update_setup(self, hidden=hidden)
-    #    print "MAX2:", np.max(np.max(dw_o)),
-    #    self.actual = self.net['crossings_o'].all_values()['t']
-    #    self.net.restore()
-    #    self.net['synapses_output'].w += self.r*dw_o[:]
-    #    w_o = self.net['synapses_output'].w
-    #    w_h = self.net['synapses_output'].w
-    #    self.net.store()
 
-def synaptic_scaling_step(w, m, n, tomod, spikes, max_spikes):
-    f = 0.20
+def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):
+    f = 0.005
     ### m neuron layer to n neuron layer
     ### w[n*i + j] acceses the synapse from neuron i to neuron j
 
     mod = False
-    #pudb.set_trace()
     for j in tomod:
         if len(spikes[j]) > max_spikes:
-            w[j:m*n:n] *= 1 - f
+            w[j:m*n*p:n*p] *= np.float(1 - f)**np.sign(w[j:m*n*p:n*p])
         if len(spikes[j]) == 0:
-            w[j:m*n:n] *= 1 + f
+            w[j:m*n*p:n*p] *= np.float(1 + f)**np.sign(w[j:m*n*p:n*p])
 
 def print_times(self):
     a = self.net['crossings_o']
@@ -125,37 +110,35 @@ def synaptic_scaling(self, max_spikes):
     #a = self.net['synapses_hidden']
     #b = self.net['synapses_output']
 
-    if False: #np.min(w_ih) < 1:
-        np.clip(w_ih, 1, 10000, out=w_ih)
-    elif False: #np.min(w_ho) < 1:
-        np.clip(w_ho, 1, 10000, out=w_ho)
-    else:
-        a = self.net['crossings_o']
-        b = self.net['crossings_h']
+    # KEEP FOLOWING COMMENTS !!!
+    #if False: #np.min(w_ih) < 1:
+    #    np.clip(w_ih, 1, 10000, out=w_ih)
+    #elif False: #np.min(w_ho) < 1:
+    #    np.clip(w_ho, 1, 10000, out=w_ho)
+    #else:
+    a = self.net['crossings_o']
+    b = self.net['crossings_h']
 
-        actual = a.all_values()['t']
-        hidden = b.all_values()['t']
-        desired = self.desired
+    actual = a.all_values()['t']
+    hidden = b.all_values()['t']
+    desired = self.desired
 
-        #print "\n\t\t[", hidden, "]\n\t\t[", actual, "]\n"
-        #print w_ho
-        #print actual, "\t", desired, "\n"
-        #print w_ih
-        #print hidden
-        #pudb.set_trace()
-        tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
-        tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > max_spikes]
-        if tomod_a != [] or tomod_h != []:
-            self.net.restore()
-            synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, tomod_h, hidden, max_spikes)
-            synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, tomod_a, actual, max_spikes)
-            self.net.store()
+    #print "\n\t\t[", hidden, "]\n\t\t[", actual, "]\n"
+    #print w_ho
+    #print actual, "\t", desired, "\n"
+    #print w_ih
+    #print hidden
+    tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
+    tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > max_spikes]
+    if tomod_a != [] or tomod_h != []:
+        self.net.restore()
+        synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, self.N_subc, tomod_h, hidden, max_spikes)
+        synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, self.N_subc, tomod_a, actual, max_spikes)
+        self.net.store()
 
-            w_ih_diff = w_ih - self.net['synapses_hidden'].w
-            w_ho_diff = w_ho - self.net['synapses_output'].w
-            #print 
-            return True
-    #self.net.restore()
+        w_ih_diff = w_ih - self.net['synapses_hidden'].w
+        w_ho_diff = w_ho - self.net['synapses_output'].w
+        return True
     return False
 
 def synaptic_scalling_wrap(self, max_spikes):

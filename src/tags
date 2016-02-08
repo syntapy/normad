@@ -32,7 +32,7 @@ matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
 mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	class:net
 net	lif.py	/^class net:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(N_hidden=5, seed=(35495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(N_hidden=5, seed=(35495)%20, data_set='xor')$/;"	v
 normad_supervised_update_setup	weight_updates_numba.py	/^def normad_supervised_update_setup(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -50,7 +50,7 @@ read_weights	lif.py	/^    def read_weights(self, file_h=None, file_o=None):$/;"	
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
 resume_kernel	weight_updates_numba.py	/^def resume_kernel(s, tau):$/;"	f
 resume_supervised_update_setup	train.py	/^def resume_supervised_update_setup(self, hidden=True):$/;"	f
-resume_update_hidden_weights	weight_updates_numba.py	/^def resume_update_hidden_weights(dw_ih, w_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau, Ap, Am, a_nh):$/;"	f
+resume_update_hidden_weights	weight_updates_numba.py	/^def resume_update_hidden_weights(dw_ih, w_ho, delay_ih, delay_ho, m, n, o, ii, ti, ih, th, ia, ta, d, tau, Ap, Am, a_nh):$/;"	f
 resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_weights(dw_ho, m, n, o, p, ih, th, ia, ta, d, tau):$/;"	f
 rflatten	lif.py	/^    def rflatten(self, A):$/;"	m	class:net
 rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:lif_tester
@@ -65,7 +65,7 @@ smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
 sort	weight_updates_numba.py	/^def sort(S):$/;"	f
 supervised_update	train.py	/^def supervised_update(self, iteration, display=False, method='resume'):$/;"	f
 synaptic_scaling	train.py	/^def synaptic_scaling(self, max_spikes):$/;"	f
-synaptic_scaling_step	train.py	/^def synaptic_scaling_step(w, m, n, tomod, spikes, max_spikes):$/;"	f
+synaptic_scaling_step	train.py	/^def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):$/;"	f
 synaptic_scalling_wrap	train.py	/^def synaptic_scalling_wrap(self, max_spikes):$/;"	f
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
 test	lif.py	/^    def test(self, images):$/;"	m	class:net

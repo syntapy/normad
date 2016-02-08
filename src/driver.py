@@ -11,21 +11,17 @@ import brian2 as br
 #numbers = [0, 1, 2]
 #pudb.set_trace()
 #pudb.set_trace()
-nn = lif.net(N_hidden=5, seed=(35495)%20)
+nn = lif.net(N_hidden=5, seed=(35495)%20, data_set='xor')
 #label = nn.read_image(0)
 
 #nn.run(None)
-#ii, ti = nn.indices, nn.times
-#ih, th = nn.net['crossings_h'].it_
-#ia, ta = nn.net['crossings_o'].it_
-#pudb.set_trace()
 #indices = nn.indices(1, numbers)
 #print indices
 #print [nn.labels['train'][i] for i in indices]
 
 #for i in range(N):
 #iters[i], pmins[i] = 
-#nn.train(0, range(4))
+nn.train(0, range(4))
 #pudb.set_trace()
 #nn.test(range(4))
 

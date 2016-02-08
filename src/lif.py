@@ -59,21 +59,20 @@ class net:
         #if test==False:
         #    Sh.connect('True')
         #    So.connect('True')
-        Sh.w[:, :, :] = '50'
-        So.w[:, :, :] = '20'
-        So.w[:, 0, :] = 0
-        """
-        index (i, j, k) -> hidden i, out j, sub_c k
-                            m hiddens, n outs, o subs
-        w[i*n_o + j*o + k]
-        """
-        #pudb.set_trace()
+        p = self.N_subc
+        Sh.w[:, :, :] = '60'
+        So.w[:, :, :] = '40'
+        Sh.w[:, :, :int(p/5)] = '-60'
+        So.w[:, :, :int(p/5)] = '-40'
+
         Sh.delay[:, :, :] = '11*rand()*ms'
         So.delay[:, :, :] = '11*rand()*ms'
+
         Sh.tl[:, :, :] = '-1*second'
         Sh.tp[:, :, :] = '-1*second'
         So.tl[:, :, :] = '-1*second'
         So.tp[:, :, :] = '-1*second'
+
         self.net.store()
 
     def __groups(self):
@@ -304,13 +303,13 @@ class net:
             times = np.asarray([6, 6, 0])
             label = 0
         elif index == 1:
-            times = np.asarray([1, 1, 0])
+            times = np.asarray([0, 0, 0])
             label = 0
         elif index == 2:
-            times = np.asarray([1, 6, 0])
+            times = np.asarray([0, 6, 0])
             label = 1
         elif index == 3:
-            times = np.asarray([6, 1, 0])
+            times = np.asarray([6, 0, 0])
             label = 1
         self.xl = 31*0.001
         self.xe = 25*0.001

@@ -3,14 +3,9 @@ import pudb
 import array
 import numpy as np
 
-class lif_tester:
+class rand_data_gen:
 
     def __init__(self, neuron=None, seed=5, Na=None, Nb=None):
-        if neuron == None:
-            self.neuron = lif.net(seed=seed)
-        else:
-            self.neuron = neuron
-
         self.N = self.neuron.N_hidden
         self.neuron.T = 50
         self.T = self.neuron.T
@@ -24,13 +19,13 @@ class lif_tester:
         else:
             self.ma, self.mb = Nb[0], Nb[1]
 
-    def test_SC(self):
-        S1, S2 = [2.5, 15.5], [2.5, 15.5]
-        #a = self.neuron.SCorrelationSlow(S1, S2)
+    #def test_SC(self):
+    #    S1, S2 = [2.5, 15.5], [2.5, 15.5]
+    #    #a = self.neuron.SCorrelationSlow(S1, S2)
         b = self.neuron.SCorrelation(S1, S2)
 
-        #print a
-        print b
+    #    #print a
+    #    print b
 
     def _spaced_next_number(self, spacing, a):
         return a + int(np.ma.round(abs(np.random.poisson(lam=10))))
@@ -99,6 +94,27 @@ class lif_tester:
         return times
 
     def _input_output(self, classes=1):
+        """
+        Sets the input and desired output spike times if no arguments are given
+        """
+        #pudb.set_trace()
+        N, ri, ro, spacing = self.N, 60, 30, 5
+        lri, lro = int(1000 / ri), int(1000 / ro)
+        self.times, self.indices, self.desired = [], [], []
+        self.classes = classes
+        self.times_list, self.indices_list, self.desired_list = [], [], []
+        for i in range(classes):
+            times, indices = self._get_random_spikes(N, lri, 0, self.T, spacing)
+            min_time = np.min(times)
+            desired = self._get_random_spikes(
+                    1, lro, min_time + 5, self.T, 
+                    spacing, g_indices=False)
+
+            self.times_list.append(times)
+            self.indices_list.append(indices)
+            self.desired_list.append(desired)
+
+    def load_random(self, classes=1):
         """
         Sets the input and desired output spike times if no arguments are given
         """

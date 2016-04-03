@@ -1,9 +1,15 @@
 import numpy as np
+import data as dt
 #import lift
 import pudb
 #import train
 import lif
 import brian2 as br
+
+mnist = dt.data('xor')
+pudb.set_trace()
+#mt = max([np.max(mnist.X['train'][i]) for i in range(len(mnist.X['train']))])
+#print mt
 
 #N = 60
 #pmins = np.zeros(N)
@@ -11,8 +17,9 @@ import brian2 as br
 #numbers = [0, 1, 2]
 #pudb.set_trace()
 #pudb.set_trace()
-nn = lif.net(N_hidden=5, seed=(35495)%20, data_set='xor')
-#label = nn.read_image(0)
+###nn = lif.net(N_hidden=0, N_output=1, seed=(35495)%20)
+###nn.load('mnist')
+###label = nn.read_data(0)
 
 #nn.run(None)
 #indices = nn.indices(1, numbers)
@@ -21,8 +28,8 @@ nn = lif.net(N_hidden=5, seed=(35495)%20, data_set='xor')
 
 #for i in range(N):
 #iters[i], pmins[i] = 
-nn.train(0, range(4))
 #pudb.set_trace()
+###nn.fit(range(4))
 #nn.test(range(4))
 
 #nn.rand_weights(test=True)

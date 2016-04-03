@@ -75,7 +75,7 @@ def supervised_update(self, iteration, display=False, method='resume'):
     self.net.store()
 
 def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):
-    f = 0.005
+    f = 0.05
     ### m neuron layer to n neuron layer
     ### w[n*i + j] acceses the synapse from neuron i to neuron j
 
@@ -103,12 +103,9 @@ def print_times(self):
     print "ACTUAL: ", actual
     #print "DESIRED: ", desired
 
-def synaptic_scaling(self, max_spikes):
-    w_ih = self.net['synapses_hidden'].w
-    w_ho = self.net['synapses_output'].w
 
-    #a = self.net['synapses_hidden']
-    #b = self.net['synapses_output']
+def synaptic_scaling_singlelayer(self, max_spikes, iteration=0):
+    w_io = self.net['synapses_output'].w
 
     # KEEP FOLOWING COMMENTS !!!
     #if False: #np.min(w_ih) < 1:
@@ -116,6 +113,37 @@ def synaptic_scaling(self, max_spikes):
     #elif False: #np.min(w_ho) < 1:
     #    np.clip(w_ho, 1, 10000, out=w_ho)
     #else:
+    #if iteration == 100:
+    #    pudb.set_trace()
+    # KEEP PREVIOUS COMMENTS !!!
+    a = self.net['crossings_o']
+
+    actual = a.all_values()['t']
+    desired = self.desired
+
+    tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
+    if tomod_a != []:
+        self.net.restore()
+        synaptic_scaling_step(w_io, self.N_inputs, self.N_output, self.N_subc, tomod_a, actual, max_spikes)
+        self.net.store()
+
+        #w_io_diff = w_io - self.net['synapses'].w
+        return True
+    return False
+
+def synaptic_scaling_multilayer(self, max_spikes, iteration=0):
+    w_ih = self.net['synapses_hidden'].w
+    w_ho = self.net['synapses_output'].w
+
+    # KEEP FOLOWING COMMENTS !!!
+    #if False: #np.min(w_ih) < 1:
+    #    np.clip(w_ih, 1, 10000, out=w_ih)
+    #elif False: #np.min(w_ho) < 1:
+    #    np.clip(w_ho, 1, 10000, out=w_ho)
+    #else:
+    #if iteration == 100:
+    #    pudb.set_trace()
+    # KEEP PREVIOUS COMMENTS !!!
     a = self.net['crossings_o']
     b = self.net['crossings_h']
 
@@ -123,11 +151,6 @@ def synaptic_scaling(self, max_spikes):
     hidden = b.all_values()['t']
     desired = self.desired
 
-    #print "\n\t\t[", hidden, "]\n\t\t[", actual, "]\n"
-    #print w_ho
-    #print actual, "\t", desired, "\n"
-    #print w_ih
-    #print hidden
     tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
     tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > max_spikes]
     if tomod_a != [] or tomod_h != []:
@@ -140,6 +163,12 @@ def synaptic_scaling(self, max_spikes):
         w_ho_diff = w_ho - self.net['synapses_output'].w
         return True
     return False
+
+def synaptic_scaling(self, max_spikes, iteration=0):
+    if self.N_hidden > 0:
+        return synaptic_scaling_multilayer(self, max_spikes, iteration=iteration)
+    else:
+        return synaptic_scaling_singlelayer(self, max_spikes, iteration=iteration)
 
 def synaptic_scalling_wrap(self, max_spikes):
     mod = True

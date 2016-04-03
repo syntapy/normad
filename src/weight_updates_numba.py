@@ -1,6 +1,6 @@
 import pudb
 import numpy as np
-import numba
+#import numba
 
 def sort(S):
     if len(S) > 0:

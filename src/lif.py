@@ -5,6 +5,7 @@ import numpy as np
 import math as ma
 import scipy
 import pudb
+import sys
 
 import display
 import spike_correlation
@@ -17,13 +18,14 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=5, N_output=2, N_input=4, N_subc=3, data_set='mnist', seed=5):
+    def __init__(self, N_hidden=5, N_output=2, N_inputs=4, N_subc=3, seed=5):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
         self.rb = 1.0
         self.r = 10.0
         self.dta = 0.2*br.ms
+        self.N_inputs = N_inputs
         self.N_hidden = N_hidden
         self.N_output = N_output
         self.N_subc=N_subc
@@ -36,34 +38,29 @@ class net:
         self.a_pre, self.d_pre = [], []
         self.data, self.labels = None, None
         self.T = 40
-        self.data_set=data_set
-        if data_set == 'mnist':
-            self.N_output = 10
-            self.load()
-            #pudb.set_trace()
-            self.N_inputs = len(self.data['train'][0])
-            #self.N_output = 10
-        elif data_set == 'xor':
-            self.N_inputs = 3
-            self.N_output = 1
-        else:
-            self.N_inputs = N_inputs
         self.__groups()
 
-    def rand_weights(self, test=False):
-        #Sh.w[:, :] = '(1000*rand()+750)'
-        #So.w[:, :] = '(1000*rand()+750)'
-        #So.w[1, 0] = '200'
+    def rand_weights_singlelayer(self, test=False):
+        So = self.net['synapses_output']
+        p = self.N_subc
+        So.w[:, :, :] = '80'
+        So.w[:, :, :int(np.ceil(p/3))] *= -1
+
+        So.delay[:, :, :] = '11*rand()*ms'
+
+        So.tl[:, :, :] = '-1*second'
+        So.tp[:, :, :] = '-1*second'
+
+        self.net.store()
+
+    def rand_weights_multilayer(self, test=False):
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
-        #if test==False:
-        #    Sh.connect('True')
-        #    So.connect('True')
         p = self.N_subc
-        Sh.w[:, :, :] = '60'
-        So.w[:, :, :] = '40'
-        Sh.w[:, :, :int(p/5)] = '-60'
-        So.w[:, :, :int(p/5)] = '-40'
+        Sh.w[:, :, :] = '120'
+        So.w[:, :, :] = '80'
+        Sh.w[:, :, :int(np.ceil(p/3))] *= -1
+        So.w[:, :, :int(np.ceil(p/3))] *= -1
 
         Sh.delay[:, :, :] = '11*rand()*ms'
         So.delay[:, :, :] = '11*rand()*ms'
@@ -75,12 +72,8 @@ class net:
 
         self.net.store()
 
-    def __groups(self):
-        inputs = br.SpikeGeneratorGroup(self.N_inputs, 
-                                        indices=np.asarray([]), 
-                                        times=np.asarray([])*br.ms, 
-                                        name='input')
-        hidden = br.NeuronGroup(self.N_hidden, \
+    def __gen_neuron_group(self, N_neurons, name):
+        neurons = br.NeuronGroup(N_neurons, \
                    model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
                             gL = 30                                     : 1 (shared)
                             El = -70                                    : 1 (shared)
@@ -88,19 +81,11 @@ class net:
                             Cm = 06.0                                   : 1 (shared)
                             D                                           : 1''',
                             method='rk2', refractory=0*br.ms, threshold='v>=vt', 
-                            reset='v=El', name='hidden', dt=self.dta)
-        output = br.NeuronGroup(self.N_output, \
-                            model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
-                                        gL = 30          : 1 (shared)
-                                        El = -70         : 1 (shared)
-                                        vt = 20          : 1 (shared)
-                                        Cm = 3.0         : 1 (shared)
-                                        D                : 1''',
-                                        method='rk2', refractory=0*br.ms, 
-                                        threshold='v>=vt', reset='v=El', 
-                                        name='output', dt=self.dta)
+                            reset='v=El', name=name, dt=self.dta)
+        return neurons
 
-        Sh = br.Synapses(inputs, hidden,
+    def __gen_synapse_group(self, neurons_a, neurons_b, name):
+        S = br.Synapses(neurons_a, neurons_b,
                     model='''
                             tl                                    : second
                             tp                                    : second
@@ -119,26 +104,30 @@ class net:
                       c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
                             f = w*c                               : 1
                             D_post = f*ul                         : 1 (summed) ''',
-                    pre='tp=t', post='tl=t', name='synapses_hidden', dt=self.dta)
-        So = br.Synapses(hidden, output, 
-                   model='''tl                                   : second
-                            tp                                   : second
-                            tauC = 5                             : 1      (shared)
-                            tau1 = 0.0050                        : second (shared)
-                            tau2 = 0.001250                      : second (shared)
-                            tauL = 0.010                         : second (shared)
-                            tauLp = 0.1*tauL                     : second (shared)
+                    pre='tp=t', post='tl=t', name=name, dt=self.dta)
 
-                            w                                    : 1
+        return S
+    
+    def __gen_singlelayer_nn(self, inputs):
+        output = self.__gen_neuron_group(self.N_output,'output')
+        So = self.__gen_synapse_group(inputs, output, 'synapses_output')
 
-                            up = (sign(t - tp) + 1.0) / 2        : 1
-                            ul = (sign(t - tl - 3*ms) + 1.0) / 2 : 1
-                            u = (sign(t) + 1.0) / 2              : 1
+        output.v[:] = -70
+        M = br.StateMonitor(output, 'v', record=True, name='monitor_v')
+        N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
+        To = br.SpikeMonitor(output, variables='v', name='crossings_o')
+        So.connect('True', n=self.N_subc)
+        self.net = br.Network(inputs, output, So, M, N, To)
+        self.rand_weights_singlelayer()
+        self.actual = self.net['crossings_o'].all_values()['t']
+        self.net.store()
 
-                     c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
-                            f = w*c                              : 1
-                            D_post = f*ul                        : 1 (summed) ''',
-                   pre='tp=t', post='tl=t', name='synapses_output', dt=self.dta)
+    def __gen_multilayer_nn(self, inputs):
+        hidden = self.__gen_neuron_group(self.N_hidden, 'hidden')
+        output = self.__gen_neuron_group(self.N_output,'output')
+
+        Sh = self.__gen_synapse_group(inputs, hidden, 'synapses_hidden')
+        So = self.__gen_synapse_group(hidden, output, name='synapses_output')
 
         hidden.v[:] = -70
         output.v[:] = -70
@@ -149,58 +138,60 @@ class net:
         Sh.connect('True', n=self.N_subc)
         So.connect('True', n=self.N_subc)
         self.net = br.Network(inputs, hidden, Sh, Th, output, So, M, N, To)
-        self.rand_weights()
+        self.rand_weights_multilayer()
         self.actual = self.net['crossings_o'].all_values()['t']
         self.net.store()
+
+    def __groups(self):
+        inputs = br.SpikeGeneratorGroup(self.N_inputs, 
+                                        indices=np.asarray([]), 
+                                        times=np.asarray([])*br.ms, 
+                                        name='input')
+        if self.N_hidden > 0:
+            self.__gen_multilayer_nn(inputs)
+        else:
+            self.__gen_singlelayer_nn(inputs)
         #self.read_weights()
 
-    ##################
-    ### DATA SETUP ### 
-    ##################
+    def save_weights_singlelayer(self, file_o=None):
+        if file_o == None:
+            folder = "../weights/"
+            name_o = "synapses_output-"
+            param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
+            file_o = folder + name_o + param + ext
+        output = 'synapses_output'
+        Fo = open(file_o, 'w')
+        Wo = self.net[output]
+        n = len(Wo.w[:])
+        for i in range(n):
+            Fo.write(str(Wo.w[i]))
+            Fo.write('\n')
+        Fo.close()
 
-    def rflatten(self, A):
-        if A.dtype == 'O':
-            dim = np.shape(A)
-            n = len(dim)
-            ad = np.zeros(n)
-            i = 0
-            tmp = []
-            for a in A:
-                tmp.append(self.rflatten(a))
-            return_val = np.concatenate(tmp)
-        else:
-            return_val = A.flatten()
+    def read_weights_singlelayer(self, file_o=None):
+        if file_o == None:
+            folder = "../weights/"
+            name_o = "synapses_output-"
+            param, ext = "0_" + str(self.N_output), ".txt"
+            file_o = folder + name_o + param + ext
+        self.net.restore()
+        output = 'synapses_output'
+        Fo = open(file_o, 'r')
+        string_o = Fh.readlines(), Fo.readlines()
+        n = len(string_o)
+        weights_o = np.empty(n, dtype=float)
+        for i in xrange(n):
+            weights_o[i] = float(string_o[i][:-1])
 
-        return return_val
+        o = self.net[output]
+        if len(o.w) == 0:
+            o.connect('True')
+        o.w[:] = weights_o[:]
+        o.tl[:, :] = '-1*second'
+        o.tp[:, :] = '-1*second'
+        self.net.store()
 
-    def load(self):
-        c1_train = scipy.io.loadmat('../data/train-1.mat')['c1a'][0]
-        c1_test = scipy.io.loadmat('../data/test-1.mat')['c1b'][0]
-
-        N_train, N_test = len(c1_train), len(c1_test)
-        train_features = np.empty(N_train, dtype=object)
-        test_features = np.empty(N_test, dtype=object)
-
-        for i in xrange(N_train):
-            train_features[i] = self.rflatten(c1_train[i])
-        for i in xrange(N_test):
-            test_features[i] = self.rflatten(c1_test[i])
-
-        self.data, self.labels = {}, {}
-        train_labels = scipy.io.loadmat('../data/train-label.mat')['train_labels_body']
-        test_labels = scipy.io.loadmat('../data/test-label.mat')['test_labels_body']
-
-        self.data['train'] = train_features
-        self.data['test'] = test_features
-        self.labels['train'] = self.rflatten(train_labels)
-        self.labels['test'] = self.rflatten(test_labels)
-
-        del train_features
-        del test_features
-        del train_labels
-        del test_labels
-
-    def save_weights(self, file_h=None, file_o=None):
+    def save_weights_multilayer(self, file_h=None, file_o=None):
         if file_h == None or file_o == None:
             folder = "../weights/"
             name_h, name_o = "synapses_hidden-", "synapses_output-"
@@ -222,7 +213,7 @@ class net:
         Fh.close()
         Fo.close()
 
-    def read_weights(self, file_h=None, file_o=None):
+    def read_weights_multilayer(self, file_h=None, file_o=None):
         if file_h == None or file_o == None:
             folder = "../weights/"
             name_h, name_o = "synapses_hidden-", "synapses_output-"
@@ -275,7 +266,7 @@ class net:
         self.indices, self.times, self.desired = indices, times*br.ms, desired
         #pudb.set_trace()
         self.net['input'].set_spikes(indices=self.indices, times=self.times)
-        s = self.net['input']
+        #s = self.net['input']
         self.net.store()
 
     def set_mnist_times(self, index, kind='train'):
@@ -297,35 +288,10 @@ class net:
 
         return label
 
-    def set_xor_times(self, index):
-        indices = np.asarray([0, 1, 2])
-        if index == 0:
-            times = np.asarray([6, 6, 0])
-            label = 0
-        elif index == 1:
-            times = np.asarray([0, 0, 0])
-            label = 0
-        elif index == 2:
-            times = np.asarray([0, 6, 0])
-            label = 1
-        elif index == 3:
-            times = np.asarray([6, 0, 0])
-            label = 1
-        self.xl = 31*0.001
-        self.xe = 25*0.001
-        times = times*0.001
-        desired = np.asarray([self.xl])
-        desired -= label*(self.xl - self.xe)
-
-        self.set_train_spikes(indices=indices, times=times, desired=desired)
-        self.net.store()
-
-        return label
-
-    def read_image(self, index, kind='train'):
-        if self.data_set == 'mnist':
+    def read_data(self, index, kind='train', data_set='mnist'):
+        if data_set == 'mnist':
             label = self.set_mnist_times(index, kind=kind)
-        elif self.data_set == 'xor':
+        elif data_set == 'xor':
             """
                 0: 00 -> 6 6 0 -> ONE
                 1: 11 -> 1 1 0 -> ONE
@@ -333,6 +299,8 @@ class net:
                 3: 10 -> 6 1 0 -> ZERO
             """
             label = self.set_xor_times(index)
+        elif data_set == 'generated':
+            pass
         self.label = label
         return label
 
@@ -343,16 +311,12 @@ class net:
 
         index = 1
         while True:
-            #print "index: ", index
             label = self.labels['train'][index]
-            #if label == 0 or label == 8:
-            #    pudb.set_trace()
             if label in numbers:
                 index_put = [i for i in range(n) if numbers[i] == label][0]
                 if count[index_put] < N:
                     count[index_put] += 1
                     indices.append(index)
-            #b = [count[i] == N for i in range(n)]
             if count == [N]*n:
                 break
             index += 1
@@ -367,7 +331,8 @@ class net:
 
     def reset(self):
         self.net.restore()
-        self.net['synapses'].w[:, :] = '0'
+        pudb.set_trace()
+        self.net['synapses_output'].w[:, :] = '0'
         self._input_output()
 
     ##################
@@ -477,80 +442,81 @@ class net:
             return dw_t
         return 0
 
-    #def test(self, N=100, K=250, T=80):
-    #    """
-    #    N: range of number of input synapses to test
-    #    K: number of runs for each parameter set
-    #    T: time (ms) for each run
-    #    """
-
-    #    self.T = T
-    #    self.n_inputs(2*self.N, 6*self.N)
-    #    self.n_outputs(1, int(self.N / 10))
-    #    for i in range(K):
-    #        self.__groups()
-    #        self._input_output()
-    #        self.train()
-
     def run(self, T):
-        #self.net.restore()
         if T != None and T >= self.T:
             self.net.run(T*br.ms)
-            #Sh = self.net['crossings_h'].all_values()['t']
         else:
             self.net.run(self.T*br.ms)
         self.actual = self.net['crossings_o'].all_values()['t']
 
-    def preset_weights(self, images):
+    def preset_weights_singlelayer(self, images):
+        folder = "../weights/"
+        name_o = "synapses_output-"
+        param, ext = "0_" + str(self.N_output), ".txt"
+        file_o = folder + name_o + param + ext
+        if op.isfile(file_o):
+            self.read_weights_singlelayer(file_o=file_o)
+        mod = True
+        k = 0
+        np.random.shuffle(images)
+        n = min(len(images), 10)
+        iteration = 0
+        while mod:
+            mod = False
+            iteration += 1
+            for i in images[:n]:
+                self.read_image(i)
+                self.run(None)
+                if train.synaptic_scaling(self, 2, iteration=iteration):
+                    mod = True
+                self.net.restore()
+        self.save_weights_singlelayer(file_o=file_o)
+
+    def preset_weights_multilayer(self, images):
         folder = "../weights/"
         name_h, name_o = "synapses_hidden-", "synapses_output-"
         param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
         file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
         if op.isfile(file_h) and op.isfile(file_o):
-            #pudb.set_trace()
-            self.read_weights(file_h=file_h, file_o=file_o)
+            self.read_weights_multilayer(file_h=file_h, file_o=file_o)
         mod = True
         k = 0
         np.random.shuffle(images)
-        n = min(len(images), 1)
+        n = min(len(images), 10)
+        iteration = 0
         while mod:
-            #k += 1
             mod = False
-            #pudb.set_trace()
-            print k,
+            iteration += 1
             for i in images[:n]:
-                print "!",
                 self.read_image(i)
                 self.run(None)
-                #print "\t run_try", i,
-                #train.print_times(self)
-                #pudb.set_trace()
-                if train.synaptic_scaling(self, 1):
+                if train.synaptic_scaling(self, 2, iteration=iteration):
                     mod = True
                 self.net.restore()
-            print
-        self.save_weights(file_h=file_h, file_o=file_o)
+        self.save_weights_multilayer(file_h=file_h, file_o=file_o)
 
-    def train(self, iteration, images, method='resume', threshold=0.7):
+    def preset_weights(self, images):
+        if self.N_hidden > 0:
+            self.preset_weights_multilayer(images)
+        else:
+            self.preset_weights_singlelayer(images)
+
+    def fit(self, images, method='resume', threshold=0.7):
         def print_zeros(i, max_order=4):
             for j in range(1, 4):
                 if i < 10**j:
                     print ' ',
-        #self.run(None)
-        #self.net.restore()
         print "PRESETTING WEIGHTS"
         self.preset_weights(images)
-        #pudb.set_trace()
+        sys.exit()
         i, j, k = 0, 0, 0
         pmin = 10000
         p = pmin
-        #ch = False
         print "TRAINING - ",
         print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
         while True:
             i += 1
             j += 1
-            #print "Iter-Epoch ", iteration, ", ", i
             print_zeros(i)
             pold = p
             p = train.train_epoch(self, i, images, method=method)

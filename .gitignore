@@ -1,6 +1,9 @@
 *.pyc
-*.swp
+.*.swp
+.*.swo
 snn
 data
 out.txt
 play.py
+nohup.out
+test.py

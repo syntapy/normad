@@ -3,68 +3,37 @@ import pudb
 import brian2 as br
 import weight_updates_numba as weight_updates
 import weight_updates_py
+from activity import activity
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
-def resume_supervised_update_setup(self, hidden=True):
+def supervised_update_setup(self, y, hidden=True, method='tempotron'):
     #pudb.set_trace()
 
     #STDP Parameters
-    Ap, Am, a_nh = 1.2, 0.5, 0.05
+    #pudb.set_trace()
     tau = 0.005
+    
+    if method == 'resume':
+        Ap, Am, a_nh = 1.2, 0.5, 0.05
+        update_function_o = weight_updates.resume_update_output_weights
+    elif method == 'tempotron':
+        update_function_o = weight_updates.tempotron_update_output_weights
 
-    a = self.net['input']
-    ii, ti = self.indices, self.times
-    ih, th = self.net['crossings_h'].it_
-    ia, ta = self.net['crossings_o'].it_
-    d = self.desired
+    if hidden == True:
+        if method == 'resume':
+            update_function_h = weight_updates.resume_update_hidden_weights
+            dw_o = update_function_o(self.info, y)
+            dw_h = update_function_h(self.info, y)
+        elif method == 'tempotron':
+            update_function_h = weight_updates.tempotron_update_hidden_weights
+            update_function_o = weight_updates.tempotron_update_output_weights
+            dw_o = update_function_o(self.info, y)
+            dw_h = update_function_h(self.info, y)
 
-    #print "\t", ta
-    #print "\t", ia
-    a = self.net['crossings_o']
-    b = self.net['crossings_h']
-
-    actual_s = a.all_values()['t']
-    hidden_s = b.all_values()['t']
-
-    #pudb.set_trace()
-    m, n, o= self.N_inputs, self.N_hidden, self.N_output
-    p = self.N_subc
-    #Si = self.times
-    #Sa, Sd = self.actual, self.desired
-    #Sa, Sh = weight_updates.sort(Sa), weight_updates.sort(Sh)
-    w_ho = self.net['synapses_output'].w[:]
-    w_ih = self.net['synapses_hidden'].w[:]
-    dw_ho = np.zeros(np.shape(w_ho), dtype=np.float64)
-    dw_ih = np.zeros(np.shape(w_ih), dtype=np.float64)
-    delay_ho = self.net['synapses_output'].delay
-    delay_ih = self.net['synapses_hidden'].delay
-    dw_o = weight_updates.resume_update_output_weights(\
-                dw_ho, m, n, o, p, ih[:], th[:], ia[:], ta[:], d, tau, \
-                Ap, Am, a_nh)
-    #if hidden == True:
-    dw_h = weight_updates.resume_update_hidden_weights(\
-                dw_ih, w_ho, delay_ih, delay_ho, \
-                m, n, o, p, ii, ti/br.second, \
-                ih[:], th[:], ia[:], ta[:], d, tau, \
-                Ap, Am, a_nh)
     return dw_o, dw_h
-    #return dw_o
-    #dw_o_py = weight_updates_py.resume_update_output_weights(self)
-    #dw_h_py = weight_updates_py.resume_update_hidden_weights(self)
 
-    #ocmp = np.allclose(dw_h, dw_h_py, rtol=4*(1e-2), atol=3e-1)
-    #hcmp = np.allclose(dw_o, dw_o_py, rtol=4*(1e-2), atol=3e-1)
-    #if not ocmp or not hcmp:
-    #    pudb.set_trace()
-
-
-    #print "\tDIFFS:"
-    #print "\t\tout:\t", dw_o - dw_o_py
-    #print "\t\thidden:\t", dw_h - dw_h_py
-    #pudb.set_trace()
-
-def supervised_update(self, iteration, display=False, method='resume'):
-    dw_o, dw_h = resume_supervised_update_setup(self)
+def supervised_update(self, y, method='tempotron'):
+    dw_o, dw_h = supervised_update_setup(self, y)
     a, b = np.abs(dw_o).max(), np.abs(dw_h).max()
     self.actual = self.net['crossings_o'].all_values()['t']
     self.net.restore()
@@ -97,7 +66,7 @@ def print_times(self):
     #desired = self.desired
     #w_ho = sb.w
     #w_ih = sa.w
-    
+
     #print "\n\t\t[(", np.std(w_ih), ", ", np.mean(w_ih), ") (", np.std(w_ho), ",", np.mean(w_ho), ")]"#\n\t\t[", actual, "]\n"
     #print "HIDDEN: ", hidden
     print "ACTUAL: ", actual
@@ -175,38 +144,29 @@ def synaptic_scalling_wrap(self, max_spikes):
     i = 1
     while mod:
         self.run(None)
-        #print "!",
         mod = synaptic_scaling(self, max_spikes)
-        #if i == 100:
-        #pudb.set_trace()
         i += 1
 
-def train_step(self, iteration, T=None, method='resume', hidden=True):
-    synaptic_scalling_wrap(self, 1)
-    supervised_update(self, iteration, method=method)
+def train_step(self, y, method='tempotron', hidden=True):
+    if method != 'tempotron':
+        synaptic_scalling_wrap(self, 1)
+    supervised_update(self, y, method=method)
 
-def train_epoch(self, iteration, images, method='resume', hidden=True):
+def train_epoch(self, X, Y, method='tempotron', hidden=True):
     correct = 0
     p, p_total = 0, 0
-    for i in images:
+    for i in range(len(X)):
         k = 0
-        label = self.read_image(i)
-        train_step(self, iteration, method=method)
-        p_init = self.performance()
-        while True:
-            train_step(self, iteration, method=method)
-            #print "%0.2f" % self.performance(),
-            #print self.actual
-            p = self.performance()
-            if type(p) == str:
-                pudb.set_trace()
-            print "\t ", k, i, p
-            #if p < 2 and (p < 0.5*p_init or k > 100 or p < 0.3):
-            #    break
-            break
-            k += 1
-        #print "\t============="
-        p_total += p
+        self.net.restore()
+        self.set_inputs(X[i])
+        #pudb.set_trace()
+        self.run()
+        self.info.reread()
+        if self.hidden_a != None:
+            self.hidden_a.reread()
+        train_step(self, Y[i], method=method)
+        #p_init = self.performance()
+        #p_total += p
         #print_times(self)
     print " ",
 

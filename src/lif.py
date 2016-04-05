@@ -12,31 +12,111 @@ import spike_correlation
 import train
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 
+class activity:
+
+    def __init__(self, **keywds):
+        """
+            S: brian2 SpikeMonitor
+            V: brian2 StateMonitor
+        """
+
+        if keywds.has_key('S'):
+            self.S = keywds['S']
+        if keywds.has_key('M')
+            self.M = keywds['M']
+        else self.M = None
+
+    def reread(self):
+        self.i, self.t = self.S.it_
+        if self.M != None:
+            self.v = self.M.v
+
+class net_info:
+
+    def __init__(self, **keywds):
+        """
+            a: no. inputs
+            b: no. second layer (output or hidden)
+            c: no. last layer
+            p: no. subconnections
+            Wh: input - hidden weights
+            Wo: input or hidden - output weights
+            Dh: input - hidden delays
+            Do: input or hidden - output delays
+            hidden: hidden activity object
+            output: output activity object
+        """
+        multilayer = False
+        self.a = keywds['a']
+        self.b = keywds['b']
+        if keywds.has_key('c'):
+            self.c = keywds['c']
+            multilayer = True
+        self.p = keywds['p']
+        if keywds.has_key('Wh'):
+            self.Wh = keywds['Wh']
+            self.d_Wh = np.zeros(np.shape(self.Wh), dtype=np.float64)
+            multilayer = True
+        else self.Wh = None
+        if keywds.has_key('Dh'):
+            self.Dh = keywds['Dh']
+            self.d_Dh = np.zeros(np.shape(self.Dh), dtype=np.float64)
+            multilayer = True
+        else self.Dh = None
+        self.Wo = keywds['Wo']
+        self.d_Wo = np.zeros(np.shape(self.Dh), dtype=np.float64)
+        self.Do = keywds['Do']
+        self.d_Do = np.zeros(np.shape(self.Dh), dtype=np.float64)
+        if keywds.has_keys('hidden'):
+            self.H = keywds['hidden']
+            multilayer = True
+        else hidden = None
+        self.O = keywds['output']
+
+    def inputs(self, indices, times):
+        self.ii, self.ta = indices, times
+
+    def get_intputs(self):
+        return self.ii, self.ta
+
+    def reread(self):
+        if self.hidden != None:
+            self.hidden.reread()
+        self.output.reread()
+
+    def reset(self):
+        if self.Wh != None:
+            self.d_Wh *= 0
+        if self.Dh != None:
+            self.d_Dh *= 0
+        self.Wo *= 0
+        self.Do *= 0
+
 class net:
 
     ###################
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, N_hidden=5, N_output=2, N_inputs=4, N_subc=3, seed=5):
+    def __init__(self, hidden=5, output=2, inputs=3, subc=3, seed=5):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
         self.rb = 1.0
         self.r = 10.0
         self.dta = 0.2*br.ms
-        self.N_inputs = N_inputs
-        self.N_hidden = N_hidden
-        self.N_output = N_output
-        self.N_subc=N_subc
+        self.N_inputs = inputs
+        self.N_hidden = hidden
+        self.N_output = output
+        self.N_subc = subc
         self.tauLP = 5.0
         #self.tauIN = 5.0
-        self.seed = seed
-        np.random.seed(self.seed)
-        self.a, self.d = None, None
-        self.a_post, self.d_post = [], []
-        self.a_pre, self.d_pre = [], []
-        self.data, self.labels = None, None
+        #self.seed = seed
+        #np.random.seed(self.seed)
+        #self.a, self.d = None, None
+        #self.a_post, self.d_post = [], []
+        #self.a_pre, self.d_pre = [], []
+        #self.data, self.labels = None, None
         self.T = 40
         self.__groups()
 
@@ -113,14 +193,19 @@ class net:
         So = self.__gen_synapse_group(inputs, output, 'synapses_output')
 
         output.v[:] = -70
-        M = br.StateMonitor(output, 'v', record=True, name='monitor_v')
         N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
+        Vo = br.StateMonitor(output, 'v', record=True, name='monitor_v')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
         So.connect('True', n=self.N_subc)
         self.net = br.Network(inputs, output, So, M, N, To)
         self.rand_weights_singlelayer()
         self.actual = self.net['crossings_o'].all_values()['t']
         self.net.store()
+        self.output_a = activity(S=To, M=M)
+        Wo = self.net['synapses_output'].w
+        Do = self.net['synapses_output'].delay
+        self.info = net_info(a=self.N_inputs, b=self.N_outputs, p=self.N_subc, \
+                output=self.output_a, Wo=Wo, Do=Do)
 
     def __gen_multilayer_nn(self, inputs):
         hidden = self.__gen_neuron_group(self.N_hidden, 'hidden')
@@ -131,16 +216,24 @@ class net:
 
         hidden.v[:] = -70
         output.v[:] = -70
-        M = br.StateMonitor(output, 'v', record=True, name='monitor_v')
         N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
+        Vo = br.StateMonitor(output, 'v', record=True, name='values_vo')
+        Vh = br.StateMonitor(hidden, 'v', record=True, name='values_vh')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
         Sh.connect('True', n=self.N_subc)
         So.connect('True', n=self.N_subc)
-        self.net = br.Network(inputs, hidden, Sh, Th, output, So, M, N, To)
+        self.net = br.Network(inputs, hidden, Sh, Th, output, So, Vo, Vh, N, To)
         self.rand_weights_multilayer()
-        self.actual = self.net['crossings_o'].all_values()['t']
         self.net.store()
+        output_a = activity(S=To, M=Vo)
+        hidden_a = activity(S=Th, M=Vh)
+        Wo = self.net['synapses_output'].w
+        Wh = self.net['synapses_hidden'].w
+        Do = self.net['synapses_output'].delay
+        Dh = self.net['synapses_hidden'].delay
+        self.info = net_info(a=self.N_inputs, b=self.N_hidden, c=self.N_outputs, p=self.N_subc, \
+                hidden=self.hidden_a, output=self.output_a, Wh=Wh, Wo=Wo, Dh=Dh, Do=Do)
 
     def __groups(self):
         inputs = br.SpikeGeneratorGroup(self.N_inputs, 
@@ -249,7 +342,7 @@ class net:
     ### SET INPUT / OUTPUT ###
     ##########################
 
-    def get_spikes(self, name='hidden', t='dict'):
+    def spikes(self, name='hidden', t='dict'):
         if name != 'hidden':
             name = 'output'
         if name == 'hidden':
@@ -281,27 +374,7 @@ class net:
         indices = np.arange(len(array))
         #self.T = int(ma.ceil(np.max(times)) + self.tauLP)
         desired = np.ones(self.N_output) 
-        desired *= 0.001*(31)
-        desired[label] *= 0.7
-        self.set_train_spikes(indices=indices, times=times, desired=desired)
-        self.net.store()
 
-        return label
-
-    def read_data(self, index, kind='train', data_set='mnist'):
-        if data_set == 'mnist':
-            label = self.set_mnist_times(index, kind=kind)
-        elif data_set == 'xor':
-            """
-                0: 00 -> 6 6 0 -> ONE
-                1: 11 -> 1 1 0 -> ONE
-                2: 01 -> 1 6 0 -> ZERO
-                3: 10 -> 6 1 0 -> ZERO
-            """
-            label = self.set_xor_times(index)
-        elif data_set == 'generated':
-            pass
-        self.label = label
         return label
 
     def indices(self, N, numbers):
@@ -427,7 +500,7 @@ class net:
             return (r / float(n))**0.5
 
     ##########################
-    ### TRAINING / RUNNING ###
+    ### PRESET --- WEIGHTS ###
     ##########################
 
     def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):
@@ -442,12 +515,12 @@ class net:
             return dw_t
         return 0
 
-    def run(self, T):
+    def run(self, T=None):
         if T != None and T >= self.T:
             self.net.run(T*br.ms)
         else:
             self.net.run(self.T*br.ms)
-        self.actual = self.net['crossings_o'].all_values()['t']
+        #self.actual = self.net['crossings_o'].all_values()['t']
 
     def preset_weights_singlelayer(self, images):
         folder = "../weights/"
@@ -501,25 +574,35 @@ class net:
         else:
             self.preset_weights_singlelayer(images)
 
-    def fit(self, images, method='resume', threshold=0.7):
+    ############################
+    ### TRAINING --- TESTING ###
+    ############################
+
+    def set_inputs(self, x):
+        indices = np.arange(self.N_inputs)
+        times = x
+        self.indices, self.times = indices, times
+        self.net['input'].set_spikes(indices=indices, times=times)
+        self.net.store()
+
+    def fit(self, X, Y, method='tempotron', threshold=0.7):
         def print_zeros(i, max_order=4):
             for j in range(1, 4):
                 if i < 10**j:
                     print ' ',
-        print "PRESETTING WEIGHTS"
-        self.preset_weights(images)
-        sys.exit()
+        #print "PRESETTING WEIGHTS"
+        #self.preset_weights(images)
         i, j, k = 0, 0, 0
         pmin = 10000
         p = pmin
-        print "TRAINING - ",
-        print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
+        #print "TRAINING - ",
+        #print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
         while True:
             i += 1
             j += 1
-            print_zeros(i)
+            #print_zeros(i)
             pold = p
-            p = train.train_epoch(self, i, images, method=method)
+            p = train.train_epoch(self, X, Y, method=method)
             if p < pmin:
                 pmin = p
                 j = 0
@@ -529,7 +612,7 @@ class net:
                 break
         self.save_weights()
 
-    def test(self, images):
+    def compute(self, images):
         test_result = []
         times = []
         print "======= R e s u l t s ========"

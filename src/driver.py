@@ -6,8 +6,12 @@ import pudb
 import lif
 import brian2 as br
 
-mnist = dt.data('xor')
-pudb.set_trace()
+xor = dt.data('xor')
+X, Y = xor.X['train'], xor.Y['train']
+nn = lif.net(hidden=5, output=10, seed=(35495)%20)
+#pudb.set_trace()
+nn.fit(X, Y)
+
 #mt = max([np.max(mnist.X['train'][i]) for i in range(len(mnist.X['train']))])
 #print mt
 
@@ -17,7 +21,6 @@ pudb.set_trace()
 #numbers = [0, 1, 2]
 #pudb.set_trace()
 #pudb.set_trace()
-###nn = lif.net(N_hidden=0, N_output=1, seed=(35495)%20)
 ###nn.load('mnist')
 ###label = nn.read_data(0)
 

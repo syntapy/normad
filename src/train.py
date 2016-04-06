@@ -26,7 +26,9 @@ def supervised_update_setup(self, hidden=True, method='tempotron'):
             update_function_h = weight_updates.tempotron_update_hidden_weights
             update_function_h(self.info)
 
+    print "s...",
     update_function_o(self.info)
+    print "e"
 
 def supervised_update(self, method='tempotron'):
     supervised_update_setup(self)

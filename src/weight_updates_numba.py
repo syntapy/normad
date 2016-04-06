@@ -62,14 +62,21 @@ def resume_update_output_weights(dw_ho, m, n, o, p, ih, th, ia, ta, d, tau):
 
 #@numba.jit(nopython=True)
 def resume_update_hidden_weights(info, y):
-    b_c, a_b_c = b*c, a*b*c
-    b_p, c_p = b*p, c*p
+    m, n, o, p = info.a, info.b, info.c, info.p
+    n_o, m_n_o = n*o, m*n*o
+    n_p, o_p = n*p, o*p
 
+    ii, it = info.get_inputs()
+    Wo, d_Wo = info.Wo, info.d_Wo
+    ia ta = info.O.S.it_
+    v = info.O.v
+
+    d = info.d
     ### m input neurons, n hidden neurons, o output neurons
     ### w_ih[n_p*i + p*j + k] acceses the kth synapse from input i to hidden j
     ### w_ho[o_p*i + p*j + k] acceses the kth synapse from hidden i to output j
 
-    ii, ta = info.get_inputs()
+    #ii, ta = info.get_inputs()
 
     # loop over input neurons
     for I in range(len(ii)):

@@ -3,10 +3,9 @@ import pudb
 import brian2 as br
 import weight_updates_numba as weight_updates
 import weight_updates_py
-from activity import activity
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
-def supervised_update_setup(self, y, hidden=True, method='tempotron'):
+def supervised_update_setup(self, hidden=True, method='tempotron'):
     #pudb.set_trace()
 
     #STDP Parameters
@@ -22,26 +21,30 @@ def supervised_update_setup(self, y, hidden=True, method='tempotron'):
     if hidden == True:
         if method == 'resume':
             update_function_h = weight_updates.resume_update_hidden_weights
-            dw_o = update_function_o(self.info, y)
-            dw_h = update_function_h(self.info, y)
+            dw_h = update_function_h(self.info)
         elif method == 'tempotron':
             update_function_h = weight_updates.tempotron_update_hidden_weights
-            update_function_o = weight_updates.tempotron_update_output_weights
-            dw_o = update_function_o(self.info, y)
-            dw_h = update_function_h(self.info, y)
+            update_function_h(self.info)
 
-    return dw_o, dw_h
+    update_function_o(self.info)
 
-def supervised_update(self, y, method='tempotron'):
-    dw_o, dw_h = supervised_update_setup(self, y)
-    a, b = np.abs(dw_o).max(), np.abs(dw_h).max()
-    self.actual = self.net['crossings_o'].all_values()['t']
+def supervised_update(self, method='tempotron'):
+    supervised_update_setup(self)
     self.net.restore()
-    self.net['synapses_output'].w += self.r*dw_o[:]
-    self.net['synapses_hidden'].w += self.r*dw_h[:]
-    w_o = self.net['synapses_output'].w
-    w_h = self.net['synapses_output'].w
+    if self.hidden == True:
+        dw_h = self.info.d_Wh
+        m = np.abs(dw_h).max()
+        self.net['synapses_hidden'].w += self.r*dw_h
+    dw_o = self.info.d_Wo
+    n = np.abs(dw_o).max()
+    self.r = 1.0
+    self.net['synapses_output'].w += self.r*dw_o
     self.net.store()
+    p = 0
+    for i in range(len(self.info.d)):
+        if self.info.d[i] == 0:
+            p += 1.0
+    return p / len(self.info.d)
 
 def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):
     f = 0.05
@@ -147,27 +150,20 @@ def synaptic_scalling_wrap(self, max_spikes):
         mod = synaptic_scaling(self, max_spikes)
         i += 1
 
-def train_step(self, y, method='tempotron', hidden=True):
+def train_step(self, method='tempotron', hidden=True):
     if method != 'tempotron':
         synaptic_scalling_wrap(self, 1)
-    supervised_update(self, y, method=method)
+    return supervised_update(self, method=method)
 
 def train_epoch(self, X, Y, method='tempotron', hidden=True):
     correct = 0
-    p, p_total = 0, 0
+    p = 0
     for i in range(len(X)):
-        k = 0
         self.net.restore()
         self.set_inputs(X[i])
-        #pudb.set_trace()
+        self.info.set_y(Y[i])
         self.run()
         self.info.reread()
-        if self.hidden_a != None:
-            self.hidden_a.reread()
-        train_step(self, Y[i], method=method)
-        #p_init = self.performance()
-        #p_total += p
-        #print_times(self)
-    print " ",
+        p += train_step(self, method=method)
 
-    return p_total
+    return p

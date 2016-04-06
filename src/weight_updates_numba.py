@@ -136,27 +136,23 @@ def normad_update_output_weights(self):
         dw *= 0
     return dW
 
-def tempotron_update_hidden_weights(info, y):
+def tempotron_update_hidden_weights(info):
     pass
 
-def tempotron_update_output_weights(info, y):
+def tempotron_update_output_weights(info):
+    #pudb.set_trace()
     ii, it = info.get_inputs()
     Wo, d_Wo = info.Wo, info.d_Wo
-    S, V = info.o.S.all_values(), info.o.V
+    S, v = info.O.S.all_values()['t'], info.O.v
 
-    A, B, P = info.a, info.b, info.p
+    A, C, P = info.a, info.c, info.p
+    d = info.d
 
-    lambda = 5.0
-
-    for b in range(B):
-        i_max = np.argmax(V[b])
-        if y[b] == 1:
-            if len(S[b]) < 1:
-                for a in range(A):
-                    for p in range(P):
-                        d_Wo[a*B*P + b*P + p] += lambda*V[b][i_max]
-        elif y[b] == 0:
-            if len(S[b]) > 0:
-                for a in range(A):
-                    for p in range(P):
-                        d_Wo[a*B*P + b*P + p] -= lambda*V[b][i_max]
+    lam = 5.0
+    for c in range(C):
+        i_max = np.argmax(v[c])
+        #pudb.set_trace()
+        if d[c] != 0:
+            for a in range(A):
+                for p in range(P):
+                    d_Wo[a*C*P + c*P + p] += d[c]*lam*v[c][i_max]

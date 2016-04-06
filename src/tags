@@ -34,12 +34,12 @@ activity	lif.py	/^class activity:$/;"	c
 compute	lif.py	/^    def compute(self, images):$/;"	m	class:net
 data	data.py	/^class data:$/;"	c
 desired_times	data.py	/^    def desired_times(self, y, n_out=10, binary=False, data_set='mnist'):$/;"	m	class:data
+direction	lif.py	/^    def direction(self):$/;"	m	class:net_info
 f	test.py	/^def f(*args, **keywds):$/;"	f
 fit	lif.py	/^    def fit(self, X, Y, method='tempotron', threshold=0.7):$/;"	m	class:net
 floats_to_times	data.py	/^    def floats_to_times(self, x, tc=1.7, n_out=10):$/;"	m	class:data
-get_intputs	lif.py	/^    def get_intputs(self):$/;"	m	class:net_info
+get_inputs	lif.py	/^    def get_inputs(self):$/;"	m	class:net_info
 indices	lif.py	/^    def indices(self, N, numbers):$/;"	m	class:net
-inputs	lif.py	/^    def inputs(self, indices, times):$/;"	m	class:net_info
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
 load_mnist	data.py	/^    def load_mnist(self):$/;"	m	class:data
 load_random	lift.py	/^    def load_random(self, classes=1):$/;"	m	class:rand_data_gen
@@ -49,7 +49,7 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(hidden=5, output=10, seed=(35495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(hidden=5, output=2, seed=(35495)%20)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -80,29 +80,31 @@ rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:rand_data_gen
 run	lif.py	/^    def run(self, T=None):$/;"	m	class:net
 save_weights_multilayer	lif.py	/^    def save_weights_multilayer(self, file_h=None, file_o=None):$/;"	m	class:net
 save_weights_singlelayer	lif.py	/^    def save_weights_singlelayer(self, file_o=None):$/;"	m	class:net
+set_inputs	lif.py	/^    def set_inputs(self, indices, times):$/;"	m	class:net_info
 set_inputs	lif.py	/^    def set_inputs(self, x):$/;"	m	class:net
 set_mnist_times	lif.py	/^    def set_mnist_times(self, index, kind='train'):$/;"	m	class:net
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
+set_y	lif.py	/^    def set_y(self, y):$/;"	m	class:net_info
 setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:rand_data_gen
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
 smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
 sort	weight_updates_numba.py	/^def sort(S):$/;"	f
 spikes	lif.py	/^    def spikes(self, name='hidden', t='dict'):$/;"	m	class:net
-supervised_update	train.py	/^def supervised_update(self, y, method='tempotron'):$/;"	f
-supervised_update_setup	train.py	/^def supervised_update_setup(self, y, hidden=True, method='tempotron'):$/;"	f
+supervised_update	train.py	/^def supervised_update(self, method='tempotron'):$/;"	f
+supervised_update_setup	train.py	/^def supervised_update_setup(self, hidden=True, method='tempotron'):$/;"	f
 synaptic_scaling	train.py	/^def synaptic_scaling(self, max_spikes, iteration=0):$/;"	f
 synaptic_scaling_multilayer	train.py	/^def synaptic_scaling_multilayer(self, max_spikes, iteration=0):$/;"	f
 synaptic_scaling_singlelayer	train.py	/^def synaptic_scaling_singlelayer(self, max_spikes, iteration=0):$/;"	f
 synaptic_scaling_step	train.py	/^def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):$/;"	f
 synaptic_scalling_wrap	train.py	/^def synaptic_scalling_wrap(self, max_spikes):$/;"	f
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
-tempotron_update_hidden_weights	weight_updates_numba.py	/^def tempotron_update_hidden_weights(info, y):$/;"	f
-tempotron_update_output_weights	weight_updates_numba.py	/^def tempotron_update_output_weights(info, y):$/;"	f
+tempotron_update_hidden_weights	weight_updates_numba.py	/^def tempotron_update_hidden_weights(info):$/;"	f
+tempotron_update_output_weights	weight_updates_numba.py	/^def tempotron_update_output_weights(info):$/;"	f
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:rand_data_gen
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:rand_data_gen
 times_format	display.py	/^def times_format(self):$/;"	f
 train_epoch	train.py	/^def train_epoch(self, X, Y, method='tempotron', hidden=True):$/;"	f
-train_step	train.py	/^def train_step(self, y, method='tempotron', hidden=True):$/;"	f
+train_step	train.py	/^def train_step(self, method='tempotron', hidden=True):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f
 xor	driver.py	/^xor = dt.data('xor')$/;"	v

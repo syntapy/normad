@@ -10,7 +10,7 @@ xor = dt.data('xor')
 X, Y = xor.X['train'], xor.Y['train']
 nn = lif.net(hidden=10, output=2, seed=(35495)%20)
 #pudb.set_trace()
-nn.fit(X, Y)
+nn.fit(X, Y, method_o='resume')
 
 #mt = max([np.max(mnist.X['train'][i]) for i in range(len(mnist.X['train']))])
 #print mt

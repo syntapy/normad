@@ -4,34 +4,39 @@ import brian2 as br
 import weight_updates_numba as weight_updates
 import weight_updates_py
 
-br.prefs.codegen.target = 'weave'  # use the Python fallback
-def supervised_update_setup(self, hidden=True, method='tempotron'):
-    #pudb.set_trace()
+class resume_params:
 
-    #STDP Parameters
-    #pudb.set_trace()
-    tau = 0.005
-    
-    if method == 'resume':
-        Ap, Am, a_nh = 1.2, 0.5, 0.05
+    def __init__(self,Ap=1.2, Am=0.5, a_nh=0.05, tau=0.005):
+        self.Ap = Ap
+        self.Am = Am
+        self.a_nh = a_nh
+        self.tau = tau
+
+    def get_params(self):
+        return self.Ap, self.Am, self.a_nh, self.tau
+
+br.prefs.codegen.target = 'weave'  # use the Python fallback
+def supervised_update_setup(self, method_o='tempotron', method_h=None):
+    if method_o == 'resume':
         update_function_o = weight_updates.resume_update_output_weights
-    elif method == 'tempotron':
+    elif method_o == 'tempotron':
         update_function_o = weight_updates.tempotron_update_output_weights
 
-    if hidden == True:
-        if method == 'resume':
-            update_function_h = weight_updates.resume_update_hidden_weights
-            dw_h = update_function_h(self.info)
-        elif method == 'tempotron':
-            update_function_h = weight_updates.tempotron_update_hidden_weights
-            update_function_h(self.info)
+    if method_h == 'resume':
+        update_function_h = weight_updates.resume_update_hidden_weights
+    elif method_h == 'tempotron':
+        update_function_h = weight_updates.tempotron_update_hidden_weights
 
-    print "s...",
+    self.info.params = resume_params()
+    print "s",
     update_function_o(self.info)
+    print "!!",
+    update_function_h(self.info)
     print "e"
+    #pudb.set_trace()
 
-def supervised_update(self, method='tempotron'):
-    supervised_update_setup(self)
+def supervised_update(self, method_o='tempotron', method_h=None):
+    supervised_update_setup(self, method_o=method_o, method_h=method_h)
     self.net.restore()
     if self.hidden == True:
         dw_h = self.info.d_Wh
@@ -123,7 +128,7 @@ def synaptic_scaling_multilayer(self, max_spikes, iteration=0):
 
     actual = a.all_values()['t']
     hidden = b.all_values()['t']
-    desired = self.desired
+    #desired = self.desired
 
     tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
     tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > max_spikes]
@@ -135,6 +140,7 @@ def synaptic_scaling_multilayer(self, max_spikes, iteration=0):
 
         w_ih_diff = w_ih - self.net['synapses_hidden'].w
         w_ho_diff = w_ho - self.net['synapses_output'].w
+
         return True
     return False
 
@@ -152,12 +158,13 @@ def synaptic_scalling_wrap(self, max_spikes):
         mod = synaptic_scaling(self, max_spikes)
         i += 1
 
-def train_step(self, method='tempotron', hidden=True):
-    if method != 'tempotron':
-        synaptic_scalling_wrap(self, 1)
-    return supervised_update(self, method=method)
+def train_step(self, method_o='tempotron', method_h=None):
+    if method_o != 'tempotron' or method_h != 'tempotron':
+        pass
+        #synaptic_scalling_wrap(self, 1)
+    return supervised_update(self, method_o=method_o, method_h=method_h)
 
-def train_epoch(self, X, Y, method='tempotron', hidden=True):
+def train_epoch(self, X, Y, method_o='tempotron', method_h=None):
     correct = 0
     p = 0
     for i in range(len(X)):
@@ -166,6 +173,6 @@ def train_epoch(self, X, Y, method='tempotron', hidden=True):
         self.info.set_y(Y[i])
         self.run()
         self.info.reread()
-        p += train_step(self, method=method)
+        p += train_step(self, method_o=method_o, method_h=method_h)
 
     return p

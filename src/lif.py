@@ -76,7 +76,7 @@ class net_info:
         self.O = keywds['output']
 
     def set_inputs(self, indices, times):
-        self.ii, self.ta = indices, times
+        self.ii, self.ta = indices, times / br.second
 
     def get_inputs(self):
         return self.ii, self.ta
@@ -109,6 +109,15 @@ class net_info:
             self.d_Dh *= 0
         self.Wo *= 0
         self.Do *= 0
+
+    def weights(self):
+        return self.Wh, self.Wo
+
+    def d_weights(self):
+        return self.d_Wh, self.d_Wo
+
+    def delays(self):
+        return self.Dh / br.ms, self.Do / br.ms
 
 class net:
 
@@ -155,7 +164,7 @@ class net:
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
         p = self.N_subc
-        Sh.w[:, :, :] = '120'
+        Sh.w[:, :, :] = '120*rand()+10'
         So.w[:, :, :] = '80'
         Sh.w[:, :, :int(np.ceil(p/3))] *= -1
         So.w[:, :, :int(np.ceil(p/3))] *= -1
@@ -607,7 +616,12 @@ class net:
         self.net.store()
         self.info.set_inputs(indices, times)
 
-    def fit(self, X, Y, method='tempotron', threshold=0.7):
+    def fit(self, X, Y, method_o='tempotron', method_h=None, threshold=0.7):
+        if self.N_hidden == 0:
+            method_h = None
+        elif self.N_hidden > 0:
+            if method_h == None:
+                method_h = method_o
         def print_zeros(i, max_order=4):
             for j in range(1, 4):
                 if i < 10**j:
@@ -623,7 +637,7 @@ class net:
             i += 1
             j += 1
             pold = p
-            p = train.train_epoch(self, X, Y, method=method)
+            p = train.train_epoch(self, X, Y, method_o=method_o, method_h=method_h)
             if p < pmin:
                 pmin = p
                 j = 0

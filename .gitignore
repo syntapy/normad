@@ -7,3 +7,6 @@ out.txt
 play.py
 nohup.out
 test.py
+*.pdf
+*.log
+*.aux

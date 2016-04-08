@@ -148,6 +148,11 @@ class net:
         self.__groups()
 
     def rand_weights_singlelayer(self, test=False):
+        """
+            with m inputs, n outputs, p subconnections:
+            So.w[i, j, k] = w[k + p*j + n_p*i]
+        """
+
         So = self.net['synapses_output']
         p = self.N_subc
         So.w[:, :, :] = '80'
@@ -161,6 +166,12 @@ class net:
         self.net.store()
 
     def rand_weights_multilayer(self, test=False):
+
+        """
+            with m inputs, n outputs, p subconnections:
+            So.w[i, j, k] = w[k + p*j + n_p*i]
+        """
+
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
         p = self.N_subc
@@ -168,6 +179,8 @@ class net:
         So.w[:, :, :] = '80'
         Sh.w[:, :, :int(np.ceil(p/3))] *= -1
         So.w[:, :, :int(np.ceil(p/3))] *= -1
+        #pudb.set_trace()
+        So.w[:, 0, :] = 0
 
         Sh.delay[:, :, :] = '11*rand()*ms'
         So.delay[:, :, :] = '11*rand()*ms'

@@ -47,37 +47,46 @@ def resume_update_output_weights(info):
     ### w_ho[o_p*i + p*j + k] acceses the kth synapses from hidden i to output j
 
     #pudb.set_trace()
-    # loop over hidden spikes
-    for I in range(len(ih)):
-        i = ih[I]
-        # loop over output spikes
-        for J in range(len(ia)):
-            j = ia[J]
+    # loop over output spikes
+    for J in range(len(ia)):
+        j = ia[J]
+        # loop over hidden spikes
+        for I in range(len(ih)):
+            i = ih[I]
             #for k in range(p):
-            index_ho = o_p+p*j
+            index_ho = o_p*i + p*j
             delay = delay_ho[index_ho:index_ho+p]
             S = ta[J] - th[I] - delay
             for l in range(len(S)):
                 s = S[l]
                 if s <= 0:
-                    dw_ho[index_ho:index_ho+p] += Am*resume_kernel(s, tau)
+                    dw_ho[index_ho+l] += Am*resume_kernel(s, tau)
                 if s >= 0:
-                    dw_ho[index_ho:index_ho+p] -= a_nh + Ap*resume_kernel(-s, tau)
-        # loop over desired spikes
-        for j in range(len(d)):
+                    dw_ho[index_ho+l] -= Ap*resume_kernel(-s, tau)
+        for i in range(n):
+            index_ho = o_p*i + p*j
+            dw_ho[index_ho:index_ho+p] -= a_nh
+
+    # loop over desired spikes
+    for j in range(len(d)):
+        # loop over hidden spikes
+        for I in range(len(ih)):
+            i = ih[I]
             for k in range(p):
-                index_ho = o_p*k+p*j
+                index_ho = o_p*i+p*j
                 delay = delay_ho[index_ho:index_ho+p]
                 S = d[j] - th[I] - delay
-                for L in range(len(S)):
-                    s = S[L]
+                for l in range(len(S)):
+                    s = S[l]
                     if s <= 0:
-                        dw_ho[index_ho:index_ho+p] -= Am*resume_kernel(s, tau)
+                        dw_ho[index_ho+l] -= Am*resume_kernel(s, tau)
                     if s >= 0:
-                        dw_ho[index_ho:index_ho+p] += a_nh + Ap*resume_kernel(-s, tau)
-    dw_ho /= float(n_p)
+                        dw_ho[index_ho+l] += Ap*resume_kernel(-s, tau)
+        for i in range(n):
+            index_ho = o_p*i + p*j
+            dw_ho[index_ho:index_ho+p] += a_nh
 
-    #return dw_ho
+    dw_ho /= float(n_p)
 
 #@numba.jit(nopython=True)
 def resume_update_hidden_weights(info):
@@ -96,45 +105,53 @@ def resume_update_hidden_weights(info):
     d = info.d
     #v = info.O.v
 
-    ### m input neurons, n hidden neurons, o output neurons
+    ### m input neurons, n hidden neurons, o output neurons, p subconnections
     ### w_ih[n_p*i + p*j + k] acceses the kth synapse from input i to hidden j
     ### w_ho[o_p*i + p*j + k] acceses the kth synapse from hidden i to output j
 
     #ii, ta = info.get_inputs()
 
-    # loop over input neurons
-    for I in range(len(ii)):
-        i = ii[I]
-        # loop over hidden neurons
-        for k in range(n):
-            # loop over output neurons
-            for J in range(len(ta)):
-                j = ia[J]
+    # loop over hidden neurons
+    for k in range(n):
+        # loop over output neurons
+        for J in range(len(ta)):
+            j = ia[J]
+            index_ho = o_p*k+p*j
+            # loop over input neurons
+            for I in range(len(ii)):
+                i = ii[I]
                 index_ih = n_p*i+p*k
-                index_ho = o_p*k+p*j
                 delay = delay_ih[index_ih:index_ih+p]
                 #pudb.set_trace()
                 S = ta[J] - ti[I] - delay
                 for l in range(len(S)):
                     s = S[l]
                     if s <= 0:
-                        dw_ih[index_ih:index_ih+p] += Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho:index_ho+p])
+                        dw_ih[index_ih+l] += Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
                     if s >= 0 :
-                        dw_ih[index_ih:index_ih+p] -= (a_nh + Ap*resume_kernel(-s, tau))*np.abs(w_ho[index_ho:index_ho+p])
-            for j in range(len(d)):
+                        dw_ih[index_ih+l] -= Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
+            for i in range(m):
                 index_ih = n_p*i+p*k
-                index_ho = o_p*k+p*j
+                dw_ih[index_ih:index_ih+p] -= a_nh*np.abs(w_ho[index_ho:index_ho+p])
+        for j in range(len(d)):
+            index_ho = o_p*k+p*j
+            # loop over input neurons
+            for I in range(len(ii)):
+                i = ii[I]
+                index_ih = n_p*i+p*k
                 delay = delay_ih[index_ih:index_ih+p]
                 S = d[j] - ti[I] - delay
                 for l in range(len(S)):
                     s = S[l]
                     if s <= 0:
-                        dw_ih[index_ih:index_ih+p] -= Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho:index_ho+p])
+                        #pudb.set_trace()
+                        dw_ih[index_ih+l] -= Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
                     if s >= 0:
-                        dw_ih[index_ih:index_ih+p] += (a_nh + Ap*resume_kernel(-s, tau))*np.abs(w_ho[index_ho:index_ho+p])
+                        dw_ih[index_ih+l] += Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
+            for i in range(m):
+                index_ih = n_p*i+p*k
+                dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
     dw_ih /= float(m_n*p*p)
-
-    #return dw_ih
 
 def normad_update_output_weights(self):
     """ Normad training step """

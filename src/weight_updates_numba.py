@@ -38,7 +38,7 @@ def resume_update_output_weights(info):
     ia, ta = info.O.S.it_
     ih, th = info.H.S.it_
     Ap, Am, a_nh, tau = params.get_params()
-    d = info.d
+    d = info.d_times
 
     dw_ih, dw_ho = info.d_weights()
     w_ih, w_ho = info.weights()
@@ -75,6 +75,7 @@ def resume_update_output_weights(info):
             for k in range(p):
                 index_ho = o_p*i+p*j
                 delay = delay_ho[index_ho:index_ho+p]
+                #pudb.set_trace()
                 S = d[j] - th[I] - delay
                 for l in range(len(S)):
                     s = S[l]
@@ -102,7 +103,7 @@ def resume_update_hidden_weights(info):
     dw_ih, dw_ho = info.weights()
     w_ih, w_ho = info.weights()
     delay_ih, delay_ho = info.delays()
-    d = info.d
+    d = info.d_times
     #v = info.O.v
 
     ### m input neurons, n hidden neurons, o output neurons, p subconnections
@@ -140,6 +141,7 @@ def resume_update_hidden_weights(info):
                 i = ii[I]
                 index_ih = n_p*i+p*k
                 delay = delay_ih[index_ih:index_ih+p]
+                #pudb.set_trace()
                 S = d[j] - ti[I] - delay
                 for l in range(len(S)):
                     s = S[l]

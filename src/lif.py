@@ -32,6 +32,31 @@ class activity:
         if self.M != None:
             self.v = self.M.v
 
+    def print_times(self, S, layer_name, spike_type, tabs, tabs_1):
+        if tabs > 0:
+            print "\t"*tabs,
+        print spike_type, "times", 
+        if layer_name != None:
+            print layer_name,
+        print ":", "\t"*tabs_1,
+        for i in range(len(S)):
+            if type(S[i]) == tuple:
+                print S[i][0],
+            else: print S[i],
+        print
+
+    def print_spike_times(self, layer_name=None, tabs=0, tabs_1=1):
+        S = self.S.all_values()['t']
+        self.print_times(S, layer_name, "hidden", tabs, tabs_1)
+
+    def print_desired_times(self, layer_name=None, tabs=0, tabs_1=1):
+        S = self.d_times
+        self.print_times(S, layer_name, "desired", tabs, tabs_1)
+
+    def print_sd_times(self, tabs=0):
+        self.print_spike_times(layer_name="output", tabs=tabs, tabs_1=2)
+        self.print_desired_times(tabs=tabs, tabs_1=2)
+
 class net_info:
 
     def __init__(self, **keywds):
@@ -100,8 +125,18 @@ class net_info:
                 if len(S[i]) > 0:
                     self.d[i] = -1
 
-    def set_y(self, y):
+    def bin_to_times(self):
+        self.d_times = np.zeros(len(self.y))
+        for i in range(len(self.y)):
+            if self.y[i] == 1:
+                self.d_times[i] = 27.0
+            else: self.d_times[i] = 21.0
+        self.d_times *= 0.001
+        self.O.d_times = self.d_times
+
+    def set_y(self, y, method_o='tempototron'):
         self.y = y
+        self.bin_to_times()
     def reset(self):
         if self.Wh != None:
             self.d_Wh *= 0
@@ -118,6 +153,13 @@ class net_info:
 
     def delays(self):
         return self.Dh / br.ms, self.Do / br.ms
+
+    def update_weights(self, net):
+        net.restore()
+        if self.d_Wh != None:
+            net['synapses_hidden'].w += self.d_Wh
+        net['synapses_output'].w += self.d_Wo
+        net.store()
 
 class net:
 
@@ -654,7 +696,7 @@ class net:
             if p < pmin:
                 pmin = p
                 j = 0
-            print "i, p, pmin: ", i, p, pmin
+            #print "i, p, pmin: ", i, p, pmin
             self.r = self.rb*(min(p, 4)**2) / 4
             if p < 1:
                 break

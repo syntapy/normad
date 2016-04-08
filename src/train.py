@@ -17,6 +17,7 @@ class resume_params:
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 def supervised_update_setup(self, method_o='tempotron', method_h=None):
+    pudb.set_trace()
     if method_o == 'resume':
         update_function_o = weight_updates.resume_update_output_weights
     elif method_o == 'tempotron':
@@ -28,11 +29,11 @@ def supervised_update_setup(self, method_o='tempotron', method_h=None):
         update_function_h = weight_updates.tempotron_update_hidden_weights
 
     self.info.params = resume_params()
-    print "s",
+    #print "s",
     update_function_o(self.info)
-    print "!!",
+    #print "!!",
     update_function_h(self.info)
-    print "e"
+    #print "e"
     #pudb.set_trace()
 
 def supervised_update(self, method_o='tempotron', method_h=None):
@@ -170,9 +171,15 @@ def train_epoch(self, X, Y, method_o='tempotron', method_h=None):
     for i in range(len(X)):
         self.net.restore()
         self.set_inputs(X[i])
+        #pudb.set_trace()
         self.info.set_y(Y[i])
         self.run()
+        #pudb.set_trace()
+        #self.info.O.print_sd_times(tabs=1)
         self.info.reread()
         p += train_step(self, method_o=method_o, method_h=method_h)
+        print self.info.d_Wh[:]
+        #pudb.set_trace()
+        self.info.update_weights(self.net)
 
     return p

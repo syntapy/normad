@@ -32,8 +32,11 @@ _prel_SC	spike_correlation.py	/^def _prel_SC(self, Smax, Smin):$/;"	f
 _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"	m	class:rand_data_gen
 accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
 activity	lif.py	/^class activity:$/;"	c
+bin_to_times	lif.py	/^    def bin_to_times(self):$/;"	m	class:net_info
 compute	lif.py	/^    def compute(self, images):$/;"	m	class:net
+d_weights	lif.py	/^    def d_weights(self):$/;"	m	class:net_info
 data	data.py	/^class data:$/;"	c
+delays	lif.py	/^    def delays(self):$/;"	m	class:net_info
 desired_times	data.py	/^    def desired_times(self, y, n_out=10, binary=False, data_set='mnist'):$/;"	m	class:data
 direction	lif.py	/^    def direction(self):$/;"	m	class:net_info
 f	test.py	/^def f(*args, **keywds):$/;"	f
@@ -51,7 +54,7 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(hidden=10, output=2, seed=(35495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(hidden=7, output=2, seed=(35495)%20)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -61,8 +64,12 @@ plot_desired	display.py	/^def plot_desired(self):$/;"	f
 preset_weights	lif.py	/^    def preset_weights(self, images):$/;"	m	class:net
 preset_weights_multilayer	lif.py	/^    def preset_weights_multilayer(self, images):$/;"	m	class:net
 preset_weights_singlelayer	lif.py	/^    def preset_weights_singlelayer(self, images):$/;"	m	class:net
+print_desired_times	lif.py	/^    def print_desired_times(self, layer_name=None, tabs=0, tabs_1=1):$/;"	m	class:activity
 print_dw_vec	display.py	/^def print_dw_vec(self, dw, r):$/;"	f
 print_dws	display.py	/^def print_dws(self, dw):$/;"	f
+print_sd_times	lif.py	/^    def print_sd_times(self, tabs=0):$/;"	m	class:activity
+print_spike_times	lif.py	/^    def print_spike_times(self, layer_name=None, tabs=0, tabs_1=1):$/;"	m	class:activity
+print_times	lif.py	/^    def print_times(self, S, layer_name, spike_type, tabs, tabs_1):$/;"	m	class:activity
 print_times	train.py	/^def print_times(self):$/;"	f
 print_zeros	lif.py	/^        def print_zeros(i, max_order=4):$/;"	f	function:net.fit
 rand_data_gen	lift.py	/^class rand_data_gen:$/;"	c
@@ -87,7 +94,7 @@ set_inputs	lif.py	/^    def set_inputs(self, indices, times):$/;"	m	class:net_in
 set_inputs	lif.py	/^    def set_inputs(self, x):$/;"	m	class:net
 set_mnist_times	lif.py	/^    def set_mnist_times(self, index, kind='train'):$/;"	m	class:net
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
-set_y	lif.py	/^    def set_y(self, y):$/;"	m	class:net_info
+set_y	lif.py	/^    def set_y(self, y, method_o='tempototron'):$/;"	m	class:net_info
 setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:rand_data_gen
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
 smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
@@ -110,4 +117,6 @@ train_epoch	train.py	/^def train_epoch(self, X, Y, method_o='tempotron', method_
 train_step	train.py	/^def train_step(self, method_o='tempotron', method_h=None):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f
+update_weights	lif.py	/^    def update_weights(self, net):$/;"	m	class:net_info
+weights	lif.py	/^    def weights(self):$/;"	m	class:net_info
 xor	driver.py	/^xor = dt.data('xor')$/;"	v

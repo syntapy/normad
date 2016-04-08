@@ -17,7 +17,7 @@ class resume_params:
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 def supervised_update_setup(self, method_o='tempotron', method_h=None):
-    pudb.set_trace()
+    #pudb.set_trace()
     if method_o == 'resume':
         update_function_o = weight_updates.resume_update_output_weights
     elif method_o == 'tempotron':
@@ -30,29 +30,30 @@ def supervised_update_setup(self, method_o='tempotron', method_h=None):
 
     self.info.params = resume_params()
     #print "s",
-    update_function_o(self.info)
+    dw_o = update_function_o(self.info)
     #print "!!",
-    update_function_h(self.info)
+    dw_h = update_function_h(self.info)
+    self.info.set_d_weights(dw_o, d_Wh=dw_h)
     #print "e"
     #pudb.set_trace()
 
 def supervised_update(self, method_o='tempotron', method_h=None):
     supervised_update_setup(self, method_o=method_o, method_h=method_h)
-    self.net.restore()
-    if self.hidden == True:
-        dw_h = self.info.d_Wh
-        m = np.abs(dw_h).max()
-        self.net['synapses_hidden'].w += self.r*dw_h
-    dw_o = self.info.d_Wo
-    n = np.abs(dw_o).max()
-    self.r = 1.0
-    self.net['synapses_output'].w += self.r*dw_o
-    self.net.store()
-    p = 0
-    for i in range(len(self.info.d)):
-        if self.info.d[i] == 0:
-            p += 1.0
-    return p / len(self.info.d)
+    #self.net.restore()
+    #if self.hidden == True:
+    #    dw_h = self.info.d_Wh
+    #    m = np.abs(dw_h).max()
+    #    self.net['synapses_hidden'].w += self.r*dw_h
+    #dw_o = self.info.d_Wo
+    #n = np.abs(dw_o).max()
+    #self.r = 1.0
+    #self.net['synapses_output'].w += self.r*dw_o
+    #self.net.store()
+    #p = 0
+    #for i in range(len(self.info.d)):
+    #    if self.info.d[i] == 0:
+    #        p += 1.0
+    #return p / len(self.info.d)
 
 def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):
     f = 0.05
@@ -163,7 +164,7 @@ def train_step(self, method_o='tempotron', method_h=None):
     if method_o != 'tempotron' or method_h != 'tempotron':
         pass
         #synaptic_scalling_wrap(self, 1)
-    return supervised_update(self, method_o=method_o, method_h=method_h)
+    supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, X, Y, method_o='tempotron', method_h=None):
     correct = 0
@@ -175,11 +176,12 @@ def train_epoch(self, X, Y, method_o='tempotron', method_h=None):
         self.info.set_y(Y[i])
         self.run()
         #pudb.set_trace()
-        #self.info.O.print_sd_times(tabs=1)
+        self.info.O.print_sd_times(tabs=1)
         self.info.reread()
-        p += train_step(self, method_o=method_o, method_h=method_h)
-        print self.info.d_Wh[:]
+        train_step(self, method_o=method_o, method_h=method_h)
+        self.info.update_weights(0.1)
+        #print self.info.d_Wh[:]
         #pudb.set_trace()
-        self.info.update_weights(self.net)
+        #self.info.update_weights(self.net)
 
     return p

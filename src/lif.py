@@ -65,6 +65,7 @@ class net_info:
             b: no. second layer (output or hidden)
             c: no. last layer
             p: no. subconnections
+            net: network object
             Wh: input - hidden weights
             Wo: input or hidden - output weights
             Dh: input - hidden delays
@@ -72,39 +73,60 @@ class net_info:
             hidden: hidden activity object
             output: output activity object
         """
-        multilayer = False
+        self.multilayer = False
         self.a = keywds['a']
         self.c = keywds['c']
         if keywds.has_key('b'):
             self.b = keywds['b']
-            multilayer = True
+            self.multilayer = True
         self.p = keywds['p']
-        if keywds.has_key('Wh'):
-            self.Wh = keywds['Wh']
-            self.d_Wh = np.zeros(np.shape(self.Wh[:]), dtype=np.float64)
-            multilayer = True
-        else: self.Wh = None
-        if keywds.has_key('Dh'):
-            self.Dh = keywds['Dh']
-            self.d_Dh = np.zeros(np.shape(self.Dh[:]), dtype=np.float64)
-            multilayer = True
-        else: self.Dh = None
-        #pudb.set_trace()
-        self.Wo = keywds['Wo']
-        self.d_Wo = np.zeros(np.shape(self.Wo[:]), dtype=np.float64)
-        self.Do = keywds['Do']
-        self.d_Do = np.zeros(np.shape(self.Do[:]), dtype=np.float64)
         if keywds.has_key('hidden'):
             self.H = keywds['hidden']
-            multilayer = True
+            self.multilayer = True
         else: self.H = None
         self.O = keywds['output']
+
+        self.net = keywds['net']
+        if self.multilayer == True:
+            self.Wh = self.net['synapses_hidden'].w[:]
+            self.Dh = self.net['synapses_hidden'].delay[:]
+            self.d_Wh = np.zeros(np.shape(self.Wh[:]), dtype=np.float64)
+            self.d_Dh = np.zeros(np.shape(self.Dh[:]), dtype=np.float64)
+        self.Wo = self.net['synapses_output'].w[:]
+        self.Do = self.net['synapses_output'].delay[:]
+        self.d_Wo = np.zeros(np.shape(self.Wo[:]), dtype=np.float64)
+        self.d_Do = np.zeros(np.shape(self.Do[:]), dtype=np.float64)
+
+        #if keywds.has_key('Wh'):
+        #    self.Wh = keywds['Wh']
+        #    multilayer = True
+        #else: self.Wh = None
+        #if keywds.has_key('Dh'):
+        #    self.Dh = keywds['Dh']
+        #    multilayer = True
+        #else: self.Dh = None
+        ##pudb.set_trace()
+        #self.Wo = keywds['Wo']
+        #self.Do = keywds['Do']
 
     def set_inputs(self, indices, times):
         self.ii, self.ta = indices, times / br.second
 
     def get_inputs(self):
         return self.ii, self.ta
+
+    def bin_to_times(self):
+        self.d_times = np.zeros(len(self.y))
+        for i in range(len(self.y)):
+            if self.y[i] == 1:
+                self.d_times[i] = 27.0
+            else: self.d_times[i] = 21.0
+        self.d_times *= 0.001
+        self.O.d_times = self.d_times
+
+    def set_y(self, y):
+        self.y = y
+        self.bin_to_times()
 
     def reread(self):
         if self.H != None:
@@ -125,25 +147,22 @@ class net_info:
                 if len(S[i]) > 0:
                     self.d[i] = -1
 
-    def bin_to_times(self):
-        self.d_times = np.zeros(len(self.y))
-        for i in range(len(self.y)):
-            if self.y[i] == 1:
-                self.d_times[i] = 27.0
-            else: self.d_times[i] = 21.0
-        self.d_times *= 0.001
-        self.O.d_times = self.d_times
-
-    def set_y(self, y, method_o='tempototron'):
-        self.y = y
-        self.bin_to_times()
     def reset(self):
-        if self.Wh != None:
+        if self.multilayer == True:
             self.d_Wh *= 0
-        if self.Dh != None:
             self.d_Dh *= 0
-        self.Wo *= 0
-        self.Do *= 0
+        self.d_Wo *= 0
+        self.d_Do *= 0
+
+    def set_d_delays(self, d_Do, d_Dh=None):
+        if d_Dh != None:
+            self.d_Dh = d_Dh
+        self.d_Do = d_Do
+
+    def set_d_weights(self, d_Wo, d_Wh=None):
+        if d_Wh != None:
+            self.d_Wh = d_Wh
+        self.d_Wo = d_Wo
 
     def weights(self):
         return self.Wh, self.Wo
@@ -154,12 +173,14 @@ class net_info:
     def delays(self):
         return self.Dh / br.ms, self.Do / br.ms
 
-    def update_weights(self, net):
-        net.restore()
+    def update_weights(self, r):
+        self.net.restore()
         if self.d_Wh != None:
-            net['synapses_hidden'].w += self.d_Wh
-        net['synapses_output'].w += self.d_Wo
-        net.store()
+            self.net['synapses_hidden'].w += r*self.d_Wh
+            self.net['synapses_hidden'].delay += r*self.d_Dh
+        self.net['synapses_output'].w += r*self.d_Wo
+        self.net['synapses_output'].delay += r*self.d_Do
+        self.net.store()
 
 class net:
 
@@ -285,10 +306,10 @@ class net:
         self.actual = self.net['crossings_o'].all_values()['t']
         self.net.store()
         self.output_a = activity(S=To, M=M)
-        Wo = self.net['synapses_output'].w
-        Do = self.net['synapses_output'].delay
+        #Wo = self.net['synapses_output'].w
+        #Do = self.net['synapses_output'].delay
         self.info = net_info(a=self.N_inputs, c=self.N_output, p=self.N_subc, \
-                output=self.output_a, Wo=Wo, Do=Do)
+                output=self.output_a, net=self.net)
 
     def __gen_multilayer_nn(self, inputs):
         hidden = self.__gen_neuron_group(self.N_hidden, 'hidden')
@@ -311,12 +332,13 @@ class net:
         self.net.store()
         output_a = activity(S=To, M=Vo)
         hidden_a = activity(S=Th, M=Vh)
-        Wo = self.net['synapses_output'].w
-        Wh = self.net['synapses_hidden'].w
-        Do = self.net['synapses_output'].delay
-        Dh = self.net['synapses_hidden'].delay
+        #Wo = self.net['synapses_output'].w
+        #Wh = self.net['synapses_hidden'].w
+        #Do = self.net['synapses_output'].delay
+        #Dh = self.net['synapses_hidden'].delay
+        #pudb.set_trace()
         self.info = net_info(a=self.N_inputs, b=self.N_hidden, c=self.N_output, p=self.N_subc, \
-                hidden=hidden_a, output=output_a, Wh=Wh, Wo=Wo, Dh=Dh, Do=Do)
+                hidden=hidden_a, output=output_a, net=self.net)
 
     def __groups(self):
         inputs = br.SpikeGeneratorGroup(self.N_inputs, 
@@ -325,9 +347,9 @@ class net:
                                         name='input')
         if self.N_hidden > 0:
             self.__gen_multilayer_nn(inputs)
-            self.hidden = True
+            #self.hidden = True
         else:
-            self.hidden = False
+            #self.hidden = False
             self.__gen_singlelayer_nn(inputs)
         #self.read_weights()
 
@@ -696,11 +718,13 @@ class net:
             if p < pmin:
                 pmin = p
                 j = 0
-            #print "i, p, pmin: ", i, p, pmin
+            print "i, p, pmin: ", i, p, pmin
             self.r = self.rb*(min(p, 4)**2) / 4
-            if p < 1:
-                break
-        self.save_weights()
+            #if p < 1:
+            #    break
+        if self.info.multilayer == True:
+            self.save_weights_singlelayer()
+        else: self.save_weights_multilayer()
 
     def compute(self, images):
         test_result = []

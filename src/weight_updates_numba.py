@@ -87,7 +87,7 @@ def resume_update_output_weights(info):
             index_ho = o_p*i + p*j
             dw_ho[index_ho:index_ho+p] += a_nh
 
-    dw_ho /= float(n_p)
+    return dw_ho / float(n_p)
 
 #@numba.jit(nopython=True)
 def resume_update_hidden_weights(info):
@@ -153,7 +153,7 @@ def resume_update_hidden_weights(info):
             for i in range(m):
                 index_ih = n_p*i+p*k
                 dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
-    dw_ih /= float(m_n*p*p)
+    return dw_ih / float(m_n*p*p)
 
 def normad_update_output_weights(self):
     """ Normad training step """

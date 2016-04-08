@@ -90,11 +90,13 @@ rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:rand_data_gen
 run	lif.py	/^    def run(self, T=None):$/;"	m	class:net
 save_weights_multilayer	lif.py	/^    def save_weights_multilayer(self, file_h=None, file_o=None):$/;"	m	class:net
 save_weights_singlelayer	lif.py	/^    def save_weights_singlelayer(self, file_o=None):$/;"	m	class:net
+set_d_delays	lif.py	/^    def set_d_delays(self, d_Do, d_Dh=None):$/;"	m	class:net_info
+set_d_weights	lif.py	/^    def set_d_weights(self, d_Wo, d_Wh=None):$/;"	m	class:net_info
 set_inputs	lif.py	/^    def set_inputs(self, indices, times):$/;"	m	class:net_info
 set_inputs	lif.py	/^    def set_inputs(self, x):$/;"	m	class:net
 set_mnist_times	lif.py	/^    def set_mnist_times(self, index, kind='train'):$/;"	m	class:net
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
-set_y	lif.py	/^    def set_y(self, y, method_o='tempototron'):$/;"	m	class:net_info
+set_y	lif.py	/^    def set_y(self, y):$/;"	m	class:net_info
 setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:rand_data_gen
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
 smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
@@ -117,6 +119,6 @@ train_epoch	train.py	/^def train_epoch(self, X, Y, method_o='tempotron', method_
 train_step	train.py	/^def train_step(self, method_o='tempotron', method_h=None):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f
-update_weights	lif.py	/^    def update_weights(self, net):$/;"	m	class:net_info
+update_weights	lif.py	/^    def update_weights(self, r):$/;"	m	class:net_info
 weights	lif.py	/^    def weights(self):$/;"	m	class:net_info
 xor	driver.py	/^xor = dt.data('xor')$/;"	v

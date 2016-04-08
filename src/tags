@@ -54,7 +54,7 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(hidden=7, output=2, seed=(35495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(hidden=5, output=2, seed=(35495)%20)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -115,7 +115,7 @@ tempotron_update_output_weights	weight_updates_numba.py	/^def tempotron_update_o
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:rand_data_gen
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:rand_data_gen
 times_format	display.py	/^def times_format(self):$/;"	f
-train_epoch	train.py	/^def train_epoch(self, X, Y, method_o='tempotron', method_h=None):$/;"	f
+train_epoch	train.py	/^def train_epoch(self, index, X, Y, method_o='tempotron', method_h=None):$/;"	f
 train_step	train.py	/^def train_step(self, method_o='tempotron', method_h=None):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f

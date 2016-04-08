@@ -55,7 +55,7 @@ def resume_update_output_weights(info):
             i = ih[I]
             #for k in range(p):
             index_ho = o_p*i + p*j
-            delay = delay_ho[index_ho:index_ho+p]
+            delay = delay_ho[index_ho:index_ho+p]*0.001
             S = ta[J] - th[I] - delay
             for l in range(len(S)):
                 s = S[l]
@@ -74,7 +74,7 @@ def resume_update_output_weights(info):
             i = ih[I]
             for k in range(p):
                 index_ho = o_p*i+p*j
-                delay = delay_ho[index_ho:index_ho+p]
+                delay = delay_ho[index_ho:index_ho+p]*0.001
                 #pudb.set_trace()
                 S = d[j] - th[I] - delay
                 for l in range(len(S)):
@@ -122,7 +122,7 @@ def resume_update_hidden_weights(info):
             for I in range(len(ii)):
                 i = ii[I]
                 index_ih = n_p*i+p*k
-                delay = delay_ih[index_ih:index_ih+p]
+                delay = delay_ih[index_ih:index_ih+p]*0.001
                 #pudb.set_trace()
                 S = ta[J] - ti[I] - delay
                 for l in range(len(S)):
@@ -140,7 +140,7 @@ def resume_update_hidden_weights(info):
             for I in range(len(ii)):
                 i = ii[I]
                 index_ih = n_p*i+p*k
-                delay = delay_ih[index_ih:index_ih+p]
+                delay = delay_ih[index_ih:index_ih+p]*0.001
                 #pudb.set_trace()
                 S = d[j] - ti[I] - delay
                 for l in range(len(S)):

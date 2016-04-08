@@ -119,8 +119,8 @@ class net_info:
         self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
             if self.y[i] == 1:
-                self.d_times[i] = 27.0
-            else: self.d_times[i] = 21.0
+                self.d_times[i] = 36.0
+            else: self.d_times[i] = 39.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
@@ -207,7 +207,7 @@ class net:
         #self.a_post, self.d_post = [], []
         #self.a_pre, self.d_pre = [], []
         #self.data, self.labels = None, None
-        self.T = 40
+        self.T = 50
         self.__groups()
 
     def rand_weights_singlelayer(self, test=False):
@@ -238,15 +238,15 @@ class net:
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
         p = self.N_subc
-        Sh.w[:, :, :] = '120*rand()+10'
-        So.w[:, :, :] = '80'
+        Sh.w[:, :, :] = '80'
+        So.w[:, :, :] = '60'
         Sh.w[:, :, :int(np.ceil(p/3))] *= -1
         So.w[:, :, :int(np.ceil(p/3))] *= -1
         #pudb.set_trace()
-        So.w[:, 0, :] = 0
+        #So.w[:, 0, :] = 0
 
-        Sh.delay[:, :, :] = '11*rand()*ms'
-        So.delay[:, :, :] = '11*rand()*ms'
+        Sh.delay[:, :, :] = '5*rand()*ms'
+        So.delay[:, :, :] = '5*rand()*ms'
 
         Sh.tl[:, :, :] = '-1*second'
         Sh.tp[:, :, :] = '-1*second'
@@ -273,8 +273,8 @@ class net:
                             tl                                    : second
                             tp                                    : second
                             tauC = 5                              : 1      (shared)
-                            tau1 = 0.0050                         : second (shared)
-                            tau2 = 0.001250                       : second (shared)
+                            tau1 = 0.0100                         : second (shared)
+                            tau2 = 0.00250                        : second (shared)
                             tauL = 0.010                          : second (shared)
                             tauLp = 0.1*tauL                      : second (shared)
 
@@ -714,7 +714,7 @@ class net:
             i += 1
             j += 1
             pold = p
-            p = train.train_epoch(self, X, Y, method_o=method_o, method_h=method_h)
+            p = train.train_epoch(self, i, X, Y, method_o=method_o, method_h=method_h)
             if p < pmin:
                 pmin = p
                 j = 0

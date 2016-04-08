@@ -28,6 +28,7 @@ def supervised_update_setup(self, method_o='tempotron', method_h=None):
     elif method_h == 'tempotron':
         update_function_h = weight_updates.tempotron_update_hidden_weights
 
+    #pudb.set_trace()
     self.info.params = resume_params()
     #print "s",
     dw_o = update_function_o(self.info)
@@ -118,9 +119,9 @@ def synaptic_scaling_multilayer(self, max_spikes, iteration=0):
 
     # KEEP FOLOWING COMMENTS !!!
     #if False: #np.min(w_ih) < 1:
-    #    np.clip(w_ih, 1, 10000, out=w_ih)
+    #np.clip(w_ih, -80, 10000, out=w_ih)
     #elif False: #np.min(w_ho) < 1:
-    #    np.clip(w_ho, 1, 10000, out=w_ho)
+    #np.clip(w_ho, -80, 10000, out=w_ho)
     #else:
     #if iteration == 100:
     #    pudb.set_trace()
@@ -159,27 +160,31 @@ def synaptic_scalling_wrap(self, max_spikes):
         self.run(None)
         mod = synaptic_scaling(self, max_spikes)
         i += 1
+        if i > 15:
+            pudb.set_trace()
 
 def train_step(self, method_o='tempotron', method_h=None):
     if method_o != 'tempotron' or method_h != 'tempotron':
         pass
-        #synaptic_scalling_wrap(self, 1)
+        #synaptic_scalling_wrap(self, 5)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
-def train_epoch(self, X, Y, method_o='tempotron', method_h=None):
+def train_epoch(self, index, X, Y, method_o='tempotron', method_h=None):
     correct = 0
     p = 0
-    for i in range(len(X)):
+    for i in range(1):
         self.net.restore()
         self.set_inputs(X[i])
         #pudb.set_trace()
         self.info.set_y(Y[i])
         self.run()
-        #pudb.set_trace()
+        #self.info.H.print_spike_times(tabs=1)
         self.info.O.print_sd_times(tabs=1)
         self.info.reread()
+        #if index == 6:
+        #    pudb.set_trace()
         train_step(self, method_o=method_o, method_h=method_h)
-        self.info.update_weights(0.1)
+        self.info.update_weights(0.2)
         #print self.info.d_Wh[:]
         #pudb.set_trace()
         #self.info.update_weights(self.net)

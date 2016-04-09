@@ -172,7 +172,7 @@ def train_step(self, method_o='tempotron', method_h=None):
 def train_epoch(self, index, X, Y, method_o='tempotron', method_h=None):
     correct = 0
     p = 0
-    for i in range(1):
+    for i in range(len(X)):
         self.net.restore()
         self.set_inputs(X[i])
         #pudb.set_trace()
@@ -183,8 +183,12 @@ def train_epoch(self, index, X, Y, method_o='tempotron', method_h=None):
         self.info.reread()
         #if index == 6:
         #    pudb.set_trace()
+        p_tmp = self.info.performance()
+        #if p_tmp < 4.0:
+        #    pudb.set_trace()
         train_step(self, method_o=method_o, method_h=method_h)
-        p += self.info.performance()
+        #print "\t", p_tmp
+        p += p_tmp
         self.info.update_weights(0.2)
         #print self.info.d_Wh[:]
         #pudb.set_trace()

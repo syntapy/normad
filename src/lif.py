@@ -187,14 +187,14 @@ class net_info:
         D = self.d_times
         p = 0
         for i in range(len(S)):
-            p += len(S[i])*10
-        for i in range(len(S)):
-            p -= len(d[i])
+            p += len(S[i])*30
+        p -= 30*len(D)
         p = abs(p)
 
-        for i in range(len(d)):
-            for j in range(np.min(len(d[i]), len(S[i]))):
-                p += np.abs(d[i][j] - S[i][j])
+        if p < 30:
+            #pudb.set_trace()
+            for i in range(len(D)):
+                p += np.abs(1000*D[i] - S[i][0]/br.ms)**2
         return p
 
 class net:
@@ -216,8 +216,8 @@ class net:
         self.N_subc = subc
         self.tauLP = 5.0
         #self.tauIN = 5.0
-        #self.seed = seed
-        #np.random.seed(self.seed)
+        self.seed = seed
+        np.random.seed(self.seed)
         #self.a, self.d = None, None
         #self.a_post, self.d_post = [], []
         #self.a_pre, self.d_pre = [], []
@@ -253,8 +253,8 @@ class net:
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
         p = self.N_subc
-        Sh.w[:, :, :] = '80'
-        So.w[:, :, :] = '60'
+        Sh.w[:, :, :] = '70'
+        So.w[:, :, :] = '50'
         Sh.w[:, :, :int(np.ceil(p/3))] *= -1
         So.w[:, :, :int(np.ceil(p/3))] *= -1
         #pudb.set_trace()

@@ -119,8 +119,8 @@ class net_info:
         self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
             if self.y[i] == 1:
-                self.d_times[i] = 36.0
-            else: self.d_times[i] = 39.0
+                self.d_times[i] = 10.0
+            else: self.d_times[i] = 16.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
@@ -233,8 +233,9 @@ class net:
 
         So = self.net['synapses_output']
         p = self.N_subc
-        So.w[:, :, :] = '80'
+        So.w[:, :, :] = 'rand() - 0.2'
         So.w[:, :, :int(np.ceil(p/3))] *= -1
+        So.w[:, :, :] /= self.N_output*self.N_hidden*p
 
         So.delay[:, :, :] = '11*rand()*ms'
 
@@ -253,15 +254,17 @@ class net:
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
         p = self.N_subc
-        Sh.w[:, :, :] = '70'
-        So.w[:, :, :] = '50'
+        Sh.w[:, :, :] = 'rand() - 0.2'
+        So.w[:, :, :] = 'rand() - 0.2'
         Sh.w[:, :, :int(np.ceil(p/3))] *= -1
         So.w[:, :, :int(np.ceil(p/3))] *= -1
+        Sh.w[:, :, :] /= self.N_hidden*self.N_inputs*p
+        So.w[:, :, :] /= self.N_output*self.N_hidden*p
         #pudb.set_trace()
         #So.w[:, 0, :] = 0
 
-        Sh.delay[:, :, :] = '5*rand()*ms'
-        So.delay[:, :, :] = '5*rand()*ms'
+        Sh.delay[:, :, :] = '11*rand()*ms'
+        So.delay[:, :, :] = '11*rand()*ms'
 
         Sh.tl[:, :, :] = '-1*second'
         Sh.tp[:, :, :] = '-1*second'
@@ -273,10 +276,10 @@ class net:
     def __gen_neuron_group(self, N_neurons, name):
         neurons = br.NeuronGroup(N_neurons, \
                    model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
-                            gL = 30                                     : 1 (shared)
+                            gL = 40                                     : 1 (shared)
                             El = -70                                    : 1 (shared)
                             vt = 20                                     : 1 (shared)
-                            Cm = 06.0                                   : 1 (shared)
+                            Cm = 04.0                                   : 1 (shared)
                             D                                           : 1''',
                             method='rk2', refractory=0*br.ms, threshold='v>=vt', 
                             reset='v=El', name=name, dt=self.dta)
@@ -299,7 +302,7 @@ class net:
                             ul = (sign(t - tl - 3*ms) + 1.0) / 2  : 1
                             u = (sign(t) + 1.0) / 2               : 1
 
-                      c = 200*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
+                      c = 800*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
                             f = w*c                               : 1
                             D_post = f*ul                         : 1 (summed) ''',
                     pre='tp=t', post='tl=t', name=name, dt=self.dta)

@@ -16,7 +16,7 @@ class resume_params:
         return self.Ap, self.Am, self.a_nh, self.tau
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
-def supervised_update_setup(self, method_o='tempotron', method_h=None):
+def supervised_update(self, method_o='tempotron', method_h=None):
     #pudb.set_trace()
     if method_o == 'resume':
         update_function_o = weight_updates.resume_update_output_weights
@@ -38,8 +38,9 @@ def supervised_update_setup(self, method_o='tempotron', method_h=None):
     #print "e"
     #pudb.set_trace()
 
-def supervised_update(self, method_o='tempotron', method_h=None):
-    supervised_update_setup(self, method_o=method_o, method_h=method_h)
+def supervised_update_setup(self, method_o='tempotron', method_h=None):
+    pass
+    #supervised_update_setup(self, method_o=method_o, method_h=method_h)
     #self.net.restore()
     #if self.hidden == True:
     #    dw_h = self.info.d_Wh
@@ -167,7 +168,8 @@ def train_step(self, method_o='tempotron', method_h=None):
     if method_o != 'tempotron' or method_h != 'tempotron':
         pass
         #synaptic_scalling_wrap(self, 5)
-    supervised_update(self, method_o=method_o, method_h=method_h)
+    supervised_update_setup(self, method_o=method_o, method_h=method_h)
+    #supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, index, X, Y, method_o='tempotron', method_h=None):
     correct = 0

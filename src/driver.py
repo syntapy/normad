@@ -8,7 +8,7 @@ import brian2 as br
 
 xor = dt.data('xor')
 X, Y = xor.X['train'], xor.Y['train']
-nn = lif.net(hidden=5, output=1, seed=(45495)%20)
+nn = lif.net(hidden=5, output=1, subc=12, seed=(45495)%20)
 #pudb.set_trace()
 nn.fit(X, Y, method_o='resume', method_h='resume')
 

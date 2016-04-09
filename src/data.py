@@ -71,11 +71,11 @@ class data:
         self.X, self.Y = {}, {}
         self.X['train'] = np.empty(4, dtype=np.ndarray)
         self.X['train'][0] = np.array([6, 6, 0])*ms
-        self.X['train'][1] = np.array([1, 1, 0])*ms
-        self.X['train'][2] = np.array([1, 6, 0])*ms
-        self.X['train'][3] = np.array([6, 1, 0])*ms
+        self.X['train'][1] = np.array([0, 0, 0])*ms
+        self.X['train'][2] = np.array([0, 6, 0])*ms
+        self.X['train'][3] = np.array([6, 0, 0])*ms
         #self.Y['train'] = np.array([[1, 0], [1, 0], [0, 1], [0, 1]])
-        self.Y['train'] = np.array([[1], [1], [0], [0]])
+        self.Y['train'] = np.array([[0], [0], [1], [1]])
         #label = self.set_xor_times(index)
 
     def floats_to_times(self, x, tc=1.7, n_out=10):

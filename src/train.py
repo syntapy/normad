@@ -184,6 +184,7 @@ def train_epoch(self, index, X, Y, method_o='tempotron', method_h=None):
         #if index == 6:
         #    pudb.set_trace()
         train_step(self, method_o=method_o, method_h=method_h)
+        p += self.info.performance()
         self.info.update_weights(0.2)
         #print self.info.d_Wh[:]
         #pudb.set_trace()

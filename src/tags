@@ -58,6 +58,7 @@ nn	driver.py	/^nn = lif.net(hidden=5, output=2, seed=(35495)%20)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
+performance	lif.py	/^    def performance(self):$/;"	m	class:net_info
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot_actual	display.py	/^def plot_actual(self):$/;"	f
 plot_desired	display.py	/^def plot_desired(self):$/;"	f

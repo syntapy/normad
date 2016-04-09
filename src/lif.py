@@ -182,6 +182,21 @@ class net_info:
         self.net['synapses_output'].delay += r*self.d_Do
         self.net.store()
 
+    def performance(self):
+        S = self.O.S.all_values()['t']
+        D = self.d_times
+        p = 0
+        for i in range(len(S)):
+            p += len(S[i])*10
+        for i in range(len(S)):
+            p -= len(d[i])
+        p = abs(p)
+
+        for i in range(len(d)):
+            for j in range(np.min(len(d[i]), len(S[i]))):
+                p += np.abs(d[i][j] - S[i][j])
+        return p
+
 class net:
 
     ###################

@@ -10,6 +10,11 @@ import sys
 import display
 import spike_correlation
 import train
+
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FC
+from matplotlib.pyplot import plot, show
+
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 
 class activity:
@@ -31,6 +36,9 @@ class activity:
         #pudb.set_trace()
         if self.M != None:
             self.v = self.M.v
+
+    def get_times(self):
+        return self.S.all_values()['t']
 
     def print_times(self, S, layer_name, spike_type, tabs, tabs_1):
         if tabs > 0:
@@ -85,6 +93,7 @@ class net_info:
             self.multilayer = True
         else: self.H = None
         self.O = keywds['output']
+        self.y = None
 
         self.net = keywds['net']
         if self.multilayer == True:
@@ -109,8 +118,12 @@ class net_info:
         #self.Wo = keywds['Wo']
         #self.Do = keywds['Do']
 
-    def set_inputs(self, indices, times):
+    def set_inputs(self, indices, times, y=None):
         self.ii, self.ta = indices, times / br.second
+        self.y = y
+        if y != None:
+            self.bin_to_times()
+        else: self.bin_to_none()
 
     def get_inputs(self):
         return self.ii, self.ta
@@ -124,6 +137,10 @@ class net_info:
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
+    def bin_to_none(self):
+        self.d_times = None
+        self.O.d_times = None
+
     def set_y(self, y):
         self.y = y
         self.bin_to_times()
@@ -132,7 +149,8 @@ class net_info:
         if self.H != None:
             self.H.reread()
         self.O.reread()
-        self.direction()
+        if self.y != None:
+            self.direction()
 
     def direction(self):
         self.d = [0] * len(self.y)
@@ -233,9 +251,9 @@ class net:
 
         So = self.net['synapses_output']
         p = self.N_subc
-        So.w[:, :, :] = 'rand() - 0.2'
+        So.w[:, :, :] = '400'
         So.w[:, :, :int(np.ceil(p/3))] *= -1
-        So.w[:, :, :] /= self.N_output*self.N_hidden*p
+        So.w[:, :, :] /= self.N_hidden*p
 
         So.delay[:, :, :] = '11*rand()*ms'
 
@@ -251,15 +269,15 @@ class net:
             So.w[i, j, k] = w[k + p*j + n_p*i]
         """
 
+        p = self.N_subc
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
-        p = self.N_subc
-        Sh.w[:, :, :] = 'rand() - 0.2'
-        So.w[:, :, :] = 'rand() - 0.2'
+        Sh.w[:, :, :] = '180'
+        So.w[:, :, :] = '80'
         Sh.w[:, :, :int(np.ceil(p/3))] *= -1
         So.w[:, :, :int(np.ceil(p/3))] *= -1
-        Sh.w[:, :, :] /= self.N_hidden*self.N_inputs*p
-        So.w[:, :, :] /= self.N_output*self.N_hidden*p
+        #Sh.w[:, :, :] /= self.N_inputs*p
+        #So.w[:, :, :] /= self.N_hidden*p
         #pudb.set_trace()
         #So.w[:, 0, :] = 0
 
@@ -276,12 +294,12 @@ class net:
     def __gen_neuron_group(self, N_neurons, name):
         neurons = br.NeuronGroup(N_neurons, \
                    model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
-                            gL = 40                                     : 1 (shared)
+                            gL = 30                                     : 1 (shared)
                             El = -70                                    : 1 (shared)
                             vt = 20                                     : 1 (shared)
-                            Cm = 04.0                                   : 1 (shared)
+                            Cm = 06.0                                   : 1 (shared)
                             D                                           : 1''',
-                            method='rk2', refractory=0*br.ms, threshold='v>=vt', 
+                            method='rk2', refractory=3*br.ms, threshold='v>=vt', 
                             reset='v=El', name=name, dt=self.dta)
         return neurons
 
@@ -291,8 +309,8 @@ class net:
                             tl                                    : second
                             tp                                    : second
                             tauC = 5                              : 1      (shared)
-                            tau1 = 0.0100                         : second (shared)
-                            tau2 = 0.00250                        : second (shared)
+                            tau1 = 0.0050                         : second (shared)
+                            tau2 = 0.001250                       : second (shared)
                             tauL = 0.010                          : second (shared)
                             tauLp = 0.1*tauL                      : second (shared)
 
@@ -302,23 +320,22 @@ class net:
                             ul = (sign(t - tl - 3*ms) + 1.0) / 2  : 1
                             u = (sign(t) + 1.0) / 2               : 1
 
-                      c = 800*exp((tp - t)/(tau1*tauC)) - exp((tp - t)/(tau2*tauC)): 1
+                      c = 100*(exp((tp - t)/tau1) - exp((tp - t)/tau2)): 1
                             f = w*c                               : 1
                             D_post = f*ul                         : 1 (summed) ''',
                     pre='tp=t', post='tl=t', name=name, dt=self.dta)
-
         return S
-    
+
     def __gen_singlelayer_nn(self, inputs):
         #pudb.set_trace()
         output = self.__gen_neuron_group(self.N_output,'output')
         So = self.__gen_synapse_group(inputs, output, 'synapses_output')
 
         output.v[:] = -70
+        So.connect('True', n=self.N_subc)
         N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
         M = br.StateMonitor(output, 'v', record=True, name='monitor_v')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
-        So.connect('True', n=self.N_subc)
         self.net = br.Network(inputs, output, So, M, N, To)
         self.rand_weights_singlelayer()
         self.actual = self.net['crossings_o'].all_values()['t']
@@ -338,13 +355,14 @@ class net:
 
         hidden.v[:] = -70
         output.v[:] = -70
-        N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
+        #pudb.set_trace()
+        Sh.connect('True', n=self.N_subc)
+        So.connect('True', n=self.N_subc)
+        N = br.StateMonitor(So, 'f', record=True, name='monitor_o_c')
         Vo = br.StateMonitor(output, 'v', record=True, name='values_vo')
         Vh = br.StateMonitor(hidden, 'v', record=True, name='values_vh')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
-        Sh.connect('True', n=self.N_subc)
-        So.connect('True', n=self.N_subc)
         self.net = br.Network(inputs, hidden, Sh, Th, output, So, Vo, Vh, N, To)
         self.rand_weights_multilayer()
         self.net.store()
@@ -744,6 +762,18 @@ class net:
             self.save_weights_singlelayer()
         else: self.save_weights_multilayer()
 
+    def predict(self, x, i, plot=False):
+        self.net.restore()
+        self.set_inputs(x)
+        self.run()
+        x = self.net['monitor_o_c']
+        v = self.net['values_vh']
+        #self.info.reread()
+        #pudb.set_trace()
+        if plot == True:
+            self.plot(figname="plot-" + str(i) + ".png")
+        self.net.restore()
+
     def compute(self, images):
         test_result = []
         times = []
@@ -756,3 +786,59 @@ class net:
             actual, desired = self.actual, self.desired
             print self.times, "\t\t", self.actual, "\t\t", self.desired
             self.net.restore()
+
+    def plot_desired(self):
+        desired = self.desired
+        for i in range(len(desired)):
+            x = desired[i]
+            br.plot((x, x), (0, 100), 'r--')
+
+    def plot_actual(self):
+        actual = self.info.O.get_times()
+        for i in range(len(actual[0])):
+            x = actual[i]
+            br.plot((x, x), (0, 100), 'r-')
+
+    def plot(self, figname='test.png', save=False, sh=True, i=None):
+        """
+            http://stackoverflow.com/questions/14088687/how-to-change-plot-background-color
+        """
+
+        S = self.net['synapses_output']
+        fig = Figure()
+        cv = FC(fig)
+        axes = fig.add_subplot(1, 1, 1, axisbg='black')
+        #fig = br.figure(figsize=(8, 5))
+        #self.plot_desired()
+        #self.plot_actual()
+        axes.plot((0, self.T)*br.ms, (90, 90), 'b--')
+        #a, b, c = S.w[0, 0], S.w[1, 0], S.w[2, 0]
+        #a /= 150.0
+        #b /= 150.0
+        #c /= 150.0
+        #pudb.set_trace()
+        x = self.net['monitor_o_c']
+        n = self.N_hidden*self.N_subc
+        for i in range(n):
+            #pass
+            axes.plot(self.net['monitor_o_c'][i].t, self.net['monitor_o_c'][i].f / 32, 'r-', lw=3, label='C' + str(i))
+        #axes.plot(self.net['monitor_o_c'][1].t, self.net['monitor_o_c'][1].c, 'r-', lw=3, label='C1')
+        #axes.plot(self.net['monitor_o_c'][2].t, self.net['monitor_o_c'][2].c, 'r-', lw=3, label='C1')
+        #axes.plot(self.net['monitor_o_c'].t, b*self.net['monitor_o_c'].c, 'g-', lw=3, label='C2')
+        #axes.plot((10, 10)*br.ms, (0, 90), 'b-', lw=2, label="Spike Time")
+        #axes.plot(self.net['monitor_o_c'][2].t, c*self.net['monitor_o_c'][2].c, 'y-', lw=3, label='Spike Kernel')
+        axes.plot(self.net['values_vo'][0].t, (self.net['values_vo'][0].v+70), 'b-', lw=3, label='V')
+        #axes.legend()
+        axes.set_xlim([0, 50]*br.ms)
+        axes.set_ylim([0, 180])
+        #pudb.set_trace()
+        if i != None and save == True:
+            file_name = '../figs/'
+            file_name = './'
+            for j in range(4):
+                if i < 10**(j+1):
+                    file_name += '0'
+            file_name += str(i) + '.png'
+            self.fig.savefig(file_name)
+        if sh==True:
+            cv.print_figure(figname)

@@ -45,6 +45,7 @@ def resume_update_output_weights(info):
     delay_ih, delay_ho = info.delays()
     ### n hidden neurons, o output neurons, p synapses per neuron/input pair
     ### w_ho[o_p*i + p*j + k] acceses the kth synapses from hidden i to output j
+    index_first = None
 
     #pudb.set_trace()
     # loop over output spikes
@@ -55,6 +56,9 @@ def resume_update_output_weights(info):
             i = ih[I]
             #for k in range(p):
             index_ho = o_p*i + p*j
+            #if index_first == None:
+            #    index_first = index_ho
+            #    pudb.set_trace()
             delay = delay_ho[index_ho:index_ho+p]*0.001
             S = ta[J] - th[I] - delay
             for l in range(len(S)):
@@ -75,7 +79,8 @@ def resume_update_output_weights(info):
             for k in range(p):
                 index_ho = o_p*i+p*j
                 delay = delay_ho[index_ho:index_ho+p]*0.001
-                #pudb.set_trace()
+                #if index_ho == index_first:
+                #    pudb.set_trace()
                 S = d[j] - th[I] - delay
                 for l in range(len(S)):
                     s = S[l]
@@ -112,17 +117,17 @@ def resume_update_hidden_weights(info):
 
     #ii, ta = info.get_inputs()
 
-    # loop over hidden neurons
-    for k in range(n):
-        # loop over output neurons
-        for J in range(len(ta)):
-            j = ia[J]
-            index_ho = o_p*k+p*j
-            # loop over input neurons
-            for I in range(len(ii)):
-                i = ii[I]
-                index_ih = n_p*i+p*k
-                delay = delay_ih[index_ih:index_ih+p]*0.001
+    # loop over input neurons
+    for I in range(len(ii)):
+        i = ii[I]
+        # loop over hidden neurons
+        for k in range(n):
+            index_ih = n_p*i+p*k
+            # loop over output neurons
+            delay = delay_ih[index_ih:index_ih+p]*0.001
+            for J in range(len(ta)):
+                j = ia[J]
+                index_ho = o_p*k+p*j
                 #pudb.set_trace()
                 S = ta[J] - ti[I] - delay
                 for l in range(len(S)):
@@ -131,15 +136,9 @@ def resume_update_hidden_weights(info):
                         dw_ih[index_ih+l] += Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
                     if s >= 0 :
                         dw_ih[index_ih+l] -= Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
-            for i in range(m):
-                index_ih = n_p*i+p*k
                 dw_ih[index_ih:index_ih+p] -= a_nh*np.abs(w_ho[index_ho:index_ho+p])
-        for j in range(len(d)):
-            index_ho = o_p*k+p*j
-            # loop over input neurons
-            for I in range(len(ii)):
-                i = ii[I]
-                index_ih = n_p*i+p*k
+            for j in range(len(d)):
+                index_ho = o_p*k+p*j
                 delay = delay_ih[index_ih:index_ih+p]*0.001
                 #pudb.set_trace()
                 S = d[j] - ti[I] - delay
@@ -150,8 +149,6 @@ def resume_update_hidden_weights(info):
                         dw_ih[index_ih+l] -= Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
                     if s >= 0:
                         dw_ih[index_ih+l] += Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
-            for i in range(m):
-                index_ih = n_p*i+p*k
                 dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
     return dw_ih / float(m_n*p*p)
 

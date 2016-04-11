@@ -132,8 +132,8 @@ class net_info:
         self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
             if self.y[i] == 1:
-                self.d_times[i] = 10.0
-            else: self.d_times[i] = 16.0
+                self.d_times[i] = 32.0
+            else: self.d_times[i] = 37.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
@@ -274,8 +274,8 @@ class net:
         So = self.net['synapses_output']
         Sh.w[:, :, :] = '180'
         So.w[:, :, :] = '80'
-        Sh.w[:, :, :int(np.ceil(p/3))] *= -1
-        So.w[:, :, :int(np.ceil(p/3))] *= -1
+        Sh.w[:, :, :int(np.ceil(p/5))] *= -1
+        So.w[:, :, :int(np.ceil(p/5))] *= -1
         #Sh.w[:, :, :] /= self.N_inputs*p
         #So.w[:, :, :] /= self.N_hidden*p
         #pudb.set_trace()
@@ -412,20 +412,22 @@ class net:
             file_o = folder + name_o + param + ext
         self.net.restore()
         output = 'synapses_output'
-        Fo = open(file_o, 'r')
-        string_o = Fh.readlines(), Fo.readlines()
-        n = len(string_o)
-        weights_o = np.empty(n, dtype=float)
-        for i in xrange(n):
-            weights_o[i] = float(string_o[i][:-1])
+        if op.exists(file_o):
+            Fo = open(file_o, 'r')
+            string_o = Fh.readlines(), Fo.readlines()
+            n = len(string_o)
+            weights_o = np.empty(n, dtype=float)
+            for i in xrange(n):
+                weights_o[i] = float(string_o[i][:-1])
 
-        o = self.net[output]
-        if len(o.w) == 0:
-            o.connect('True')
-        o.w[:] = weights_o[:]
-        o.tl[:, :] = '-1*second'
-        o.tp[:, :] = '-1*second'
-        self.net.store()
+            o = self.net[output]
+            if len(o.w) == 0:
+                o.connect('True')
+            o.w[:] = weights_o[:]
+            o.tl[:, :] = '-1*second'
+            o.tp[:, :] = '-1*second'
+            self.net.store()
+            Fo.close()
 
     def save_weights_multilayer(self, file_h=None, file_o=None):
         if file_h == None or file_o == None:
@@ -457,29 +459,30 @@ class net:
             file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
         self.net.restore()
         hidden, output = 'synapses_hidden', 'synapses_output'
-        Fh = open(file_h, 'r')
-        Fo = open(file_o, 'r')
-        string_h, string_o = Fh.readlines(), Fo.readlines()
-        m, n = len(string_h), len(string_o)
-        weights_h = np.empty(m, dtype=float)
-        weights_o = np.empty(n, dtype=float)
-        for i in xrange(m):
-            weights_h[i] = float(string_h[i][:-1])
-        for i in xrange(n):
-            weights_o[i] = float(string_o[i][:-1])
+        if op.exists(file_h) and op.exists(file_o):
+            Fh = open(file_h, 'r')
+            Fo = open(file_o, 'r')
+            string_h, string_o = Fh.readlines(), Fo.readlines()
+            m, n = len(string_h), len(string_o)
+            weights_h = np.empty(m, dtype=float)
+            weights_o = np.empty(n, dtype=float)
+            for i in xrange(m):
+                weights_h[i] = float(string_h[i][:-1])
+            for i in xrange(n):
+                weights_o[i] = float(string_o[i][:-1])
 
-        h = self.net[hidden]
-        o = self.net[output]
-        if len(h.w) == 0 or len(o.w) == 0:
-            h.connect('True')
-            o.connect('True')
-        h.w[:] = weights_h[:]
-        o.w[:] = weights_o[:]
-        h.tl[:, :] = '-1*second'
-        h.tp[:, :] = '-1*second'
-        o.tl[:, :] = '-1*second'
-        o.tp[:, :] = '-1*second'
-        self.net.store()
+            h = self.net[hidden]
+            o = self.net[output]
+            if len(h.w) == 0 or len(o.w) == 0:
+                h.connect('True')
+                o.connect('True')
+            h.w[:] = weights_h[:]
+            o.w[:] = weights_o[:]
+            h.tl[:, :] = '-1*second'
+            h.tp[:, :] = '-1*second'
+            o.tl[:, :] = '-1*second'
+            o.tp[:, :] = '-1*second'
+            self.net.store()
 
     ##########################
     ### SET INPUT / OUTPUT ###
@@ -741,6 +744,10 @@ class net:
                     print ' ',
         #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
+        if self.info.multilayer == True:
+            self.read_weights_multilayer()
+        else:
+            self.read_weights_singlelayer()
         i, j, k = 0, 0, 0
         pmin = 10000
         p = pmin
@@ -750,17 +757,21 @@ class net:
             i += 1
             j += 1
             pold = p
-            p = train.train_epoch(self, i, X, Y, method_o=method_o, method_h=method_h)
+            p = train.train_epoch(self, i, pmin, X, Y, method_o=method_o, method_h=method_h)
+            print "i, p, pmin: ", i, p, pmin
+            self.r = self.rb*(min(p, 4)**2) / 4
+            #if i > 2:
+            #    pudb.set_trace()
+            #if p < 1:
+            #    break
             if p < pmin:
                 pmin = p
                 j = 0
-            print "i, p, pmin: ", i, p, pmin
-            self.r = self.rb*(min(p, 4)**2) / 4
-            #if p < 1:
-            #    break
-        if self.info.multilayer == True:
-            self.save_weights_singlelayer()
-        else: self.save_weights_multilayer()
+                #if i % 10 == 0:
+                if self.info.multilayer == True:
+                    self.save_weights_multilayer()
+                else: 
+                    self.save_weights_singlelayer()
 
     def predict(self, x, i, plot=False):
         self.net.restore()

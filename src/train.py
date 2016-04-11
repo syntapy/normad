@@ -155,26 +155,28 @@ def synaptic_scaling(self, max_spikes, iteration=0):
         return synaptic_scaling_singlelayer(self, max_spikes, iteration=iteration)
 
 def synaptic_scalling_wrap(self, max_spikes):
-    mod = True
     i = 1
+    mod = synaptic_scaling(self, max_spikes)
     while mod:
         self.run(None)
         mod = synaptic_scaling(self, max_spikes)
         i += 1
-        if i > 15:
-            pudb.set_trace()
 
-def train_step(self, method_o='tempotron', method_h=None):
-    if method_o != 'tempotron' or method_h != 'tempotron':
-        pass
-        #synaptic_scalling_wrap(self, 5)
-    supervised_update_setup(self, method_o=method_o, method_h=method_h)
-    #supervised_update(self, method_o=method_o, method_h=method_h)
+def train_step(self, index, method_o='tempotron', method_h=None):
+    if index % 20 == 5:
+        if method_o != 'tempotron' or method_h != 'tempotron':
+            #pass
+            synaptic_scalling_wrap(self, 5)
+    #supervised_update_setup(self, method_o=method_o, method_h=method_h)
+    supervised_update(self, method_o=method_o, method_h=method_h)
 
-def train_epoch(self, index, X, Y, method_o='tempotron', method_h=None):
+def train_epoch(self, index, pmin, X, Y, method_o='tempotron', method_h=None):
     correct = 0
     p = 0
-    for i in range(len(X)):
+    indices = np.arange(len(X))
+    np.random.shuffle(indices)
+    r = min(np.float(pmin) / 250, 1) * 0.5
+    for i in indices:
         self.net.restore()
         self.set_inputs(X[i])
         #pudb.set_trace()
@@ -188,10 +190,11 @@ def train_epoch(self, index, X, Y, method_o='tempotron', method_h=None):
         p_tmp = self.info.performance()
         #if p_tmp < 4.0:
         #    pudb.set_trace()
-        train_step(self, method_o=method_o, method_h=method_h)
+        train_step(self, index, method_o=method_o, method_h=method_h)
         #print "\t", p_tmp
         p += p_tmp
-        self.info.update_weights(0.2)
+        
+        self.info.update_weights(r)
         #print self.info.d_Wh[:]
         #pudb.set_trace()
         #self.info.update_weights(self.net)

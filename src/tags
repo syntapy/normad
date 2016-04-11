@@ -12,20 +12,12 @@ SC_step	spike_correlation.py	/^def SC_step(self, total, t1, t2, int1, int2, i, j
 SCorrelation	spike_correlation.py	/^def SCorrelation(self, S1, S2):$/;"	f
 SCorrelationSIMPLE	spike_correlation.py	/^def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	f
 SCorrelationSlow	spike_correlation.py	/^def SCorrelationSlow(self, S1, S2, dt=0.05):$/;"	f
-__gen_multilayer_nn	lif-backup.py	/^    def __gen_multilayer_nn(self, inputs):$/;"	m	class:net	file:
 __gen_multilayer_nn	lif.py	/^    def __gen_multilayer_nn(self, inputs):$/;"	m	class:net	file:
-__gen_neuron_group	lif-backup.py	/^    def __gen_neuron_group(self, N_neurons, name):$/;"	m	class:net	file:
 __gen_neuron_group	lif.py	/^    def __gen_neuron_group(self, N_neurons, name):$/;"	m	class:net	file:
-__gen_singlelayer_nn	lif-backup.py	/^    def __gen_singlelayer_nn(self, inputs):$/;"	m	class:net	file:
 __gen_singlelayer_nn	lif.py	/^    def __gen_singlelayer_nn(self, inputs):$/;"	m	class:net	file:
-__gen_synapse_group	lif-backup.py	/^    def __gen_synapse_group(self, neurons_a, neurons_b, name):$/;"	m	class:net	file:
 __gen_synapse_group	lif.py	/^    def __gen_synapse_group(self, neurons_a, neurons_b, name):$/;"	m	class:net	file:
-__groups	lif-backup.py	/^    def __groups(self):$/;"	m	class:net	file:
 __groups	lif.py	/^    def __groups(self):$/;"	m	class:net	file:
 __init__	data.py	/^    def __init__(self, data_set, shuffle=False):$/;"	m	class:data
-__init__	lif-backup.py	/^    def __init__(self, **keywds):$/;"	m	class:activity
-__init__	lif-backup.py	/^    def __init__(self, **keywds):$/;"	m	class:net_info
-__init__	lif-backup.py	/^    def __init__(self, hidden=5, output=2, inputs=3, subc=3, seed=5):$/;"	m	class:net
 __init__	lif.py	/^    def __init__(self, **keywds):$/;"	m	class:activity
 __init__	lif.py	/^    def __init__(self, **keywds):$/;"	m	class:net_info
 __init__	lif.py	/^    def __init__(self, hidden=5, output=2, inputs=3, subc=3, seed=5):$/;"	m	class:net
@@ -38,95 +30,62 @@ _input_output	lift.py	/^    def _input_output(self, classes=1):$/;"	m	class:rand
 _poisson	lift.py	/^    def _poisson(self, r, spacing, Ti, Tf):$/;"	m	class:rand_data_gen
 _prel_SC	spike_correlation.py	/^def _prel_SC(self, Smax, Smin):$/;"	f
 _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"	m	class:rand_data_gen
-accuracy	lif-backup.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
 accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
-activity	lif-backup.py	/^class activity:$/;"	c
 activity	lif.py	/^class activity:$/;"	c
 bin_to_none	lif.py	/^    def bin_to_none(self):$/;"	m	class:net_info
-bin_to_times	lif-backup.py	/^    def bin_to_times(self):$/;"	m	class:net_info
 bin_to_times	lif.py	/^    def bin_to_times(self):$/;"	m	class:net_info
-compute	lif-backup.py	/^    def compute(self, images):$/;"	m	class:net
 compute	lif.py	/^    def compute(self, images):$/;"	m	class:net
-d_weights	lif-backup.py	/^    def d_weights(self):$/;"	m	class:net_info
 d_weights	lif.py	/^    def d_weights(self):$/;"	m	class:net_info
 data	data.py	/^class data:$/;"	c
-delays	lif-backup.py	/^    def delays(self):$/;"	m	class:net_info
 delays	lif.py	/^    def delays(self):$/;"	m	class:net_info
 desired_times	data.py	/^    def desired_times(self, y, n_out=10, binary=False, data_set='mnist'):$/;"	m	class:data
-direction	lif-backup.py	/^    def direction(self):$/;"	m	class:net_info
 direction	lif.py	/^    def direction(self):$/;"	m	class:net_info
 f	test.py	/^def f(*args, **keywds):$/;"	f
-fit	lif-backup.py	/^    def fit(self, X, Y, method_o='tempotron', method_h=None, threshold=0.7):$/;"	m	class:net
 fit	lif.py	/^    def fit(self, X, Y, method_o='tempotron', method_h=None, threshold=0.7):$/;"	m	class:net
 floats_to_times	data.py	/^    def floats_to_times(self, x, tc=1.7, n_out=10):$/;"	m	class:data
-get_inputs	lif-backup.py	/^    def get_inputs(self):$/;"	m	class:net_info
 get_inputs	lif.py	/^    def get_inputs(self):$/;"	m	class:net_info
 get_params	train.py	/^    def get_params(self):$/;"	m	class:resume_params
 get_times	lif.py	/^    def get_times(self):$/;"	m	class:activity
-indices	lif-backup.py	/^    def indices(self, N, numbers):$/;"	m	class:net
 indices	lif.py	/^    def indices(self, N, numbers):$/;"	m	class:net
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
 load_mnist	data.py	/^    def load_mnist(self):$/;"	m	class:data
 load_random	lift.py	/^    def load_random(self, classes=1):$/;"	m	class:rand_data_gen
 load_xor	data.py	/^    def load_xor(self):$/;"	m	class:data
 matches	spike_correlation.py	/^def matches(self, S1, S2):$/;"	f
-mnist_right_outputs	lif-backup.py	/^    def mnist_right_outputs(self, label):$/;"	m	class:net
 mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	class:net
-net	lif-backup.py	/^class net:$/;"	c
 net	lif.py	/^class net:$/;"	c
-net_info	lif-backup.py	/^class net_info:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
-neuron_right_outputs	lif-backup.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(hidden=5, output=1, subc=12, seed=(45495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(hidden=7, output=1, subc=12, seed=(45495)%20)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
-output_class	lif-backup.py	/^    def output_class(self):$/;"	m	class:net
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
-performance	lif-backup.py	/^    def performance(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net_info
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot	lif.py	/^    def plot(self, figname='test.png', save=False, sh=True, i=None):$/;"	m	class:net
-plot	plot.py	/^    def plot(self, save=False, sh=True, i=None):$/;"	f
 plot_actual	display.py	/^def plot_actual(self):$/;"	f
 plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:net
 plot_desired	display.py	/^def plot_desired(self):$/;"	f
 plot_desired	lif.py	/^    def plot_desired(self):$/;"	m	class:net
 predict	lif.py	/^    def predict(self, x, i, plot=False):$/;"	m	class:net
-preset_weights	lif-backup.py	/^    def preset_weights(self, images):$/;"	m	class:net
 preset_weights	lif.py	/^    def preset_weights(self, images):$/;"	m	class:net
-preset_weights_multilayer	lif-backup.py	/^    def preset_weights_multilayer(self, images):$/;"	m	class:net
 preset_weights_multilayer	lif.py	/^    def preset_weights_multilayer(self, images):$/;"	m	class:net
-preset_weights_singlelayer	lif-backup.py	/^    def preset_weights_singlelayer(self, images):$/;"	m	class:net
 preset_weights_singlelayer	lif.py	/^    def preset_weights_singlelayer(self, images):$/;"	m	class:net
-print_desired_times	lif-backup.py	/^    def print_desired_times(self, layer_name=None, tabs=0, tabs_1=1):$/;"	m	class:activity
 print_desired_times	lif.py	/^    def print_desired_times(self, layer_name=None, tabs=0, tabs_1=1):$/;"	m	class:activity
 print_dw_vec	display.py	/^def print_dw_vec(self, dw, r):$/;"	f
 print_dws	display.py	/^def print_dws(self, dw):$/;"	f
-print_sd_times	lif-backup.py	/^    def print_sd_times(self, tabs=0):$/;"	m	class:activity
 print_sd_times	lif.py	/^    def print_sd_times(self, tabs=0):$/;"	m	class:activity
-print_spike_times	lif-backup.py	/^    def print_spike_times(self, layer_name=None, tabs=0, tabs_1=1):$/;"	m	class:activity
 print_spike_times	lif.py	/^    def print_spike_times(self, layer_name=None, tabs=0, tabs_1=1):$/;"	m	class:activity
-print_times	lif-backup.py	/^    def print_times(self, S, layer_name, spike_type, tabs, tabs_1):$/;"	m	class:activity
 print_times	lif.py	/^    def print_times(self, S, layer_name, spike_type, tabs, tabs_1):$/;"	m	class:activity
 print_times	train.py	/^def print_times(self):$/;"	f
-print_zeros	lif-backup.py	/^        def print_zeros(i, max_order=4):$/;"	f	function:net.fit
 print_zeros	lif.py	/^        def print_zeros(i, max_order=4):$/;"	f	function:net.fit
 rand_data_gen	lift.py	/^class rand_data_gen:$/;"	c
-rand_weights_multilayer	lif-backup.py	/^    def rand_weights_multilayer(self, test=False):$/;"	m	class:net
 rand_weights_multilayer	lif.py	/^    def rand_weights_multilayer(self, test=False):$/;"	m	class:net
-rand_weights_singlelayer	lif-backup.py	/^    def rand_weights_singlelayer(self, test=False):$/;"	m	class:net
 rand_weights_singlelayer	lif.py	/^    def rand_weights_singlelayer(self, test=False):$/;"	m	class:net
-read_weights_multilayer	lif-backup.py	/^    def read_weights_multilayer(self, file_h=None, file_o=None):$/;"	m	class:net
 read_weights_multilayer	lif.py	/^    def read_weights_multilayer(self, file_h=None, file_o=None):$/;"	m	class:net
-read_weights_singlelayer	lif-backup.py	/^    def read_weights_singlelayer(self, file_o=None):$/;"	m	class:net
 read_weights_singlelayer	lif.py	/^    def read_weights_singlelayer(self, file_o=None):$/;"	m	class:net
-reread	lif-backup.py	/^    def reread(self):$/;"	m	class:activity
-reread	lif-backup.py	/^    def reread(self):$/;"	m	class:net_info
 reread	lif.py	/^    def reread(self):$/;"	m	class:activity
 reread	lif.py	/^    def reread(self):$/;"	m	class:net_info
-reset	lif-backup.py	/^    def reset(self):$/;"	m	class:net
-reset	lif-backup.py	/^    def reset(self):$/;"	m	class:net_info
 reset	lif.py	/^    def reset(self):$/;"	m	class:net
 reset	lif.py	/^    def reset(self):$/;"	m	class:net_info
 resume_kernel	weight_updates_numba.py	/^def resume_kernel(s, tau):$/;"	f
@@ -135,32 +94,20 @@ resume_update_hidden_weights	weight_updates_numba.py	/^def resume_update_hidden_
 resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_weights(info):$/;"	f
 rflatten	data.py	/^    def rflatten(self, A):$/;"	m	class:data
 rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:rand_data_gen
-run	lif-backup.py	/^    def run(self, T=None):$/;"	m	class:net
 run	lif.py	/^    def run(self, T=None):$/;"	m	class:net
-save_weights_multilayer	lif-backup.py	/^    def save_weights_multilayer(self, file_h=None, file_o=None):$/;"	m	class:net
 save_weights_multilayer	lif.py	/^    def save_weights_multilayer(self, file_h=None, file_o=None):$/;"	m	class:net
-save_weights_singlelayer	lif-backup.py	/^    def save_weights_singlelayer(self, file_o=None):$/;"	m	class:net
 save_weights_singlelayer	lif.py	/^    def save_weights_singlelayer(self, file_o=None):$/;"	m	class:net
-set_d_delays	lif-backup.py	/^    def set_d_delays(self, d_Do, d_Dh=None):$/;"	m	class:net_info
 set_d_delays	lif.py	/^    def set_d_delays(self, d_Do, d_Dh=None):$/;"	m	class:net_info
-set_d_weights	lif-backup.py	/^    def set_d_weights(self, d_Wo, d_Wh=None):$/;"	m	class:net_info
 set_d_weights	lif.py	/^    def set_d_weights(self, d_Wo, d_Wh=None):$/;"	m	class:net_info
-set_inputs	lif-backup.py	/^    def set_inputs(self, indices, times):$/;"	m	class:net_info
-set_inputs	lif-backup.py	/^    def set_inputs(self, x):$/;"	m	class:net
 set_inputs	lif.py	/^    def set_inputs(self, indices, times, y=None):$/;"	m	class:net_info
 set_inputs	lif.py	/^    def set_inputs(self, x):$/;"	m	class:net
-set_mnist_times	lif-backup.py	/^    def set_mnist_times(self, index, kind='train'):$/;"	m	class:net
 set_mnist_times	lif.py	/^    def set_mnist_times(self, index, kind='train'):$/;"	m	class:net
-set_train_spikes	lif-backup.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
-set_y	lif-backup.py	/^    def set_y(self, y):$/;"	m	class:net_info
 set_y	lif.py	/^    def set_y(self, y):$/;"	m	class:net_info
 setup	lift.py	/^    def setup(self, classes=1):$/;"	m	class:rand_data_gen
-single_neuron_update	lif-backup.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
 single_neuron_update	lif.py	/^    def single_neuron_update(self, dw, m, n, c, neuron_index, time_index):$/;"	m	class:net
 smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
 sort	weight_updates_numba.py	/^def sort(S):$/;"	f
-spikes	lif-backup.py	/^    def spikes(self, name='hidden', t='dict'):$/;"	m	class:net
 spikes	lif.py	/^    def spikes(self, name='hidden', t='dict'):$/;"	m	class:net
 supervised_update	train.py	/^def supervised_update(self, method_o='tempotron', method_h=None):$/;"	f
 supervised_update_setup	train.py	/^def supervised_update_setup(self, method_o='tempotron', method_h=None):$/;"	f
@@ -169,7 +116,6 @@ synaptic_scaling_multilayer	train.py	/^def synaptic_scaling_multilayer(self, max
 synaptic_scaling_singlelayer	train.py	/^def synaptic_scaling_singlelayer(self, max_spikes, iteration=0):$/;"	f
 synaptic_scaling_step	train.py	/^def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):$/;"	f
 synaptic_scalling_wrap	train.py	/^def synaptic_scalling_wrap(self, max_spikes):$/;"	f
-tdiff_rms	lif-backup.py	/^    def tdiff_rms(self):$/;"	m	class:net
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
 tempotron_update_hidden_weights	weight_updates_numba.py	/^def tempotron_update_hidden_weights(info):$/;"	f
 tempotron_update_output_weights	weight_updates_numba.py	/^def tempotron_update_output_weights(info):$/;"	f
@@ -177,12 +123,9 @@ test	lift.py	/^    def test(self, classes=1):$/;"	m	class:rand_data_gen
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:rand_data_gen
 times_format	display.py	/^def times_format(self):$/;"	f
 train_epoch	train.py	/^def train_epoch(self, index, X, Y, method_o='tempotron', method_h=None):$/;"	f
-train_step	train.py	/^def train_step(self, method_o='tempotron', method_h=None):$/;"	f
-uniform_input	lif-backup.py	/^    def uniform_input(self):$/;"	m	class:net
+train_step	train.py	/^def train_step(self, index, method_o='tempotron', method_h=None):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f
-update_weights	lif-backup.py	/^    def update_weights(self, r):$/;"	m	class:net_info
 update_weights	lif.py	/^    def update_weights(self, r):$/;"	m	class:net_info
-weights	lif-backup.py	/^    def weights(self):$/;"	m	class:net_info
 weights	lif.py	/^    def weights(self):$/;"	m	class:net_info
 xor	driver.py	/^xor = dt.data('xor')$/;"	v

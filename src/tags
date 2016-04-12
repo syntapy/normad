@@ -56,7 +56,7 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(hidden=7, output=1, subc=12, seed=(45495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(hidden=5, output=1, subc=12, seed=(45495)%20)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -82,6 +82,7 @@ print_zeros	lif.py	/^        def print_zeros(i, max_order=4):$/;"	f	function:net
 rand_data_gen	lift.py	/^class rand_data_gen:$/;"	c
 rand_weights_multilayer	lif.py	/^    def rand_weights_multilayer(self, test=False):$/;"	m	class:net
 rand_weights_singlelayer	lif.py	/^    def rand_weights_singlelayer(self, test=False):$/;"	m	class:net
+read_weights	lif.py	/^    def read_weights(self):$/;"	m	class:net
 read_weights_multilayer	lif.py	/^    def read_weights_multilayer(self, file_h=None, file_o=None):$/;"	m	class:net
 read_weights_singlelayer	lif.py	/^    def read_weights_singlelayer(self, file_o=None):$/;"	m	class:net
 reread	lif.py	/^    def reread(self):$/;"	m	class:activity
@@ -95,6 +96,7 @@ resume_update_output_weights	weight_updates_numba.py	/^def resume_update_output_
 rflatten	data.py	/^    def rflatten(self, A):$/;"	m	class:data
 rflatten	lift.py	/^    def rflatten(self, A):$/;"	m	class:rand_data_gen
 run	lif.py	/^    def run(self, T=None):$/;"	m	class:net
+save_weights	lif.py	/^    def save_weights(self):$/;"	m	class:net
 save_weights_multilayer	lif.py	/^    def save_weights_multilayer(self, file_h=None, file_o=None):$/;"	m	class:net
 save_weights_singlelayer	lif.py	/^    def save_weights_singlelayer(self, file_o=None):$/;"	m	class:net
 set_d_delays	lif.py	/^    def set_d_delays(self, d_Do, d_Dh=None):$/;"	m	class:net_info

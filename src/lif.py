@@ -272,8 +272,8 @@ class net:
         p = self.N_subc
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
-        Sh.w[:, :, :] = '180'
-        So.w[:, :, :] = '80'
+        Sh.w[:, :, :] = '90'
+        So.w[:, :, :] = '40'
         Sh.w[:, :, :int(np.ceil(p/5))] *= -1
         So.w[:, :, :int(np.ceil(p/5))] *= -1
         #Sh.w[:, :, :] /= self.N_inputs*p
@@ -389,6 +389,18 @@ class net:
             self.__gen_singlelayer_nn(inputs)
         #self.read_weights()
 
+    def save_weights(self):
+        if self.info.multilayer == True:
+            self.save_weights_multilayer()
+        else: 
+            self.save_weights_singlelayer()
+
+    def read_weights(self):
+        if self.info.multilayer == True:
+            self.read_weights_multilayer()
+        else:
+            self.read_weights_singlelayer()
+
     def save_weights_singlelayer(self, file_o=None):
         if file_o == None:
             folder = "../weights/"
@@ -436,6 +448,7 @@ class net:
             param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
             file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
         hidden, output = 'synapses_hidden', 'synapses_output'
+        #pudb.set_trace()
         Fh = open(file_h, 'w')
         Fo = open(file_o, 'w')
         Wh = self.net[hidden]
@@ -744,16 +757,13 @@ class net:
                     print ' ',
         #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
-        if self.info.multilayer == True:
-            self.read_weights_multilayer()
-        else:
-            self.read_weights_singlelayer()
+        self.read_weights()
         i, j, k = 0, 0, 0
         pmin = 10000
         p = pmin
         #print "TRAINING - ",
         #print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
-        while True:
+        while p > 20:
             i += 1
             j += 1
             pold = p
@@ -768,10 +778,8 @@ class net:
                 pmin = p
                 j = 0
                 #if i % 10 == 0:
-                if self.info.multilayer == True:
-                    self.save_weights_multilayer()
-                else: 
-                    self.save_weights_singlelayer()
+                self.save_weights()
+        self.save_weights()
 
     def predict(self, x, i, plot=False):
         self.net.restore()

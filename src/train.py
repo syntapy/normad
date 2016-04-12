@@ -44,9 +44,11 @@ def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):
     mod = False
     for j in tomod:
         if len(spikes[j]) > max_spikes:
-            w[j:m*n*p:n*p] *= np.float(1 - f)**np.sign(w[j:m*n*p:n*p])
+            for i in range(m):
+                w[n*p*i+j*p:n*p*i+(j+1)*p] *= np.float(1 - f)**np.sign(w[n*p*i+j*p:n*p*i+(j+1)*p])
         if len(spikes[j]) == 0:
-            w[j:m*n*p:n*p] *= np.float(1 + f)**np.sign(w[j:m*n*p:n*p])
+            for i in range(m):
+                w[n*p*i+j*p:n*p*i+(j+1)*p] *= np.float(1 + f)**np.sign(w[n*p*i+j*p:n*p*i+(j+1)*p])
 
 def print_times(self):
     a = self.net['crossings_o']
@@ -140,11 +142,14 @@ def synaptic_scalling_wrap(self, max_spikes):
         self.run(None)
         mod = synaptic_scaling(self, max_spikes)
         i += 1
+        if i > 25:
+            self.save_weights()
+            pudb.set_trace()
 
 def train_step(self, index, method_o='tempotron', method_h=None):
-    if index % 20 == 5:
-        if method_o != 'tempotron' or method_h != 'tempotron':
-            synaptic_scalling_wrap(self, 5)
+    if method_o != 'tempotron' or method_h != 'tempotron':
+        pass
+        synaptic_scalling_wrap(self, 5)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, index, pmin, X, Y, method_o='tempotron', method_h=None):
@@ -152,7 +157,7 @@ def train_epoch(self, index, pmin, X, Y, method_o='tempotron', method_h=None):
     p = 0
     indices = np.arange(len(X))
     np.random.shuffle(indices)
-    r = min(np.float(pmin) / 250, 1) * 0.5
+    r = min((np.float(pmin) / 250)**2, 1) * 0.5
     for i in indices:
         self.net.restore()
         self.set_inputs(X[i])

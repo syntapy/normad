@@ -55,7 +55,7 @@ class activity:
 
     def print_spike_times(self, layer_name=None, tabs=0, tabs_1=1):
         S = self.S.all_values()['t']
-        self.print_times(S, layer_name, "hidden", tabs, tabs_1)
+        self.print_times(S, layer_name, layer_name, tabs, tabs_1)
 
     def print_desired_times(self, layer_name=None, tabs=0, tabs_1=1):
         S = self.d_times
@@ -132,8 +132,8 @@ class net_info:
         self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
             if self.y[i] == 1:
-                self.d_times[i] = 32.0
-            else: self.d_times[i] = 37.0
+                self.d_times[i] = 24.0
+            else: self.d_times[i] = 28.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
@@ -177,10 +177,15 @@ class net_info:
             self.d_Dh = d_Dh
         self.d_Do = d_Do
 
-    def set_d_weights(self, d_Wo, d_Wh=None):
+    def update_d_weights(self, d_Wo, d_Wh=None):
         if d_Wh != None:
-            self.d_Wh = d_Wh
-        self.d_Wo = d_Wo
+            self.d_Wh += d_Wh
+        self.d_Wo += d_Wo
+
+    def reset_d_weights(self):
+        if self.multilayer == True:
+            self.d_Wh *= 0
+        self.d_Wo *= 0
 
     def weights(self):
         return self.Wh, self.Wo
@@ -221,13 +226,14 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, hidden=5, output=2, inputs=3, subc=3, seed=5):
+    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=5):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
         self.rb = 1.0
         self.r = 10.0
         self.dta = 0.2*br.ms
+        self.delay = delay
         self.N_inputs = inputs
         self.N_hidden = hidden
         self.N_output = output
@@ -251,11 +257,11 @@ class net:
 
         So = self.net['synapses_output']
         p = self.N_subc
-        So.w[:, :, :] = '400'
-        So.w[:, :, :int(np.ceil(p/3))] *= -1
+        So.w[:, :, :] = '400'#0*(0.8*rand()-0.2)'
+        So.w[:, :, :int(np.ceil(p/5))] *= -1
         So.w[:, :, :] /= self.N_hidden*p
 
-        So.delay[:, :, :] = '11*rand()*ms'
+        So.delay[:, :, :] = str(self.delay) + '*rand()*ms'
 
         So.tl[:, :, :] = '-1*second'
         So.tp[:, :, :] = '-1*second'
@@ -272,17 +278,18 @@ class net:
         p = self.N_subc
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
-        Sh.w[:, :, :] = '90'
-        So.w[:, :, :] = '40'
+        Sh.w[:, :, :] = '400'#*(0.8*rand() - 0.2)
+        So.w[:, :, :] = '400'#*(0.8*rand() - 0.2)
         Sh.w[:, :, :int(np.ceil(p/5))] *= -1
         So.w[:, :, :int(np.ceil(p/5))] *= -1
-        #Sh.w[:, :, :] /= self.N_inputs*p
-        #So.w[:, :, :] /= self.N_hidden*p
+        Sh.w[:, :, :] /= self.N_inputs*p
+        So.w[:, :, :] /= self.N_hidden*p
+        #So.w[4, 0, :] = 0
         #pudb.set_trace()
         #So.w[:, 0, :] = 0
 
-        Sh.delay[:, :, :] = '11*rand()*ms'
-        So.delay[:, :, :] = '11*rand()*ms'
+        Sh.delay[:, :, :] = str(self.delay) +'*rand()*ms'
+        So.delay[:, :, :] = str(self.delay) +'*rand()*ms'
 
         Sh.tl[:, :, :] = '-1*second'
         Sh.tp[:, :, :] = '-1*second'
@@ -758,27 +765,36 @@ class net:
         #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
         self.read_weights()
+        #train.synaptic_scalling_wrap(self, 1)
         i, j, k = 0, 0, 0
         pmin = 10000
         p = pmin
         #print "TRAINING - ",
         #print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
-        while p > 20:
+        scaling = True
+        min_spikes, max_spikes = 1, 1
+        while p > 5:
             i += 1
             j += 1
             pold = p
-            p = train.train_epoch(self, i, pmin, X, Y, method_o=method_o, method_h=method_h)
+            p = train.train_epoch(self, i, pmin, X, Y, min_spikes, max_spikes, method_o=method_o, method_h=method_h, scaling=scaling)
+            r = 1.0
             print "i, p, pmin: ", i, p, pmin
-            self.r = self.rb*(min(p, 4)**2) / 4
+            #self.r = self.rb*(min(p, 4)**2) / 4
             #if i > 2:
             #    pudb.set_trace()
             #if p < 1:
             #    break
-            if p < pmin:
+            if p < pmin and pmin < 5:
                 pmin = p
-                j = 0
                 #if i % 10 == 0:
                 self.save_weights()
+            self.info.update_weights(1.0)
+            self.info.reset_d_weights()
+            if pmin < 40:
+                #r = min((np.float(pmin) / 250)**2, 1) * 5.5
+                min_spikes = 1
+                max_spikes = 1
         self.save_weights()
 
     def predict(self, x, i, plot=False):

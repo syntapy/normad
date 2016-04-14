@@ -34,9 +34,9 @@ def supervised_update(self, method_o='tempotron', method_h=None):
     if self.info.multilayer == True:
         dw_h = update_function_h(self.info)
     else: dw_h = None
-    self.info.set_d_weights(dw_o, d_Wh=dw_h)
+    self.info.update_d_weights(dw_o, d_Wh=dw_h)
 
-def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):
+def synaptic_scaling_step(w, m, n, p, tomod, spikes, min_spikes, max_spikes):
     f = 0.05
     ### m neuron layer to n neuron layer
     ### w[n*i + j] acceses the synapse from neuron i to neuron j
@@ -46,7 +46,7 @@ def synaptic_scaling_step(w, m, n, p, tomod, spikes, max_spikes):
         if len(spikes[j]) > max_spikes:
             for i in range(m):
                 w[n*p*i+j*p:n*p*i+(j+1)*p] *= np.float(1 - f)**np.sign(w[n*p*i+j*p:n*p*i+(j+1)*p])
-        if len(spikes[j]) == 0:
+        if len(spikes[j]) < min_spikes:
             for i in range(m):
                 w[n*p*i+j*p:n*p*i+(j+1)*p] *= np.float(1 + f)**np.sign(w[n*p*i+j*p:n*p*i+(j+1)*p])
 
@@ -68,7 +68,7 @@ def print_times(self):
     #print "DESIRED: ", desired
 
 
-def synaptic_scaling_singlelayer(self, max_spikes, iteration=0):
+def synaptic_scaling_singlelayer(self, min_spikes, max_spikes, iteration=0):
     w_io = self.net['synapses_output'].w
 
     # KEEP FOLOWING COMMENTS !!!
@@ -85,7 +85,7 @@ def synaptic_scaling_singlelayer(self, max_spikes, iteration=0):
     actual = a.all_values()['t']
     desired = self.desired
 
-    tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
+    tomod_a = [i for i in actual if len(actual[i]) < min_spikes or len(actual[i]) > max_spikes]
     if tomod_a != []:
         self.net.restore()
         synaptic_scaling_step(w_io, self.N_inputs, self.N_output, self.N_subc, tomod_a, actual, max_spikes)
@@ -95,7 +95,7 @@ def synaptic_scaling_singlelayer(self, max_spikes, iteration=0):
         return True
     return False
 
-def synaptic_scaling_multilayer(self, max_spikes, iteration=0):
+def synaptic_scaling_multilayer(self, min_spikes, max_spikes, iteration=0):
     w_ih = self.net['synapses_hidden'].w
     w_ho = self.net['synapses_output'].w
 
@@ -115,56 +115,60 @@ def synaptic_scaling_multilayer(self, max_spikes, iteration=0):
     hidden = b.all_values()['t']
     #desired = self.desired
 
-    tomod_a = [i for i in actual if len(actual[i]) == 0 or len(actual[i]) > max_spikes]
-    tomod_h = [i for i in hidden if len(hidden[i]) == 0 or len(hidden[i]) > max_spikes]
+    tomod_a = [i for i in actual if len(actual[i]) < min_spikes or len(actual[i]) > max_spikes]
+    tomod_h = [i for i in hidden if len(hidden[i]) < min_spikes or len(hidden[i]) > max_spikes]
     if tomod_a != [] or tomod_h != []:
         self.net.restore()
-        synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, self.N_subc, tomod_h, hidden, max_spikes)
-        synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, self.N_subc, tomod_a, actual, max_spikes)
+        #pudb.set_trace()
+        synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, self.N_subc, tomod_h, hidden, min_spikes, max_spikes)
+        synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, self.N_subc, tomod_a, actual, min_spikes, max_spikes)
         self.net.store()
 
         w_ih_diff = w_ih - self.net['synapses_hidden'].w
         w_ho_diff = w_ho - self.net['synapses_output'].w
+        #pudb.set_trace()
 
         return True
     return False
 
-def synaptic_scaling(self, max_spikes, iteration=0):
+def synaptic_scaling(self, min_spikes, max_spikes, iteration=0):
     if self.N_hidden > 0:
-        return synaptic_scaling_multilayer(self, max_spikes, iteration=iteration)
+        return synaptic_scaling_multilayer(self, min_spikes, max_spikes, iteration=iteration)
     else:
-        return synaptic_scaling_singlelayer(self, max_spikes, iteration=iteration)
+        return synaptic_scaling_singlelayer(self, min_spikes, max_spikes, iteration=iteration)
 
-def synaptic_scalling_wrap(self, max_spikes):
+def synaptic_scalling_wrap(self, min_spikes, max_spikes):
     i = 1
-    mod = synaptic_scaling(self, max_spikes)
+    mod = synaptic_scaling(self, min_spikes, max_spikes)
     while mod:
         self.run(None)
-        mod = synaptic_scaling(self, max_spikes)
+        #self.info.H.print_spike_times(layer_name="hidden", tabs=2)
+        #self.info.O.print_sd_times(tabs=2)
+        mod = synaptic_scaling(self, min_spikes, max_spikes)
         i += 1
-        if i > 25:
+        if i > 5:
             self.save_weights()
-            pudb.set_trace()
+            #pudb.set_trace()
 
-def train_step(self, index, method_o='tempotron', method_h=None):
-    if method_o != 'tempotron' or method_h != 'tempotron':
+def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):
+    if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
         pass
-        synaptic_scalling_wrap(self, 5)
+        #pudb.set_trace()
+        synaptic_scalling_wrap(self, min_spikes, max_spikes)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
-def train_epoch(self, index, pmin, X, Y, method_o='tempotron', method_h=None):
+def train_epoch(self, index, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):
     correct = 0
     p = 0
     indices = np.arange(len(X))
     np.random.shuffle(indices)
-    r = min((np.float(pmin) / 250)**2, 1) * 0.5
     for i in indices:
         self.net.restore()
         self.set_inputs(X[i])
         #pudb.set_trace()
         self.info.set_y(Y[i])
         self.run()
-        #self.info.H.print_spike_times(tabs=1)
+        #self.info.H.print_spike_times(layer_name="hidden", tabs=1)
         self.info.O.print_sd_times(tabs=1)
         self.info.reread()
         #if index == 6:
@@ -172,11 +176,10 @@ def train_epoch(self, index, pmin, X, Y, method_o='tempotron', method_h=None):
         p_tmp = self.info.performance()
         #if p_tmp < 4.0:
         #    pudb.set_trace()
-        train_step(self, index, method_o=method_o, method_h=method_h)
+        train_step(self, index, min_spikes, max_spikes, method_o=method_o, method_h=method_h, scaling=scaling)
         #print "\t", p_tmp
         p += p_tmp
         
-        self.info.update_weights(r)
         #print self.info.d_Wh[:]
         #pudb.set_trace()
         #self.info.update_weights(self.net)

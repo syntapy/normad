@@ -48,47 +48,48 @@ def resume_update_output_weights(info):
     index_first = None
 
     #pudb.set_trace()
-    # loop over output spikes
-    for J in range(len(ia)):
-        j = ia[J]
-        # loop over hidden spikes
-        for I in range(len(ih)):
-            i = ih[I]
-            #for k in range(p):
+    # loop over hidden spikes
+    for I in range(len(ih)):
+        i = ih[I]
+        # loop over output spikes
+        for J in range(len(ia)):
+            j = ia[J]
             index_ho = o_p*i + p*j
-            #if index_first == None:
-            #    index_first = index_ho
-            #    pudb.set_trace()
             delay = delay_ho[index_ho:index_ho+p]*0.001
             S = ta[J] - th[I] - delay
             for l in range(len(S)):
                 s = S[l]
                 if s <= 0:
+                    # th + d - s = ta
+                    # s = -ta + d + th
                     dw_ho[index_ho+l] += Am*resume_kernel(s, tau)
                 if s >= 0:
+                    # ta - d - s = th
+                    # s = ta - d - th
                     dw_ho[index_ho+l] -= Ap*resume_kernel(-s, tau)
-        for i in range(n):
+        # loop over desired spikes
+        for j in range(len(d)):
+            index_ho = o_p*i+p*j
+            delay = delay_ho[index_ho:index_ho+p]*0.001
+            S = d[j] - th[I] - delay
+            for l in range(len(S)):
+                s = S[l]
+                if s <= 0:
+                    dw_ho[index_ho+l] -= Am*resume_kernel(s, tau)
+                if s >= 0:
+                    dw_ho[index_ho+l] += Ap*resume_kernel(-s, tau)
+        for j in range(o):
+            index_ho = o_p*i + p*j
+            dw_ho[index_ho:index_ho+p] += a_nh
+
+    for i in range(n):
+        index_ho = o_p*i + p*j
+        dw_ho[index_ho:index_ho+p] += a_nh
+        for J in range(len(ia)):
+            j = ia[J]
             index_ho = o_p*i + p*j
             dw_ho[index_ho:index_ho+p] -= a_nh
-
-    # loop over desired spikes
-    for j in range(len(d)):
-        # loop over hidden spikes
-        for I in range(len(ih)):
-            i = ih[I]
-            for k in range(p):
-                index_ho = o_p*i+p*j
-                delay = delay_ho[index_ho:index_ho+p]*0.001
-                #if index_ho == index_first:
-                #    pudb.set_trace()
-                S = d[j] - th[I] - delay
-                for l in range(len(S)):
-                    s = S[l]
-                    if s <= 0:
-                        dw_ho[index_ho+l] -= Am*resume_kernel(s, tau)
-                    if s >= 0:
-                        dw_ho[index_ho+l] += Ap*resume_kernel(-s, tau)
-        for i in range(n):
+        for j in range(len(d)):
             index_ho = o_p*i + p*j
             dw_ho[index_ho:index_ho+p] += a_nh
 
@@ -117,11 +118,11 @@ def resume_update_hidden_weights(info):
 
     #ii, ta = info.get_inputs()
 
-    # loop over input neurons
-    for I in range(len(ii)):
-        i = ii[I]
-        # loop over hidden neurons
-        for k in range(n):
+    # loop over hidden neurons
+    for k in range(n):
+        # loop over input neurons
+        for I in range(len(ii)):
+            i = ii[I]
             index_ih = n_p*i+p*k
             # loop over output neurons
             delay = delay_ih[index_ih:index_ih+p]*0.001
@@ -136,7 +137,6 @@ def resume_update_hidden_weights(info):
                         dw_ih[index_ih+l] += Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
                     if s >= 0 :
                         dw_ih[index_ih+l] -= Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
-                dw_ih[index_ih:index_ih+p] -= a_nh*np.abs(w_ho[index_ho:index_ho+p])
             for j in range(len(d)):
                 index_ho = o_p*k+p*j
                 delay = delay_ih[index_ih:index_ih+p]*0.001
@@ -149,7 +149,18 @@ def resume_update_hidden_weights(info):
                         dw_ih[index_ih+l] -= Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
                     if s >= 0:
                         dw_ih[index_ih+l] += Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
+            for j in range(o):
+                index_ho = o_p*k+p*j
                 dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
+        for i in range(m):
+            index_ih = n_p*i+p*k
+            for J in range(len(ta)):
+                index_ho = o_p*k+p*j
+                dw_ih[index_ih:index_ih+p] -= a_nh*np.abs(w_ho[index_ho:index_ho+p])
+            for j in range(len(d)):
+                index_ho = o_p*k+p*j
+                dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
+
     return dw_ih / float(m_n*p*p)
 
 def normad_update_output_weights(self):

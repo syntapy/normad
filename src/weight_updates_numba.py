@@ -45,18 +45,16 @@ def resume_update_output_weights(info):
     delay_ih, delay_ho = info.delays()
     ### n hidden neurons, o output neurons, p synapses per neuron/input pair
     ### w_ho[o_p*i + p*j + k] acceses the kth synapses from hidden i to output j
-    index_first = None
 
-    #pudb.set_trace()
     # loop over hidden spikes
-    for I in range(len(ih)):
-        i = ih[I]
+    for H in range(len(ih)):
+        h = ih[H]
         # loop over output spikes
         for J in range(len(ia)):
             j = ia[J]
-            index_ho = o_p*i + p*j
+            index_ho = o_p*h + p*j
             delay = delay_ho[index_ho:index_ho+p]*0.001
-            S = ta[J] - th[I] - delay
+            S = ta[J] - th[H] - delay
             for l in range(len(S)):
                 s = S[l]
                 if s <= 0:
@@ -69,28 +67,33 @@ def resume_update_output_weights(info):
                     dw_ho[index_ho+l] -= Ap*resume_kernel(-s, tau)
         # loop over desired spikes
         for j in range(len(d)):
-            index_ho = o_p*i+p*j
+            index_ho = o_p*h+p*j
             delay = delay_ho[index_ho:index_ho+p]*0.001
-            S = d[j] - th[I] - delay
+            S = d[j] - th[H] - delay
             for l in range(len(S)):
                 s = S[l]
                 if s <= 0:
+                    # th + d - s = td
+                    # s = -td + d + th
                     dw_ho[index_ho+l] -= Am*resume_kernel(s, tau)
                 if s >= 0:
+                    # td - d - s = th
+                    # s = td - d - th
                     dw_ho[index_ho+l] += Ap*resume_kernel(-s, tau)
+        # loop over output neurons
         for j in range(o):
-            index_ho = o_p*i + p*j
+            index_ho = o_p*h + p*j
             dw_ho[index_ho:index_ho+p] += a_nh
-
-    for i in range(n):
-        index_ho = o_p*i + p*j
-        dw_ho[index_ho:index_ho+p] += a_nh
+    # loop over hidden neurons
+    for h in range(n):
+        # loop over output spikes
         for J in range(len(ia)):
             j = ia[J]
-            index_ho = o_p*i + p*j
+            index_ho = o_p*h + p*j
             dw_ho[index_ho:index_ho+p] -= a_nh
+        # loop over desired spikes
         for j in range(len(d)):
-            index_ho = o_p*i + p*j
+            index_ho = o_p*h + p*j
             dw_ho[index_ho:index_ho+p] += a_nh
 
     return dw_ho / float(n_p)
@@ -116,49 +119,57 @@ def resume_update_hidden_weights(info):
     ### w_ih[n_p*i + p*j + k] acceses the kth synapse from input i to hidden j
     ### w_ho[o_p*i + p*j + k] acceses the kth synapse from hidden i to output j
 
-    #ii, ta = info.get_inputs()
-
     # loop over hidden neurons
-    for k in range(n):
-        # loop over input neurons
+    for h in range(n):
+        # loop over input spikes
         for I in range(len(ii)):
             i = ii[I]
-            index_ih = n_p*i+p*k
-            # loop over output neurons
+            index_ih = n_p*i+p*h
             delay = delay_ih[index_ih:index_ih+p]*0.001
+            # loop over output spikes
             for J in range(len(ta)):
                 j = ia[J]
-                index_ho = o_p*k+p*j
-                #pudb.set_trace()
+                index_ho = o_p*h+p*j
                 S = ta[J] - ti[I] - delay
                 for l in range(len(S)):
                     s = S[l]
                     if s <= 0:
+                        # ti + d - s = ta
+                        # s = -ta + d + ti
                         dw_ih[index_ih+l] += Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
                     if s >= 0 :
+                        # ta - d - s = ti
+                        # s = ta - d - ti
                         dw_ih[index_ih+l] -= Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
+            # loop over desired spikes
             for j in range(len(d)):
-                index_ho = o_p*k+p*j
+                index_ho = o_p*h+p*j
                 delay = delay_ih[index_ih:index_ih+p]*0.001
-                #pudb.set_trace()
                 S = d[j] - ti[I] - delay
                 for l in range(len(S)):
                     s = S[l]
                     if s <= 0:
-                        #pudb.set_trace()
+                        # ti + d - s = td
+                        # s = -td + d + ti
                         dw_ih[index_ih+l] -= Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
                     if s >= 0:
+                        # td - d - s = ti
+                        # s = td - d - ti
                         dw_ih[index_ih+l] += Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
+            # loop over output neurons
             for j in range(o):
-                index_ho = o_p*k+p*j
+                index_ho = o_p*h+p*j
                 dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
+        # loop over input neurons
         for i in range(m):
-            index_ih = n_p*i+p*k
+            index_ih = n_p*i+p*h
+            # loop over output spikes
             for J in range(len(ta)):
-                index_ho = o_p*k+p*j
+                index_ho = o_p*h+p*j
                 dw_ih[index_ih:index_ih+p] -= a_nh*np.abs(w_ho[index_ho:index_ho+p])
+            # loop over desired spikes
             for j in range(len(d)):
-                index_ho = o_p*k+p*j
+                index_ho = o_p*h+p*j
                 dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
 
     return dw_ih / float(m_n*p*p)

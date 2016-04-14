@@ -132,8 +132,8 @@ class net_info:
         self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
             if self.y[i] == 1:
-                self.d_times[i] = 24.0
-            else: self.d_times[i] = 28.0
+                self.d_times[i] = 28.0
+            else: self.d_times[i] = 33.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
@@ -773,10 +773,12 @@ class net:
         #print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
         scaling = True
         min_spikes, max_spikes = 1, 1
-        while p > 5:
+        while p > 2:
             i += 1
             j += 1
             pold = p
+            #if i > 15:
+            #    pudb.set_trace()
             p = train.train_epoch(self, i, pmin, X, Y, min_spikes, max_spikes, method_o=method_o, method_h=method_h, scaling=scaling)
             r = 1.0
             print "i, p, pmin: ", i, p, pmin
@@ -785,7 +787,7 @@ class net:
             #    pudb.set_trace()
             #if p < 1:
             #    break
-            if p < pmin and pmin < 5:
+            if p < pmin:
                 pmin = p
                 #if i % 10 == 0:
                 self.save_weights()

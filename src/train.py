@@ -115,6 +115,11 @@ def synaptic_scaling_multilayer(self, min_spikes, max_spikes, iteration=0):
     hidden = b.all_values()['t']
     #desired = self.desired
 
+    for i in range(len(actual)):
+        if len(actual[i]) > max_spikes:
+            pass
+            #pudb.set_trace()
+
     tomod_a = [i for i in actual if len(actual[i]) < min_spikes or len(actual[i]) > max_spikes]
     tomod_h = [i for i in hidden if len(hidden[i]) < min_spikes or len(hidden[i]) > max_spikes]
     if tomod_a != [] or tomod_h != []:

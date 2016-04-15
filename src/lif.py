@@ -752,6 +752,9 @@ class net:
         self.net.store()
         self.info.set_inputs(indices, times)
 
+    def get_indices(self, plist):
+        pass
+
     def fit(self, X, Y, method_o='tempotron', method_h=None, threshold=0.7):
         if self.N_hidden == 0:
             method_h = None
@@ -773,14 +776,23 @@ class net:
         #print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
         scaling = True
         min_spikes, max_spikes = 1, 1
+        indices = [0, 1, 2, 3]
+        r = 1.0
         while p > 2:
             i += 1
             j += 1
             pold = p
             #if i > 15:
             #    pudb.set_trace()
-            p = train.train_epoch(self, i, pmin, X, Y, min_spikes, max_spikes, method_o=method_o, method_h=method_h, scaling=scaling)
-            r = 1.0
+            plist = train.train_epoch(self, i, indices, pmin, X, Y, min_spikes, max_spikes, method_o=method_o, method_h=method_h, scaling=scaling)
+            p = sum(plist)
+            index_worst = np.argmax(plist)
+            indices = range(len(X))
+            #if pmin < 45:
+            #    #pudb.set_trace()
+            #    factor = float(np.sum(plist) - plist[index_worst]) / (len(plist) - 1)
+            #    indices += [index_worst]*int(factor)
+            #    indices = np.sort(indices)
             print "i, p, pmin: ", i, p, pmin
             #self.r = self.rb*(min(p, 4)**2) / 4
             #if i > 2:
@@ -791,8 +803,6 @@ class net:
                 pmin = p
                 #if i % 10 == 0:
                 self.save_weights()
-            self.info.update_weights(1.0)
-            self.info.reset_d_weights()
             if pmin < 40:
                 #r = min((np.float(pmin) / 250)**2, 1) * 5.5
                 min_spikes = 1

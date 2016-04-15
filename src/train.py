@@ -162,31 +162,35 @@ def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method
         synaptic_scalling_wrap(self, min_spikes, max_spikes)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
-def train_epoch(self, index, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):
+def train_epoch(self, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):
     correct = 0
     p = 0
-    indices = np.arange(len(X))
-    np.random.shuffle(indices)
+    #indices = np.arange(len(X))
+    #np.random.shuffle(indices)
+
+    indices_unique = np.unique(indices)
+    plist = np.zeros(len(indices_unique))
     for i in indices:
         self.net.restore()
         self.set_inputs(X[i])
         #pudb.set_trace()
         self.info.set_y(Y[i])
         self.run()
-        #self.info.H.print_spike_times(layer_name="hidden", tabs=1)
+        self.info.H.print_spike_times(layer_name="hidden", tabs=1)
         self.info.O.print_sd_times(tabs=1)
         self.info.reread()
         #if index == 6:
         #    pudb.set_trace()
-        p_tmp = self.info.performance()
+        plist[i] = self.info.performance()
         #if p_tmp < 4.0:
         #    pudb.set_trace()
         train_step(self, index, min_spikes, max_spikes, method_o=method_o, method_h=method_h, scaling=scaling)
+        self.info.update_weights(1.0)
+        self.info.reset_d_weights()
         #print "\t", p_tmp
-        p += p_tmp
         
         #print self.info.d_Wh[:]
         #pudb.set_trace()
         #self.info.update_weights(self.net)
 
-    return p
+    return plist

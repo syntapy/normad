@@ -67,7 +67,6 @@ def print_times(self):
     print "ACTUAL: ", actual
     #print "DESIRED: ", desired
 
-
 def synaptic_scaling_singlelayer(self, min_spikes, max_spikes, iteration=0):
     w_io = self.net['synapses_output'].w
 
@@ -83,12 +82,13 @@ def synaptic_scaling_singlelayer(self, min_spikes, max_spikes, iteration=0):
     a = self.net['crossings_o']
 
     actual = a.all_values()['t']
-    desired = self.desired
+    self.info.O.print_spike_times()
+    #desired = self.desired
 
     tomod_a = [i for i in actual if len(actual[i]) < min_spikes or len(actual[i]) > max_spikes]
     if tomod_a != []:
         self.net.restore()
-        synaptic_scaling_step(w_io, self.N_inputs, self.N_output, self.N_subc, tomod_a, actual, max_spikes)
+        synaptic_scaling_step(w_io, self.N_inputs, self.N_output, self.N_subc, tomod_a, actual, min_spikes, max_spikes)
         self.net.store()
 
         #w_io_diff = w_io - self.net['synapses'].w
@@ -146,14 +146,13 @@ def synaptic_scalling_wrap(self, min_spikes, max_spikes):
     i = 1
     mod = synaptic_scaling(self, min_spikes, max_spikes)
     while mod:
-        self.run(None)
+        self.run()
         #self.info.H.print_spike_times(layer_name="hidden", tabs=2)
         #self.info.O.print_sd_times(tabs=2)
         mod = synaptic_scaling(self, min_spikes, max_spikes)
         i += 1
         if i > 5:
             self.save_weights()
-            #pudb.set_trace()
 
 def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):
     if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
@@ -172,11 +171,12 @@ def train_epoch(self, index, indices, pmin, X, Y, min_spikes, max_spikes, method
     plist = np.zeros(len(indices_unique))
     for i in indices:
         self.net.restore()
-        self.set_inputs(X[i])
-        #pudb.set_trace()
+        pudb.set_trace()
+        self.info.set_inputs(X[i])
         self.info.set_y(Y[i])
         self.run()
-        self.info.H.print_spike_times(layer_name="hidden", tabs=1)
+        #pudb.set_trace()
+        #self.info.H.print_spike_times(layer_name="hidden", tabs=1)
         self.info.O.print_sd_times(tabs=1)
         self.info.reread()
         #if index == 6:

@@ -53,6 +53,10 @@ class activity:
             else: print S[i],
         print
 
+    def get_spike_times(self):
+        ii, it = self.S.it_
+        return it
+
     def print_spike_times(self, layer_name=None, tabs=0, tabs_1=1):
         S = self.S.all_values()['t']
         self.print_times(S, layer_name, layer_name, tabs, tabs_1)
@@ -87,6 +91,8 @@ class net_info:
         if keywds.has_key('b'):
             self.b = keywds['b']
             self.multilayer = True
+        else:
+            self.b = None
         self.p = keywds['p']
         if keywds.has_key('hidden'):
             self.H = keywds['hidden']
@@ -96,6 +102,10 @@ class net_info:
         self.y = None
 
         self.net = keywds['net']
+        self.Wh = None
+        self.Dh = None
+        self.d_Wh = None
+        self.d_Dh = None
         if self.multilayer == True:
             self.Wh = self.net['synapses_hidden'].w[:]
             self.Dh = self.net['synapses_hidden'].delay[:]
@@ -119,6 +129,7 @@ class net_info:
         #self.Do = keywds['Do']
 
     def set_inputs(self, indices, times, y=None):
+        #pudb.set_trace()
         self.ii, self.ta = indices, times / br.second
         self.y = y
         if y != None:
@@ -157,7 +168,6 @@ class net_info:
         y = self.y
         S = self.O.S.all_values()['t']
         for i in range(len(y)):
-            #pudb.set_trace()
             if y[i] == 1:
                 if len(S[i]) == 0:
                     self.d[i] = 1
@@ -194,6 +204,8 @@ class net_info:
         return self.d_Wh, self.d_Wo
 
     def delays(self):
+        if self.Dh == None:
+            return self.Dh, self.Do / br.ms
         return self.Dh / br.ms, self.Do / br.ms
 
     def update_weights(self, r):
@@ -257,9 +269,9 @@ class net:
 
         So = self.net['synapses_output']
         p = self.N_subc
-        So.w[:, :, :] = '400'#0*(0.8*rand()-0.2)'
+        So.w[:, :, :] = '64000'#0*(0.8*rand()-0.2)'
         So.w[:, :, :int(np.ceil(p/5))] *= -1
-        So.w[:, :, :] /= self.N_hidden*p
+        So.w[:, :, :] /= self.N_inputs*p
 
         So.delay[:, :, :] = str(self.delay) + '*rand()*ms'
 
@@ -269,7 +281,6 @@ class net:
         self.net.store()
 
     def rand_weights_multilayer(self, test=False):
-
         """
             with m inputs, n outputs, p subconnections:
             So.w[i, j, k] = w[k + p*j + n_p*i]
@@ -278,8 +289,8 @@ class net:
         p = self.N_subc
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
-        Sh.w[:, :, :] = '400'#*(0.8*rand() - 0.2)
-        So.w[:, :, :] = '400'#*(0.8*rand() - 0.2)
+        Sh.w[:, :, :] = '800'#*(0.8*rand() - 0.2)
+        So.w[:, :, :] = '800'#*(0.8*rand() - 0.2)
         Sh.w[:, :, :int(np.ceil(p/5))] *= -1
         So.w[:, :, :int(np.ceil(p/5))] *= -1
         Sh.w[:, :, :] /= self.N_inputs*p
@@ -433,7 +444,7 @@ class net:
         output = 'synapses_output'
         if op.exists(file_o):
             Fo = open(file_o, 'r')
-            string_o = Fh.readlines(), Fo.readlines()
+            string_o = Fo.readlines()
             n = len(string_o)
             weights_o = np.empty(n, dtype=float)
             for i in xrange(n):
@@ -744,13 +755,16 @@ class net:
     ### TRAINING --- TESTING ###
     ############################
 
-    def set_inputs(self, x):
-        indices = np.arange(self.N_inputs)
-        times = x
+    def set_inputs_inner(self, indices, times):
         self.indices, self.times = indices, times
         self.net['input'].set_spikes(indices=indices, times=times)
         self.net.store()
         self.info.set_inputs(indices, times)
+        
+    def set_inputs(self, x):
+        indices = np.arange(self.N_inputs)
+        times = x
+        self.set_inputs_inner(indices, times)
 
     def get_indices(self, plist):
         pass
@@ -784,7 +798,9 @@ class net:
             pold = p
             #if i > 15:
             #    pudb.set_trace()
-            plist = train.train_epoch(self, i, indices, pmin, X, Y, min_spikes, max_spikes, method_o=method_o, method_h=method_h, scaling=scaling)
+            plist = train.train_epoch(self, \
+                i, indices, pmin, X, Y, min_spikes, max_spikes, \
+                method_o=method_o, method_h=method_h, scaling=scaling)
             p = sum(plist)
             index_worst = np.argmax(plist)
             indices = range(len(X))
@@ -809,17 +825,40 @@ class net:
                 max_spikes = 1
         self.save_weights()
 
-    def predict(self, x, i, plot=False):
+    def predict(self, xi, xt, plot=False):
         self.net.restore()
-        self.set_inputs(x)
+        self.set_inputs_inner(xi, xt)
         self.run()
-        x = self.net['monitor_o_c']
-        v = self.net['values_vh']
-        #self.info.reread()
-        #pudb.set_trace()
-        if plot == True:
-            self.plot(figname="plot-" + str(i) + ".png")
+        self.info.reread()
+
+        return self.info.O.get_spike_times()
+
+    def topology_chart(self, spikes):
+        if len(spikes) == 0:
+            return -1
+        elif len(spikes) > 1:
+            return 1000
+        else: return spikes[0]
+
+    def topology(self, it_min=0, it_max=10, num=20):
+        min_spikes, max_spikes = 1, 1
         self.net.restore()
+        inputs = np.array([0, 0, 0])*br.ms
+        self.set_inputs(inputs)
+        train.synaptic_scalling_wrap(self, min_spikes, max_spikes)
+        indices = np.arange(3)
+        times = np.zeros(3)
+        t_array = np.linspace(it_min, it_max, num=num)
+        o_array = np.empty((len(t_array), len(t_array)), dtype=np.float64)
+        for i in range(num):
+            for j in range(num):
+                times[0] = t_array[i]
+                times[1] = t_array[j]
+                a = self.predict(indices, times*br.ms)
+                print "Predicted",
+                print a
+                o_array[i, j] = self.topology_chart(a)
+        return t_array, o_array
 
     def compute(self, images):
         test_result = []

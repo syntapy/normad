@@ -46,6 +46,7 @@ floats_to_times	data.py	/^    def floats_to_times(self, x, tc=1.7, n_out=10):$/;
 get_indices	lif.py	/^    def get_indices(self, plist):$/;"	m	class:net
 get_inputs	lif.py	/^    def get_inputs(self):$/;"	m	class:net_info
 get_params	train.py	/^    def get_params(self):$/;"	m	class:resume_params
+get_spike_times	lif.py	/^    def get_spike_times(self):$/;"	m	class:activity
 get_times	lif.py	/^    def get_times(self):$/;"	m	class:activity
 indices	lif.py	/^    def indices(self, N, numbers):$/;"	m	class:net
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
@@ -57,7 +58,7 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(hidden=6, output=1, subc=8, delay=10, seed=(45495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(hidden=0, output=1, subc=2, delay=10, seed=(45495)%20)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
@@ -68,7 +69,7 @@ plot_actual	display.py	/^def plot_actual(self):$/;"	f
 plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:net
 plot_desired	display.py	/^def plot_desired(self):$/;"	f
 plot_desired	lif.py	/^    def plot_desired(self):$/;"	m	class:net
-predict	lif.py	/^    def predict(self, x, i, plot=False):$/;"	m	class:net
+predict	lif.py	/^    def predict(self, xi, xt, plot=False):$/;"	m	class:net
 preset_weights	lif.py	/^    def preset_weights(self, images):$/;"	m	class:net
 preset_weights_multilayer	lif.py	/^    def preset_weights_multilayer(self, images):$/;"	m	class:net
 preset_weights_singlelayer	lif.py	/^    def preset_weights_singlelayer(self, images):$/;"	m	class:net
@@ -104,6 +105,7 @@ save_weights_singlelayer	lif.py	/^    def save_weights_singlelayer(self, file_o=
 set_d_delays	lif.py	/^    def set_d_delays(self, d_Do, d_Dh=None):$/;"	m	class:net_info
 set_inputs	lif.py	/^    def set_inputs(self, indices, times, y=None):$/;"	m	class:net_info
 set_inputs	lif.py	/^    def set_inputs(self, x):$/;"	m	class:net
+set_inputs_inner	lif.py	/^    def set_inputs_inner(self, indices, times):$/;"	m	class:net
 set_mnist_times	lif.py	/^    def set_mnist_times(self, index, kind='train'):$/;"	m	class:net
 set_train_spikes	lif.py	/^    def set_train_spikes(self, indices=[], times=[], desired=[]):$/;"	m	class:net
 set_y	lif.py	/^    def set_y(self, y):$/;"	m	class:net_info
@@ -124,6 +126,8 @@ tempotron_update_output_weights	weight_updates_numba.py	/^def tempotron_update_o
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:rand_data_gen
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:rand_data_gen
 times_format	display.py	/^def times_format(self):$/;"	f
+topology	lif.py	/^    def topology(self, it_min=0, it_max=10, num=20):$/;"	m	class:net
+topology_chart	lif.py	/^    def topology_chart(self, spikes):$/;"	m	class:net
 train_epoch	train.py	/^def train_epoch(self, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):$/;"	f
 train_step	train.py	/^def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net

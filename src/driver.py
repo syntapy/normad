@@ -8,8 +8,10 @@ import brian2 as br
 
 xor = dt.data('xor')
 X, Y = xor.X['train'], xor.Y['train']
-nn = lif.net(hidden=6, output=1, subc=8, delay=5, seed=(45495)%20)
-nn.fit(X, Y, method_o='resume', method_h='resume')
+nn = lif.net(hidden=0, output=1, subc=2, delay=10, seed=(45495)%20)
+
+nn.topology()
+#nn.fit(X, Y, method_o='resume', method_h='resume')
 #nn.predict(X[0], 3, plot=True)
 #pudb.set_trace()
 #nn.fit(X, Y, method_o='resume', method_h='resume')

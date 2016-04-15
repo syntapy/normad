@@ -30,13 +30,18 @@ def resume_kernel(s, tau):
 def resume_update_output_weights(info):
     #pudb.set_trace()
     m, n, o, p = info.a, info.b, info.c, info.p
-    n_o, m_n_o = n*o, m*n*o
+    if n == None:
+        n = m
     n_p, o_p = n*p, o*p
 
     params = info.params
     #ii, ti = info.get_inputs()
     ia, ta = info.O.S.it_
-    ih, th = info.H.S.it_
+    #pudb.set_trace()
+    if info.H != None:
+        ih, th = info.H.S.it_
+    else:
+        ih, th = info.get_inputs()
     Ap, Am, a_nh, tau = params.get_params()
     d = info.d_times
 

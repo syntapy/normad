@@ -14,6 +14,8 @@ import train
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FC
 from matplotlib.pyplot import plot, show
+import matplotlib.pyplot as plt
+from subprocess import call
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 
@@ -151,6 +153,10 @@ class net_info:
     def bin_to_none(self):
         self.d_times = None
         self.O.d_times = None
+
+    def set_y_times(self, desired):
+        self.d_times = np.zeros(1)
+        self.d_times[0] = desired
 
     def set_y(self, y):
         self.y = y
@@ -756,6 +762,7 @@ class net:
     ############################
 
     def set_inputs_inner(self, indices, times):
+        #pudb.set_trace()
         self.indices, self.times = indices, times
         self.net['input'].set_spikes(indices=indices, times=times)
         self.net.store()
@@ -837,28 +844,50 @@ class net:
         if len(spikes) == 0:
             return -1
         elif len(spikes) > 1:
-            return 1000
-        else: return spikes[0]
+            return 5000
+        else: return spikes[0]*10000
 
-    def topology(self, it_min=0, it_max=10, num=20):
+    def topology(self, it_min=0, it_max=10, num=4):
         min_spikes, max_spikes = 1, 1
         self.net.restore()
         inputs = np.array([0, 0, 0])*br.ms
         self.set_inputs(inputs)
+        self.read_weights()
         train.synaptic_scalling_wrap(self, min_spikes, max_spikes)
+        self.save_weights()
         indices = np.arange(3)
         times = np.zeros(3)
         t_array = np.linspace(it_min, it_max, num=num)
         o_array = np.empty((len(t_array), len(t_array)), dtype=np.float64)
-        for i in range(num):
-            for j in range(num):
-                times[0] = t_array[i]
-                times[1] = t_array[j]
-                a = self.predict(indices, times*br.ms)
-                print "Predicted",
-                print a
-                o_array[i, j] = self.topology_chart(a)
-        return t_array, o_array
+        if True:
+            for i in range(num):
+                for j in range(num):
+                    times[0] = t_array[i]
+                    times[1] = t_array[j]
+                    a = self.predict(indices, times*br.ms)
+                    print "Predicted",
+                    print a
+                    o_array[i, j] = self.topology_chart(a)
+            return t_array, o_array
+
+    def test_topology(self, n=5, it_min=0, it_max=10, num=2):
+        indices = np.array([0])
+        indices_net = np.arange(3)
+        i_times = np.zeros(3)
+        desired = 23*0.001
+        for count in range(n):
+            times, grid = self.topology(it_min=it_min, it_max=it_max, num=num)
+            self.plot_2d(grid, times, count)
+            #pudb.set_trace()
+            self.net.restore()
+            self.set_inputs_inner(indices=indices_net, times=i_times*br.second)
+            self.info.set_y_times(desired)
+            train.train_step(self, count, 0, 10, method_o="resume")
+            self.info.update_weights(1.0)
+            self.info.reset_d_weights()
+            #plist = train.train_epoch(self, \
+            #    count, , pmin, X, Y, min_spikes, max_spikes, \
+            #    method_o=method_o, method_h=method_h, scaling=scaling)
 
     def compute(self, images):
         test_result = []
@@ -872,6 +901,29 @@ class net:
             actual, desired = self.actual, self.desired
             print self.times, "\t\t", self.actual, "\t\t", self.desired
             self.net.restore()
+
+    def plot_2d(self, grid, axes_times, index):
+        methods = ['none']
+        #pudb.set_trace()
+
+        #grid = np.random.rand(4, 4)
+        fig, axes = plt.subplots(1, 1, figsize=(12, 6),
+                                 subplot_kw={'xticks': [], 'yticks': []})
+        #pudb.set_trace()
+        interp_method = 'none'
+        axes.imshow(grid, interpolation=interp_method)
+        #print axes
+        #axes.set_title(interp_method)
+
+        #plt.grid()
+        #plt.figlegend()
+        #plt.show()
+        img_name = 'imgs/foo-'+str(index)+'.png'
+        plt.savefig(img_name)
+        plt.clf()
+        plt.cla()
+        plt.close()
+        call(["feh", img_name])
 
     def plot_desired(self):
         desired = self.desired

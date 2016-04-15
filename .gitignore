@@ -11,3 +11,4 @@ test.py
 *.log
 *.aux
 *.png
+imgs/

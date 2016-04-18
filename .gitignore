@@ -12,3 +12,4 @@ test.py
 *.aux
 *.png
 imgs/
+imgs.tar.gz

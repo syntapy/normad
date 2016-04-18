@@ -86,9 +86,10 @@ def resume_update_output_weights(info):
                     # s = td - d - th
                     dw_ho[index_ho+l] += Ap*resume_kernel(-s, tau)
         # loop over output neurons
-        for j in range(o):
-            index_ho = o_p*h + p*j
-            dw_ho[index_ho:index_ho+p] += a_nh
+        #for j in range(o):
+        #    index_ho = o_p*h + p*j
+        #    dw_ho[index_ho:index_ho+p] += a_nh
+    # Non-hebbian term
     # loop over hidden neurons
     for h in range(n):
         # loop over output spikes
@@ -162,9 +163,10 @@ def resume_update_hidden_weights(info):
                         # s = td - d - ti
                         dw_ih[index_ih+l] += Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
             # loop over output neurons
-            for j in range(o):
-                index_ho = o_p*h+p*j
-                dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
+            #for j in range(o):
+            #    index_ho = o_p*h+p*j
+            #    dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
+        # Non-hebbian term
         # loop over input neurons
         for i in range(m):
             index_ih = n_p*i+p*h

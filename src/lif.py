@@ -49,10 +49,11 @@ class activity:
         if layer_name != None:
             print layer_name,
         print ":", "\t"*tabs_1,
-        for i in range(len(S)):
-            if type(S[i]) == tuple:
-                print S[i][0],
-            else: print S[i],
+        if S != None:
+            for i in range(len(S)):
+                if type(S[i]) == tuple:
+                    print S[i][0],
+                else: print S[i],
         print
 
     def get_spike_times(self):
@@ -139,7 +140,9 @@ class net_info:
         else: self.bin_to_none()
 
     def get_inputs(self):
-        return self.ii, self.ta
+        ii = np.argsort(self.ii)
+
+        return self.ii[ii], self.ta[ii]
 
     def bin_to_times(self):
         self.d_times = np.zeros(len(self.y))
@@ -799,13 +802,16 @@ class net:
         min_spikes, max_spikes = 1, 1
         indices = [0, 1, 2, 3]
         r = 1.0
+        plist = None
+        p_graph = -1
         while p > 2:
             i += 1
             j += 1
             pold = p
             #if i > 15:
             #    pudb.set_trace()
-            plist = train.train_epoch(self, \
+
+            plist = train.train_epoch(self, r, \
                 i, indices, pmin, X, Y, min_spikes, max_spikes, \
                 method_o=method_o, method_h=method_h, scaling=scaling)
             p = sum(plist)
@@ -816,7 +822,6 @@ class net:
             #    factor = float(np.sum(plist) - plist[index_worst]) / (len(plist) - 1)
             #    indices += [index_worst]*int(factor)
             #    indices = np.sort(indices)
-            print "i, p, pmin: ", i, p, pmin
             #self.r = self.rb*(min(p, 4)**2) / 4
             #if i > 2:
             #    pudb.set_trace()
@@ -826,10 +831,12 @@ class net:
                 pmin = p
                 #if i % 10 == 0:
                 self.save_weights()
-            if pmin < 40:
+            if pmin < 50:
                 #r = min((np.float(pmin) / 250)**2, 1) * 5.5
                 min_spikes = 1
                 max_spikes = 1
+            p_graph = p
+            print "i, r, p, pmin: ", i, r, p, pmin
         self.save_weights()
 
     def predict(self, xi, xt, plot=False):
@@ -844,17 +851,13 @@ class net:
         if len(spikes) == 0:
             return -1
         elif len(spikes) > 1:
-            return 5000
-        else: return spikes[0]*10000
+            return len(spikes)*1000
+        else: return spikes[0]*100000
 
     def topology(self, it_min=0, it_max=10, num=4):
-        min_spikes, max_spikes = 1, 1
         self.net.restore()
         inputs = np.array([0, 0, 0])*br.ms
         self.set_inputs(inputs)
-        self.read_weights()
-        train.synaptic_scalling_wrap(self, min_spikes, max_spikes)
-        self.save_weights()
         indices = np.arange(3)
         times = np.zeros(3)
         t_array = np.linspace(it_min, it_max, num=num)
@@ -870,19 +873,32 @@ class net:
                     o_array[i, j] = self.topology_chart(a)
             return t_array, o_array
 
-    def test_topology(self, n=5, it_min=0, it_max=10, num=2):
+    def test_topology(self, n=15, it_min=0, it_max=10, num=20):
         indices = np.array([0])
         indices_net = np.arange(3)
-        i_times = np.zeros(3)
-        desired = 23*0.001
+        #i_times = np.zeros(3)
+        min_spikes, max_spikes = 1, 1
+        i_times = np.array([8, 2, 0])
+        desired = 23
+        self.read_weights()
+        inputs = np.array([0, 0, 0])*br.ms
+        self.net.restore()
+        self.set_inputs(inputs)
+        #pudb.set_trace()
+        self.info.set_y_times(desired)
+        self.info.O.print_sd_times(tabs=2)
+        #self.net.store()
+        train.synaptic_scalling_wrap(self, min_spikes, max_spikes)
+        self.save_weights()
         for count in range(n):
             times, grid = self.topology(it_min=it_min, it_max=it_max, num=num)
-            self.plot_2d(grid, times, count)
+            self.plot_2d(grid, times, count, i_times, desired)
             #pudb.set_trace()
             self.net.restore()
-            self.set_inputs_inner(indices=indices_net, times=i_times*br.second)
-            self.info.set_y_times(desired)
-            train.train_step(self, count, 0, 10, method_o="resume")
+            self.set_inputs_inner(indices=indices_net, times=i_times*br.ms)
+            self.info.set_y_times(desired*0.001)
+            self.info.reread()
+            train.train_step(self, count, 0, 10, method_o="resume", method_h="resume")
             self.info.update_weights(1.0)
             self.info.reset_d_weights()
             #plist = train.train_epoch(self, \
@@ -902,28 +918,42 @@ class net:
             print self.times, "\t\t", self.actual, "\t\t", self.desired
             self.net.restore()
 
-    def plot_2d(self, grid, axes_times, index):
+    def plot_2d(self, p, grid, axes_times, index_a, index_b, i_time, desired):
+        """
+        1st index of i_time = vertical axiss
+        2nd index = horizontal axis
+        """
         methods = ['none']
         #pudb.set_trace()
 
         #grid = np.random.rand(4, 4)
-        fig, axes = plt.subplots(1, 1, figsize=(12, 6),
-                                 subplot_kw={'xticks': [], 'yticks': []})
+        fig = plt.figure()
+        axes = fig.add_subplot(111)
+        plot = axes.pcolor(grid)
+        fig.colorbar(plot)
         #pudb.set_trace()
-        interp_method = 'none'
-        axes.imshow(grid, interpolation=interp_method)
+        #interp_method = 'none'
+        #axes.imshow(grid, interpolation=interp_method)
+        #plt.colorbar(fig)
         #print axes
-        #axes.set_title(interp_method)
+        fig.suptitle("xor: 3in, 7hid, 1out, 10subc: input " + str(i_time[0]) + ", " + str(i_time[1]) + " ms to " + str(desired) + ": p = " + str(p))
 
         #plt.grid()
         #plt.figlegend()
         #plt.show()
-        img_name = 'imgs/foo-'+str(index)+'.png'
-        plt.savefig(img_name)
-        plt.clf()
-        plt.cla()
-        plt.close()
-        call(["feh", img_name])
+        img_name = 'xor-test-0/'
+        #pudb.set_trace()
+        #'h2b/foo-'
+        if index_a < 10:
+            img_name += '0'
+        if index_a < 100:
+            img_name += '0'
+        img_name+=str(index_a)+'-'+str(index_b)+'.png'
+        fig.savefig(img_name)
+        fig.clf()
+        #fig.cla()
+        #fig.close()
+        #call(["feh", img_name])
 
     def plot_desired(self):
         desired = self.desired

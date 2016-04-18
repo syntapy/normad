@@ -49,6 +49,8 @@ get_spike_times	lif.py	/^    def get_spike_times(self):$/;"	m	class:activity
 get_times	lif.py	/^    def get_times(self):$/;"	m	class:activity
 indices	lif.py	/^    def indices(self, N, numbers):$/;"	m	class:net
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
+linsep	driver.py	/^linsep = dt.data('linsep')$/;"	v
+load_linsep	data.py	/^    def load_linsep(self):$/;"	m	class:data
 load_mnist	data.py	/^    def load_mnist(self):$/;"	m	class:data
 load_random	lift.py	/^    def load_random(self, classes=1):$/;"	m	class:rand_data_gen
 load_xor	data.py	/^    def load_xor(self):$/;"	m	class:data
@@ -57,14 +59,14 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(inputs=3, hidden=0, output=1, subc=2, delay=10, seed=(45495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(inputs=3, hidden=4, output=1, subc=4, delay=10, seed=(45495)%20)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net_info
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot	lif.py	/^    def plot(self, figname='test.png', save=False, sh=True, i=None):$/;"	m	class:net
-plot_2d	lif.py	/^    def plot_2d(self, grid, axes_times, index):$/;"	m	class:net
+plot_2d	lif.py	/^    def plot_2d(self, p, grid, axes_times, index_a, index_b, i_time, desired):$/;"	m	class:net
 plot_actual	display.py	/^def plot_actual(self):$/;"	f
 plot_actual	lif.py	/^    def plot_actual(self):$/;"	m	class:net
 plot_desired	display.py	/^def plot_desired(self):$/;"	f
@@ -126,15 +128,14 @@ tempotron_update_hidden_weights	weight_updates_numba.py	/^def tempotron_update_h
 tempotron_update_output_weights	weight_updates_numba.py	/^def tempotron_update_output_weights(info):$/;"	f
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:rand_data_gen
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:rand_data_gen
-test_topology	lif.py	/^    def test_topology(self, n=5, it_min=0, it_max=10, num=2):$/;"	m	class:net
+test_topology	lif.py	/^    def test_topology(self, n=15, it_min=0, it_max=10, num=20):$/;"	m	class:net
 times_format	display.py	/^def times_format(self):$/;"	f
 topology	lif.py	/^    def topology(self, it_min=0, it_max=10, num=4):$/;"	m	class:net
 topology_chart	lif.py	/^    def topology_chart(self, spikes):$/;"	m	class:net
-train_epoch	train.py	/^def train_epoch(self, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):$/;"	f
+train_epoch	train.py	/^def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):$/;"	f
 train_step	train.py	/^def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f
 update_d_weights	lif.py	/^    def update_d_weights(self, d_Wo, d_Wh=None):$/;"	m	class:net_info
 update_weights	lif.py	/^    def update_weights(self, r):$/;"	m	class:net_info
 weights	lif.py	/^    def weights(self):$/;"	m	class:net_info
-xor	driver.py	/^xor = dt.data('xor')$/;"	v

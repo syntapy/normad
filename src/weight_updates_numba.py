@@ -28,7 +28,6 @@ def resume_kernel(s, tau):
 
 #@numba.jit(nopython=True)
 def resume_update_output_weights(info):
-    #pudb.set_trace()
     m, n, o, p = info.a, info.b, info.c, info.p
     if n == None:
         n = m
@@ -115,7 +114,7 @@ def resume_update_hidden_weights(info):
     Wo, d_Wo = info.Wo, info.d_Wo
     ia, ta = info.O.S.it_
     Ap, Am, a_nh, tau = params.get_params()
-    dw_ih, dw_ho = info.weights()
+    dw_ih, dw_ho = info.d_weights()
     w_ih, w_ho = info.weights()
     delay_ih, delay_ho = info.delays()
     d = info.d_times
@@ -125,6 +124,7 @@ def resume_update_hidden_weights(info):
     ### w_ih[n_p*i + p*j + k] acceses the kth synapse from input i to hidden j
     ### w_ho[o_p*i + p*j + k] acceses the kth synapse from hidden i to output j
 
+    #pudb.set_trace()
     # loop over hidden neurons
     for h in range(n):
         # loop over input spikes
@@ -166,6 +166,9 @@ def resume_update_hidden_weights(info):
             #for j in range(o):
             #    index_ho = o_p*h+p*j
             #    dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
+
+    # loop over hidden neurons
+    for h in range(n):
         # Non-hebbian term
         # loop over input neurons
         for i in range(m):
@@ -179,7 +182,9 @@ def resume_update_hidden_weights(info):
                 index_ho = o_p*h+p*j
                 dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
 
-    return dw_ih / float(m_n*p*p)
+    dw_ih /= float(m_n*p*p)
+    #pudb.set_trace()
+    return dw_ih
 
 def normad_update_output_weights(self):
     """ Normad training step """

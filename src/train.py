@@ -153,14 +153,14 @@ def synaptic_scalling_wrap(self, min_spikes, max_spikes):
         self.info.O.print_sd_times(tabs=2)
         mod = synaptic_scaling(self, min_spikes, max_spikes)
         i += 1
-        if i > 5:
-            self.save_weights()
+        #if i > 5:
+        #    self.save_weights()
 
 def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):
     if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
         pass
         #pudb.set_trace()
-        synaptic_scalling_wrap(self, min_spikes, max_spikes)
+        synaptic_scalling_wrap(self, 1, 1)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):
@@ -171,6 +171,9 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, met
 
     indices_unique = np.unique(indices)
     plist = np.zeros(len(indices_unique))
+    #print 
+    #print " $$$$ --- E P O C H --- $$$$"
+    #print 
     for i in indices:
         #times, grid = self.topology(num=80)
         #print "w_ih:\t", self.net['synapses_hidden'].w[:]
@@ -191,7 +194,6 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, met
         self.run()
         #pudb.set_trace()
         #self.info.H.print_spike_times(layer_name="hidden", tabs=1)
-        #self.info.H.print_spike_times(tabs=1)
         self.info.O.print_sd_times(tabs=1)
         #print "=============="*2
         self.info.reread()

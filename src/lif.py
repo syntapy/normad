@@ -105,6 +105,9 @@ class net_info:
         self.y = None
 
         self.net = keywds['net']
+        self.read_weights()
+
+    def read_weights(self):
         self.Wh = None
         self.Dh = None
         self.d_Wh = None
@@ -304,7 +307,7 @@ class net:
         So.w[:, :, :int(np.ceil(p/5))] *= -1
         Sh.w[:, :, :] /= self.N_inputs*p
         So.w[:, :, :] /= self.N_hidden*p
-        #So.w[4, 0, :] = 0
+        #Sh.w[2, 0, :] = 0
         #pudb.set_trace()
         #So.w[:, 0, :] = 0
 
@@ -417,6 +420,7 @@ class net:
         #self.read_weights()
 
     def save_weights(self):
+        pudb.set_trace()
         if self.info.multilayer == True:
             self.save_weights_multilayer()
         else: 
@@ -472,44 +476,63 @@ class net:
         if file_h == None or file_o == None:
             folder = "../weights/"
             name_h, name_o = "synapses_hidden-", "synapses_output-"
+            dname_h, dname_o = "delays_hidden-", "delays_output-"
             param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
             file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
+            dfile_h, dfile_o = folder + dname_h + param + ext, folder + dname_o + param + ext
         hidden, output = 'synapses_hidden', 'synapses_output'
         #pudb.set_trace()
         Fh = open(file_h, 'w')
         Fo = open(file_o, 'w')
+        dFh = open(dfile_h, 'w')
+        dFo = open(dfile_o, 'w')
         Wh = self.net[hidden]
-        Wo = self.net[output]
+        Dh = self.net[hidden]
         m = len(Wh.w[:])
         n = len(Wo.w[:])
         for i in range(m):
             Fh.write(str(Wh.w[i]))
             Fh.write('\n')
+            dFh.write(str(Wh.delay[i]))
+            dFh.write('\n')
         for i in range(n):
             Fo.write(str(Wo.w[i]))
             Fo.write('\n')
+            dFo.write(str(Wo.delay[i]))
+            dFo.write('\n')
         Fh.close()
         Fo.close()
+        dFh.close()
+        dFo.close()
 
-    def read_weights_multilayer(self, file_h=None, file_o=None):
+    def read_weights_multilayer(self, file_h=None, file_o=None, dfile_h=None, dfile_o=None):
         if file_h == None or file_o == None:
             folder = "../weights/"
             name_h, name_o = "synapses_hidden-", "synapses_output-"
+            dname_h, dname_o = "delays_hidden-", "delays_output-"
             param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
             file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
+            dfile_h, dfile_o = folder + dname_h + param + ext, folder + dname_o + param + ext
         self.net.restore()
         hidden, output = 'synapses_hidden', 'synapses_output'
-        if op.exists(file_h) and op.exists(file_o):
+        if op.exists(file_h) and op.exists(file_o) and op.exists(dfile_h) and op.exists(dfile_o):
             Fh = open(file_h, 'r')
             Fo = open(file_o, 'r')
+            dFh = open(dfile_h, 'r')
+            dFo = open(dfile_o, 'r')
             string_h, string_o = Fh.readlines(), Fo.readlines()
+            dstring_h, dstring_o = dFh.readlines(), dFo.readlines()
             m, n = len(string_h), len(string_o)
             weights_h = np.empty(m, dtype=float)
             weights_o = np.empty(n, dtype=float)
+            delays_h = np.empty(m, dtype=float)
+            delays_o = np.empty(n, dtype=float)
             for i in xrange(m):
                 weights_h[i] = float(string_h[i][:-1])
+                delays_h[i] = float(dstring_h[i][:-1])
             for i in xrange(n):
                 weights_o[i] = float(string_o[i][:-1])
+                delays_o[i] = float(dstring_o[i][:-1])
 
             h = self.net[hidden]
             o = self.net[output]
@@ -518,11 +541,14 @@ class net:
                 o.connect('True')
             h.w[:] = weights_h[:]
             o.w[:] = weights_o[:]
-            h.tl[:, :] = '-1*second'
-            h.tp[:, :] = '-1*second'
-            o.tl[:, :] = '-1*second'
-            o.tp[:, :] = '-1*second'
+            h.delay[:] = delays_h[:]*br.second
+            o.delay[:] = delays_o[:]*br.second
+            h.tl[:, :, :] = '-1*second'
+            h.tp[:, :, :] = '-1*second'
+            o.tl[:, :, :] = '-1*second'
+            o.tp[:, :, :] = '-1*second'
             self.net.store()
+            self.info.read_weights()
 
     ##########################
     ### SET INPUT / OUTPUT ###
@@ -791,8 +817,10 @@ class net:
                     print ' ',
         #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
-        self.read_weights()
-        #train.synaptic_scalling_wrap(self, 1)
+        #pudb.set_trace()
+        #self.read_weights()
+        #train.synaptic_scalling_wrap(self, 1, 1)
+        #self.save_weights()
         i, j, k = 0, 0, 0
         pmin = 10000
         p = pmin
@@ -830,14 +858,14 @@ class net:
             if p < pmin:
                 pmin = p
                 #if i % 10 == 0:
-                self.save_weights()
+                #self.save_weights()
             if pmin < 50:
                 #r = min((np.float(pmin) / 250)**2, 1) * 5.5
                 min_spikes = 1
                 max_spikes = 1
             p_graph = p
             print "i, r, p, pmin: ", i, r, p, pmin
-        self.save_weights()
+        #self.save_weights()
 
     def predict(self, xi, xt, plot=False):
         self.net.restore()

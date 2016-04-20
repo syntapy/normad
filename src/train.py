@@ -30,11 +30,11 @@ def supervised_update(self, method_o='tempotron', method_h=None):
 
     #pudb.set_trace()
     self.info.params = resume_params()
-    dw_o = update_function_o(self.info)
     if self.info.multilayer == True:
         dw_h = update_function_h(self.info)
     else: dw_h = None
-    self.info.update_d_weights(dw_o, d_Wh=dw_h)
+    dw_o = update_function_o(self.info)
+    #self.info.update_d_weights(dw_o, d_Wh=dw_h)
 
 def synaptic_scaling_step(w, m, n, p, tomod, spikes, min_spikes, max_spikes):
     f = 0.05
@@ -160,7 +160,7 @@ def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method
     if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
         pass
         #pudb.set_trace()
-        synaptic_scalling_wrap(self, 1, 1)
+        synaptic_scalling_wrap(self, 1, 2)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):

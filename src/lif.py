@@ -151,7 +151,7 @@ class net_info:
         self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
             if self.y[i] == 1:
-                self.d_times[i] = 28.0
+                self.d_times[i] = 26.0
             else: self.d_times[i] = 33.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
@@ -281,8 +281,8 @@ class net:
 
         So = self.net['synapses_output']
         p = self.N_subc
-        So.w[:, :, :] = '64000'#0*(0.8*rand()-0.2)'
-        So.w[:, :, :int(np.ceil(p/5))] *= -1
+        So.w[:, :, :] = '64000*(0.8*rand()-0.2)*2'
+        #So.w[:, :, :int(np.ceil(p/5))] *= -1
         So.w[:, :, :] /= self.N_inputs*p
 
         So.delay[:, :, :] = str(self.delay) + '*rand()*ms'
@@ -301,10 +301,10 @@ class net:
         p = self.N_subc
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
-        Sh.w[:, :, :] = '800'#*(0.8*rand() - 0.2)
-        So.w[:, :, :] = '800'#*(0.8*rand() - 0.2)
-        Sh.w[:, :, :int(np.ceil(p/5))] *= -1
-        So.w[:, :, :int(np.ceil(p/5))] *= -1
+        Sh.w[:, :, :] = '800*(0.8*rand() - 0.2)*2'
+        So.w[:, :, :] = '800*(0.8*rand() - 0.2)*2'
+        #Sh.w[:, :, :int(np.ceil(p/5))] *= -1
+        #So.w[:, :, :int(np.ceil(p/5))] *= -1
         Sh.w[:, :, :] /= self.N_inputs*p
         So.w[:, :, :] /= self.N_hidden*p
         #Sh.w[2, 0, :] = 0
@@ -487,7 +487,7 @@ class net:
         dFh = open(dfile_h, 'w')
         dFo = open(dfile_o, 'w')
         Wh = self.net[hidden]
-        Dh = self.net[hidden]
+        Wo = self.net[output]
         m = len(Wh.w[:])
         n = len(Wo.w[:])
         for i in range(m):
@@ -818,7 +818,7 @@ class net:
         #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
         #pudb.set_trace()
-        #self.read_weights()
+        self.read_weights()
         #train.synaptic_scalling_wrap(self, 1, 1)
         #self.save_weights()
         i, j, k = 0, 0, 0
@@ -829,10 +829,12 @@ class net:
         scaling = True
         min_spikes, max_spikes = 1, 1
         indices = [0, 1, 2, 3]
-        r = 1.0
+        #indices = [3, 0, 1, 2]
+        #indices = [0, 1]
+        r = 10
         plist = None
         p_graph = -1
-        while p > 2:
+        while True:
             i += 1
             j += 1
             pold = p
@@ -844,8 +846,9 @@ class net:
                 method_o=method_o, method_h=method_h, scaling=scaling)
             p = sum(plist)
             index_worst = np.argmax(plist)
-            indices = range(len(X))
-            #if pmin < 45:
+            #indices = range(len(X))
+            #if pmin < 0.85*len(indices):
+            #    break
             #    #pudb.set_trace()
             #    factor = float(np.sum(plist) - plist[index_worst]) / (len(plist) - 1)
             #    indices += [index_worst]*int(factor)

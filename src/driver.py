@@ -10,7 +10,7 @@ import brian2 as br
 #X, Y = linsep.X['train'], linsep.Y['train']
 xor = dt.data('xor')
 X, Y = xor.X['train'], xor.Y['train']
-nn = lif.net(inputs=3, hidden=10, output=1, subc=10, delay=10, seed=(45495)%20)
+nn = lif.net(inputs=3, hidden=5, output=1, subc=10, delay=10, seed=(45495)%20)
 #nn.plot_2d()
 #pudb.set_trace()
 #nn.test_topology(num=2)

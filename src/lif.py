@@ -420,7 +420,7 @@ class net:
         #self.read_weights()
 
     def save_weights(self):
-        pudb.set_trace()
+        #pudb.set_trace()
         if self.info.multilayer == True:
             self.save_weights_multilayer()
         else: 
@@ -493,12 +493,12 @@ class net:
         for i in range(m):
             Fh.write(str(Wh.w[i]))
             Fh.write('\n')
-            dFh.write(str(Wh.delay[i]))
+            dFh.write(str(Wh.delay[i]/br.ms))
             dFh.write('\n')
         for i in range(n):
             Fo.write(str(Wo.w[i]))
             Fo.write('\n')
-            dFo.write(str(Wo.delay[i]))
+            dFo.write(str(Wo.delay[i]/br.ms))
             dFo.write('\n')
         Fh.close()
         Fo.close()
@@ -541,8 +541,8 @@ class net:
                 o.connect('True')
             h.w[:] = weights_h[:]
             o.w[:] = weights_o[:]
-            h.delay[:] = delays_h[:]*br.second
-            o.delay[:] = delays_o[:]*br.second
+            h.delay[:] = delays_h[:]*br.ms
+            o.delay[:] = delays_o[:]*br.ms
             h.tl[:, :, :] = '-1*second'
             h.tp[:, :, :] = '-1*second'
             o.tl[:, :, :] = '-1*second'
@@ -828,6 +828,17 @@ class net:
         #print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
         scaling = True
         min_spikes, max_spikes = 1, 1
+
+        self.net.restore()
+        self.set_inputs(X[i])
+        self.info.set_y(Y[i])
+        self.run()
+        self.info.O.print_sd_times(tabs=1)
+        self.info.reread()
+        train.synaptic_scalling_wrap(self, 1, 1)
+        self.save_weights()
+
+
         indices = [0, 1, 2, 3]
         #indices = [3, 0, 1, 2]
         #indices = [0, 1]

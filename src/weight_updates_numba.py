@@ -231,43 +231,31 @@ def tempotron_update_output_weights(info):
         n = m
     n_p, o_p = n*p, o*p
 
-    #params = info.params
-    #ii, ti = info.get_inputs()
     ia, ta = info.O.S.it_
     cout = np.zeros(o)
     spike_out = np.bincount(ia)
     cout[:len(spike_out)] += spike_out
-    #pudb.set_trace()
     if info.H != None:
         ih, th = info.H.S.it_
     else:
         ih, th = info.get_inputs()
-    #Ap, Am, a_nh, tau = params.get_params()
-    #pudb.set_trace()
     d = info.y - np.clip(cout, 0, 1)
-
-
-    #d = info.d_times
 
     dw_ih, dw_ho = info.d_weights()
     w_ih, w_ho = info.weights()
     delay_ih, delay_ho = info.delays()
 
-
     #pudb.set_trace()
-    #ii, it = info.get_inputs()
     Wo, d_Wo = info.Wo, info.d_Wo
     S, v = info.O.S.all_values()['t'], info.O.v
 
-    #A, C, P = info.a, info.c, info.p
-    #d = info.d
-
-    lam = 5.0
+    pudb.set_trace()
+    lam = 1.0
     for j in range(o):
         j_max = np.argmax(v[j])
         if d[j] != 0:
             for i in range(n):
                 for k in range(p):
-                    d_Wo[i*o_p + j*p + k] += d[j]*lam*v[j][j_max]
+                    d_Wo[i*o_p + j*p + k] += d[j]*lam*(v[j][j_max]  + 70)/ 90.0
 
     return d_Wo

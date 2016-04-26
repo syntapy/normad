@@ -15,7 +15,7 @@ SCorrelation	spike_correlation.py	/^def SCorrelation(self, S1, S2):$/;"	f
 SCorrelationSIMPLE	spike_correlation.py	/^def SCorrelationSIMPLE(self, S1, S2, dt):$/;"	f
 SCorrelationSlow	spike_correlation.py	/^def SCorrelationSlow(self, S1, S2, dt=0.05):$/;"	f
 __gen_multilayer_nn	lif.py	/^    def __gen_multilayer_nn(self, inputs):$/;"	m	class:net	file:
-__gen_neuron_group	lif.py	/^    def __gen_neuron_group(self, N_neurons, name):$/;"	m	class:net	file:
+__gen_neuron_group	lif.py	/^    def __gen_neuron_group(self, N_neurons, name, reset="yes"):$/;"	m	class:net	file:
 __gen_singlelayer_nn	lif.py	/^    def __gen_singlelayer_nn(self, inputs):$/;"	m	class:net	file:
 __gen_synapse_group	lif.py	/^    def __gen_synapse_group(self, neurons_a, neurons_b, name):$/;"	m	class:net	file:
 __groups	lif.py	/^    def __groups(self):$/;"	m	class:net	file:

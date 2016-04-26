@@ -152,7 +152,7 @@ class net_info:
         for i in range(len(self.y)):
             if self.y[i] == 1:
                 self.d_times[i] = 26.0
-            else: self.d_times[i] = 33.0
+            else: self.d_times[i] = 303.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
@@ -321,7 +321,13 @@ class net:
 
         self.net.store()
 
-    def __gen_neuron_group(self, N_neurons, name):
+    def __gen_neuron_group(self, N_neurons, name, reset="yes"):
+        if reset == "yes":
+            reset = 'v=El'
+            refractory = 3*br.ms
+        else:
+            reset = 'v=v'
+            refractory = 10*br.second
         neurons = br.NeuronGroup(N_neurons, \
                    model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
                             gL = 30                                     : 1 (shared)
@@ -329,8 +335,8 @@ class net:
                             vt = 20                                     : 1 (shared)
                             Cm = 06.0                                   : 1 (shared)
                             D                                           : 1''',
-                            method='rk2', refractory=3*br.ms, threshold='v>=vt', 
-                            reset='v=El', name=name, dt=self.dta)
+                            method='rk2', refractory=refractory, threshold='v>=vt', 
+                            reset=reset, name=name, dt=self.dta)
         return neurons
 
     def __gen_synapse_group(self, neurons_a, neurons_b, name):
@@ -378,7 +384,7 @@ class net:
 
     def __gen_multilayer_nn(self, inputs):
         hidden = self.__gen_neuron_group(self.N_hidden, 'hidden')
-        output = self.__gen_neuron_group(self.N_output,'output')
+        output = self.__gen_neuron_group(self.N_output,'output', reset='no')
 
         Sh = self.__gen_synapse_group(inputs, hidden, 'synapses_hidden')
         So = self.__gen_synapse_group(hidden, output, name='synapses_output')
@@ -390,6 +396,8 @@ class net:
         So.connect('True', n=self.N_subc)
         N = br.StateMonitor(So, 'f', record=True, name='monitor_o_c')
         Vo = br.StateMonitor(output, 'v', record=True, name='values_vo')
+        Vc = br.StateMonitor(output, 'v', record=True, name='values_vo')
+
         Vh = br.StateMonitor(hidden, 'v', record=True, name='values_vh')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')

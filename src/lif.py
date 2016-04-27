@@ -37,7 +37,7 @@ class activity:
         self.i, self.t = self.S.it_
         #pudb.set_trace()
         if self.M != None:
-            self.v = self.M.v
+            self.c = self.M.c
 
     def get_times(self):
         return self.S.all_values()['t']
@@ -105,8 +105,7 @@ class net_info:
         self.y = None
 
         self.net = keywds['net']
-        self.read_weights()
-
+        self.read_weights() 
     def read_weights(self):
         self.Wh = None
         self.Dh = None
@@ -152,7 +151,7 @@ class net_info:
         for i in range(len(self.y)):
             if self.y[i] == 1:
                 self.d_times[i] = 26.0
-            else: self.d_times[i] = 303.0
+            else: self.d_times[i] = 30.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
@@ -314,10 +313,10 @@ class net:
         Sh.delay[:, :, :] = str(self.delay) +'*rand()*ms'
         So.delay[:, :, :] = str(self.delay) +'*rand()*ms'
 
-        Sh.tl[:, :, :] = '-1*second'
-        Sh.tp[:, :, :] = '-1*second'
-        So.tl[:, :, :] = '-1*second'
-        So.tp[:, :, :] = '-1*second'
+        #Sh.tl[:, :, :] = '-1*second'
+        #Sh.tp[:, :, :] = '-1*second'
+        #So.tl[:, :, :] = '-1*second'
+        #So.tp[:, :, :] = '-1*second'
 
         self.net.store()
 
@@ -328,13 +327,19 @@ class net:
         else:
             reset = 'v=v'
             refractory = 10*br.second
+        #pudb.set_trace()
         neurons = br.NeuronGroup(N_neurons, \
-                   model='''dv/dt = ((-gL*(v - El)) + D) / (Cm*second)  : 1 (unless refractory)
-                            gL = 30                                     : 1 (shared)
-                            El = -70                                    : 1 (shared)
-                            vt = 20                                     : 1 (shared)
-                            Cm = 06.0                                   : 1 (shared)
-                            D                                           : 1''',
+                   model='''dv/dt = ((-gL*(v - El)) + c) / Cm     : 1 (unless refractory)
+                            dva/dt = -va/tau1                     : 1 (unless refractory)
+                            dvb/dt = -vb/tau2                     : 1 (unless refractory)
+                            tau1 = 0.0050*second                        : second (shared)
+                            tau2 = 0.001250*second                       : second (shared)
+                            gL = 30                               : 1 (shared)
+                            c = 100*(va - vb)                     : 1
+                            El = -70                              : 1 (shared)
+                            vt = 20                               : 1 (shared)
+                            Cm = 6.0*second                       : second (shared)
+                            D                                     : 1''',
                             method='rk2', refractory=refractory, threshold='v>=vt', 
                             reset=reset, name=name, dt=self.dta)
         return neurons
@@ -342,24 +347,44 @@ class net:
     def __gen_synapse_group(self, neurons_a, neurons_b, name):
         S = br.Synapses(neurons_a, neurons_b,
                     model='''
-                            tl                                    : second
-                            tp                                    : second
-                            tauC = 5                              : 1      (shared)
-                            tau1 = 0.0050                         : second (shared)
-                            tau2 = 0.001250                       : second (shared)
-                            tauL = 0.010                          : second (shared)
-                            tauLp = 0.1*tauL                      : second (shared)
-
                             w                                     : 1
 
-                            up = (sign(t - tp) + 1.0) / 2         : 1
-                            ul = (sign(t - tl - 3*ms) + 1.0) / 2  : 1
-                            u = (sign(t) + 1.0) / 2               : 1
+                            #tl                                    : second
+                            #tp                                    : second
+                            #tauC = 5                              : 1      (shared)
+                            #tauL = 0.010                          : second (shared)
+                            #tauLp = 0.1*tauL                      : second (shared)
 
-                      c = 100*(exp((tp - t)/tau1) - exp((tp - t)/tau2)): 1
-                            f = w*c                               : 1
-                            D_post = f*ul                         : 1 (summed) ''',
-                    pre='tp=t', post='tl=t', name=name, dt=self.dta)
+                            #tau1 = 0.0050                         : second (shared)
+                            #tau2 = 0.001250                       : second (shared)
+
+                            #gL_syn = 30                           : 1 (shared)
+                            #El_syn = -70                          : 1 (shared)
+                            #vt_syn = 20                           : 1 (shared)
+                            #Cm_syn = 06.0                         : 1 (shared)
+                            
+                            #dva/dt = -va/tau1                     : 1 (event-driven)
+                            #dvb/dt = -vb/tau2                     : 1 (event-driven)
+                            #c = 100*(va - vb)                     : 1
+
+                            #dr/dt = (-gL_syn*r + c) / (Cm_syn*second)  : 1
+
+                            #up = (sign(t - tp) + 1.0) / 2         : 1
+                            #ul = (sign(t - tl - 3*ms) + 1.0) / 2  : 1
+                            #u = (sign(t) + 1.0) / 2               : 1
+
+                      #c = 100*(exp((tp - t)/tau1) - exp((tp - t)/tau2)): 1
+                            #f = w*c                               : 1
+                            #D_post = f*ul                         : 1 (summed) ''',
+                    pre='''
+                        va_post += w
+                        vb_post += w
+                        ''', 
+                    post='''
+                        va_post = 0
+                        vb_post = 0
+                        ''', 
+                    name=name, dt=self.dta)
         return S
 
     def __gen_singlelayer_nn(self, inputs):
@@ -386,7 +411,7 @@ class net:
         hidden = self.__gen_neuron_group(self.N_hidden, 'hidden')
         output = self.__gen_neuron_group(self.N_output,'output', reset='no')
 
-        Sh = self.__gen_synapse_group(inputs, hidden, 'synapses_hidden')
+        Sh = self.__gen_synapse_group(inputs, hidden, name='synapses_hidden')
         So = self.__gen_synapse_group(hidden, output, name='synapses_output')
 
         hidden.v[:] = -70
@@ -394,18 +419,23 @@ class net:
         #pudb.set_trace()
         Sh.connect('True', n=self.N_subc)
         So.connect('True', n=self.N_subc)
-        N = br.StateMonitor(So, 'f', record=True, name='monitor_o_c')
+        #N = br.StateMonitor(So, 'f', record=True, name='monitor_o_c')
         Vo = br.StateMonitor(output, 'v', record=True, name='values_vo')
-        Vc = br.StateMonitor(output, 'v', record=True, name='values_vo')
+        #Vc = br.StateMonitor(output, 'v', record=True, name='values_vo')
 
+        #pudb.set_trace()
         Vh = br.StateMonitor(hidden, 'v', record=True, name='values_vh')
+        Co = br.StateMonitor(So, 'c', record=True, name='values_co')
+        Ch = br.StateMonitor(Sh, 'c', record=True, name='values_ch')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')
         To = br.SpikeMonitor(output, variables='v', name='crossings_o')
-        self.net = br.Network(inputs, hidden, Sh, Th, output, So, Vo, Vh, N, To)
+        self.net = br.Network(inputs, hidden, Sh, Th, output, So, Vo, Vh, To, Co)
         self.rand_weights_multilayer()
+        hidden.va = '0'
+        hidden.vb = '0'
         self.net.store()
-        output_a = activity(S=To, M=Vo)
-        hidden_a = activity(S=Th, M=Vh)
+        output_a = activity(S=To, M=Co)
+        hidden_a = activity(S=Th, M=Ch)
         #Wo = self.net['synapses_output'].w
         #Wh = self.net['synapses_hidden'].w
         #Do = self.net['synapses_output'].delay
@@ -551,10 +581,10 @@ class net:
             o.w[:] = weights_o[:]
             h.delay[:] = delays_h[:]*br.ms
             o.delay[:] = delays_o[:]*br.ms
-            h.tl[:, :, :] = '-1*second'
-            h.tp[:, :, :] = '-1*second'
-            o.tl[:, :, :] = '-1*second'
-            o.tp[:, :, :] = '-1*second'
+            #h.tl[:, :, :] = '-1*second'
+            #h.tp[:, :, :] = '-1*second'
+            #o.tl[:, :, :] = '-1*second'
+            #o.tp[:, :, :] = '-1*second'
             self.net.store()
             self.info.read_weights()
 

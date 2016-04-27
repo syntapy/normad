@@ -247,15 +247,15 @@ def tempotron_update_output_weights(info):
 
     #pudb.set_trace()
     Wo, d_Wo = info.Wo, info.d_Wo
-    S, v = info.O.S.all_values()['t'], info.O.v
+    S, Mc = info.O.S.all_values()['t'], info.O.c
 
-    pudb.set_trace()
+    #pudb.set_trace()
     lam = 1.0
     for j in range(o):
-        j_max = np.argmax(v[j])
+        j_max = np.argmax(Mc[j])
         if d[j] != 0:
             for i in range(n):
                 for k in range(p):
-                    d_Wo[i*o_p + j*p + k] += d[j]*lam*(v[j][j_max]  + 70)/ 90.0
+                    d_Wo[i*o_p + j*p + k] += d[j]*lam*(Mc[j][j_max]  + 70)/ 90.0
 
     return d_Wo

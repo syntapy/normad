@@ -120,13 +120,13 @@ def synaptic_scaling_multilayer(self, min_spikes, max_spikes, iteration=0):
             pass
             #pudb.set_trace()
 
-    #tomod_a = [i for i in actual if len(actual[i]) < min_spikes or len(actual[i]) > max_spikes]
+    tomod_a = [i for i in actual if len(actual[i]) < min_spikes or len(actual[i]) > max_spikes]
     tomod_h = [i for i in hidden if len(hidden[i]) < min_spikes or len(hidden[i]) > max_spikes]
-    if tomod_h != []:
+    if tomod_a != [] or tomod_h != []:
         self.net.restore()
         #pudb.set_trace()
         synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, self.N_subc, tomod_h, hidden, min_spikes, max_spikes)
-        #synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, self.N_subc, tomod_a, actual, min_spikes, max_spikes)
+        synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, self.N_subc, tomod_a, actual, min_spikes, max_spikes)
         #print "W_HO: ", w_ho
         #print "W_IH: ", w_ih
         self.net.store()
@@ -162,7 +162,7 @@ def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method
     if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
         pass
         #pudb.set_trace()
-        synaptic_scalling_wrap(self, 1, 2)
+        synaptic_scalling_wrap(self, 1, 1)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):

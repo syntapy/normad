@@ -226,10 +226,32 @@ def tempotron_update_hidden_weights(info):
     pass
 
 def tempotron_update_output_weights(info):
+    def alpha():
+        a = np.exp(-(t_max - t_ho) / tau1)
+        b = np.exp(-(t_max - t_ho) / tau2)
+        #a_a = 1 / tau1
+        #a_b = 1 / tau2
+
+        return if_leq_max*(a - b)
+
+    def d_minor(tau):
+        a = (tau1 - tauL) / (tau1*tauL)
+        b = (tau2 - tauL) / (tau2*tauL)
+        
+        A = np.exp(tau*a - (t/tauL) + (tf/tau1))
+        B = np.exp(tau*b - (t/tauL) + (tf/tau2))
+
+        return a*A - b*B
+
+    def d(t):
+        return if_leq_max*(d_minor(t) - d_minor(tf))
+
     m, n, o, p = info.a, info.b, info.c, info.p
+    dt = info.O.dt
     if n == None:
         n = m
     n_p, o_p = n*p, o*p
+    tau1, tau2 = info.O.tau1, info.O.tau2
 
     ia, ta = info.O.S.it_
     cout = np.zeros(o)
@@ -239,7 +261,8 @@ def tempotron_update_output_weights(info):
         ih, th = info.H.S.it_
     else:
         ih, th = info.get_inputs()
-    d = info.y - np.clip(cout, 0, 1)
+    v = info.O.v
+    delta = info.y - np.clip(cout, 0, 1)
 
     dw_ih, dw_ho = info.d_weights()
     w_ih, w_ho = info.weights()
@@ -247,15 +270,20 @@ def tempotron_update_output_weights(info):
 
     #pudb.set_trace()
     Wo, d_Wo = info.Wo, info.d_Wo
-    S, Mc = info.O.S.all_values()['t'], info.O.c
 
-    #pudb.set_trace()
+    pudb.set_trace()
     lam = 1.0
     for j in range(o):
-        j_max = np.argmax(Mc[j])
-        if d[j] != 0:
-            for i in range(n):
-                for k in range(p):
-                    d_Wo[i*o_p + j*p + k] += d[j]*lam*(Mc[j][j_max]  + 70)/ 90.0
-
-    return d_Wo
+        j_max = np.argmax(v[j])
+        t_max = j_max * dt
+        if delta[j] != 0:
+            for I in range(len(ih)):
+                i = ih[I]
+                index_ho = o_p*i + p*j
+                delay = delay_ho[index_ho:index_ho+p]
+                #pudb.set_trace()
+                t_ho = (th[I] + delay*0.001)*tau1.unit
+                if_leq_max = t_ho <= t_max
+                #d_Wo[index_ho:index_ho+p] += delta[j]*alpha()
+                d_Wo[index_ho:index_ho+p] += delta[j]*d(t_max - t_ho)
+    return d_Wo*lam / n_p

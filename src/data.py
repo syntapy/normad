@@ -12,6 +12,8 @@ class data:
             self.load_mnist()
         elif data_set == 'xor':
             self.load_xor()
+        elif data_set == 'iris':
+            self.load_iris()
         elif data_set == 'linsep':
             self.load_linsep()
         else:
@@ -79,6 +81,9 @@ class data:
         #self.Y['train'] = np.array([[1, 0], [1, 0], [0, 1], [0, 1]])
         self.Y['train'] = np.array([[0], [0], [1], [1]])
         #label = self.set_xor_times(index)
+
+    def load_iris(self):
+        pass
     
     def load_linsep(self):
         self.X, self.Y = {}, {}
@@ -92,7 +97,6 @@ class data:
         #self.Y['train'] = np.array([[1, 0], [1, 0], [0, 1], [0, 1]])
         self.Y['train'] = np.array([[0], [0], [0], [1], [1], [1]])
         #label = self.set_xor_times(index)
-
 
     def floats_to_times(self, x, tc=1.7, n_out=10):
         times = tc / x

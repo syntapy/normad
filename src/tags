@@ -34,13 +34,16 @@ _prel_SC	spike_correlation.py	/^def _prel_SC(self, Smax, Smin):$/;"	f
 _spaced_next_number	lift.py	/^    def _spaced_next_number(self, spacing, a):$/;"	m	class:rand_data_gen
 accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	class:net
 activity	lif.py	/^class activity:$/;"	c
+alpha	weight_updates_numba.py	/^    def alpha():$/;"	f	function:tempotron_update_output_weights
 bin_to_none	lif.py	/^    def bin_to_none(self):$/;"	m	class:net_info
 bin_to_times	lif.py	/^    def bin_to_times(self):$/;"	m	class:net_info
 compute	lif.py	/^    def compute(self, images):$/;"	m	class:net
+d	weight_updates_numba.py	/^    def d(t):$/;"	f	function:tempotron_update_output_weights
 d_ho	calc_unit.py	/^d_ho = np.array([ 3.05918916, 3.04474359])*0.001$/;"	v
 d_ho_new	calc_unit.py	/^d_ho_new = np.array([3.05918916, 3.04474359])*0.001$/;"	v
 d_ih	calc_unit.py	/^d_ih = np.array([8.48817697,  1.78895925,  0.54363214,  3.61538446,  2.75400929,  5.30000225])*0.001$/;"	v
 d_ih_new	calc_unit.py	/^d_ih_new = np.array([ 8.48817697, 1.78895925, 0.54363214, 3.61538446, 2.75400929, 5.30000225])*0.001$/;"	v
+d_minor	weight_updates_numba.py	/^    def d_minor(tau):$/;"	f	function:tempotron_update_output_weights
 d_weights	lif.py	/^    def d_weights(self):$/;"	m	class:net_info
 data	data.py	/^class data:$/;"	c
 dd_ho	calc_unit.py	/^dd_ho = np.zeros(np.shape(d_ho))$/;"	v
@@ -59,7 +62,9 @@ get_params	train.py	/^    def get_params(self):$/;"	m	class:resume_params
 get_spike_times	lif.py	/^    def get_spike_times(self):$/;"	m	class:activity
 get_times	lif.py	/^    def get_times(self):$/;"	m	class:activity
 indices	lif.py	/^    def indices(self, N, numbers):$/;"	m	class:net
+iris	driver.py	/^iris = dt.data('iris')$/;"	v
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
+load_iris	data.py	/^    def load_iris(self):$/;"	m	class:data
 load_linsep	data.py	/^    def load_linsep(self):$/;"	m	class:data
 load_mnist	data.py	/^    def load_mnist(self):$/;"	m	class:data
 load_random	lift.py	/^    def load_random(self, classes=1):$/;"	m	class:rand_data_gen
@@ -73,7 +78,7 @@ nn	driver.py	/^nn = lif.net(inputs=3, hidden=5, output=1, subc=10, delay=10, see
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 performance	lif.py	/^    def performance(self):$/;"	m	class:net
-performance	lif.py	/^    def performance(self):$/;"	m	class:net_info
+performance	lif.py	/^    def performance(self, continuous=True):$/;"	m	class:net_info
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot	lif.py	/^    def plot(self, figname='test.png', save=False, sh=True, i=None):$/;"	m	class:net
 plot_2d	lif.py	/^    def plot_2d(self, p, grid, axes_times, index_a, index_b, i_time, desired):$/;"	m	class:net

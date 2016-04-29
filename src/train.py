@@ -162,7 +162,7 @@ def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method
     if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
         pass
         #pudb.set_trace()
-        synaptic_scalling_wrap(self, 1, 1)
+        #synaptic_scalling_wrap(self, 1, 1)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):
@@ -201,7 +201,7 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, met
         self.info.reread()
         #if index == 6:
         #    pudb.set_trace()
-        plist[i] = self.info.performance()
+        plist[i] = self.info.performance(continuous=False)
         #if p_tmp < 4.0:
         #    pudb.set_trace()
         train_step(self, index, min_spikes, max_spikes, method_o=method_o, method_h=method_h, scaling=scaling)

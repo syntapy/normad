@@ -8,6 +8,7 @@ import brian2 as br
 
 #linsep = dt.data('linsep')
 #X, Y = linsep.X['train'], linsep.Y['train']
+iris = dt.data('iris')
 xor = dt.data('xor')
 X, Y = xor.X['train'], xor.Y['train']
 nn = lif.net(inputs=3, hidden=5, output=1, subc=10, delay=10, seed=(45495)%20)
@@ -16,8 +17,8 @@ nn = lif.net(inputs=3, hidden=5, output=1, subc=10, delay=10, seed=(45495)%20)
 #nn.test_topology(num=2)
 
 #nn.topology()
-nn.fit(X, Y, method_o='resume', method_h='resume')
-#nn.fit(X, Y, method_o='tempotron', method_h='resume')
+#nn.fit(X, Y, method_o='resume', method_h='resume')
+nn.fit(X, Y, method_o='tempotron', method_h='resume')
 #nn.predict(X[0], 3, plot=True)
 #pudb.set_trace()
 #nn.fit(X, Y, method_o='resume', method_h='resume')

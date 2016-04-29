@@ -342,24 +342,23 @@ class net:
             refractory = 10*br.second
         #pudb.set_trace()
         neurons = br.NeuronGroup(N_neurons, \
-                   model='''dv/dt = ((-gL*(v - El)) + c) / Cm     : 1 (unless refractory)
-                            dva/dt = -va/tau1                     : 1 (unless refractory)
-                            dvb/dt = -vb/tau2                     : 1 (unless refractory)
+                   model='''dv/dt = ((-gL*(v - El)) + c) / Cm     : volts (unless refractory)
+                            dva/dt = -(va/tau1)*mV                : volts (unless refractory)
+                            dvb/dt = -(vb/tau2)*mV                : volts (unless refractory)
                             tau1 = 0.0050*second                  : second (shared)
                             tau2 = 0.001250*second                : second (shared)
-                            gL = 30                               : 1 (shared)
-                            c = 100*(va - vb)                     : 1
-                            El = -70                              : 1 (shared)
-                            vt = 20                               : 1 (shared)
-                            Cm = 6.0*second                       : second (shared)
-                            D                                     : 1''',
+                            gL = 30*nsecond                       : second (shared)
+                            c = 100*(va - vb)                     : volts 
+                            El = -70*mV                           : volts (shared)
+                            vt = 20*mV                            : volts (shared)
+                            Cm = 300*pF                           : F (shared)''',
                             method='rk2', refractory=refractory, threshold='v>=vt', 
                             reset=reset, name=name, dt=self.dta)
         return neurons
 
     def __gen_synapse_group(self, neurons_a, neurons_b, name):
         S = br.Synapses(neurons_a, neurons_b,
-                    model='''w : 1''',
+                    model='''w : volts''',
                     pre='''
                         va_post += w
                         vb_post += w

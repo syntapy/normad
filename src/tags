@@ -74,7 +74,7 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(inputs=3, hidden=8, output=1, subc=2, delay=3, seed=(45495)%20)$/;"	v
+nn	driver.py	/^nn = lif.net(inputs=3, hidden=6, output=1, subc=10, delay=3, seed=7)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 p	driver.py	/^p = nn.fit(X, Y, method_o='tempotron', method_h='resume')$/;"	v
@@ -134,11 +134,11 @@ smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
 sort	weight_updates_numba.py	/^def sort(S):$/;"	f
 spikes	lif.py	/^    def spikes(self, name='hidden', t='dict'):$/;"	m	class:net
 supervised_update	train.py	/^def supervised_update(self, method_o='tempotron', method_h=None):$/;"	f
-synaptic_scaling	train.py	/^def synaptic_scaling(self, min_spikes, max_spikes, iteration=0):$/;"	f
-synaptic_scaling_multilayer	train.py	/^def synaptic_scaling_multilayer(self, min_spikes, max_spikes, iteration=0):$/;"	f
+synaptic_scaling	train.py	/^def synaptic_scaling(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, iteration=0):$/;"	f
+synaptic_scaling_multilayer	train.py	/^def synaptic_scaling_multilayer(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, iteration=0):$/;"	f
 synaptic_scaling_singlelayer	train.py	/^def synaptic_scaling_singlelayer(self, min_spikes, max_spikes, iteration=0):$/;"	f
 synaptic_scaling_step	train.py	/^def synaptic_scaling_step(w, m, n, p, tomod, spikes, min_spikes, max_spikes):$/;"	f
-synaptic_scalling_wrap	train.py	/^def synaptic_scalling_wrap(self, min_spikes, max_spikes):$/;"	f
+synaptic_scalling_wrap	train.py	/^def synaptic_scalling_wrap(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h):$/;"	f
 ta	calc_unit.py	/^ta = 0.0248$/;"	v
 td	calc_unit.py	/^td = 0.028$/;"	v
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
@@ -156,8 +156,8 @@ tid	calc_unit.py	/^tid = ti[i] + d_ih[i*2 + h]$/;"	v
 times_format	display.py	/^def times_format(self):$/;"	f
 topology	lif.py	/^    def topology(self, it_min=0, it_max=10, num=4):$/;"	m	class:net
 topology_chart	lif.py	/^    def topology_chart(self, spikes):$/;"	m	class:net
-train_epoch	train.py	/^def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):$/;"	f
-train_step	train.py	/^def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):$/;"	f
+train_epoch	train.py	/^def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True):$/;"	f
+train_step	train.py	/^def train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f
 update_d_weights	lif.py	/^    def update_d_weights(self, d_Wo, d_Wh=None):$/;"	m	class:net_info

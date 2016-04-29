@@ -156,7 +156,7 @@ class net_info:
         self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
             if self.y[i] == 1:
-                self.d_times[i] = 12.0
+                self.d_times[i] = 8.0
             else: self.d_times[i] = 300.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
@@ -358,7 +358,7 @@ class net:
                             dvb/dt = -(vb/tau2)                   : 1 (unless refractory)
                             tau1 = 0.0050*second                  : second (shared)
                             tau2 = 0.001250*second                : second (shared)
-                            vt = 20                               : 1 (shared)''',
+                            vt = 100                              : 1 (shared)''',
                             method='rk2', refractory=refractory, threshold='v>=vt', 
                             reset=reset, name=name, dt=self.dta)
         return neurons
@@ -853,16 +853,16 @@ class net:
         #print "TRAINING - ",
         #print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
         scaling = True
-        min_spikes, max_spikes = 1, 1
+        min_spikes_o, max_spikes_o = 0, 0
+        min_spikes_h, max_spikes_h = 1, 1
 
         self.net.restore()
         self.set_inputs(X[i])
         self.info.set_y(Y[i])
         self.run()
-        pudb.set_trace()
         self.info.O.print_sd_times(tabs=1)
         self.info.reread()
-        train.synaptic_scalling_wrap(self, 1, 1)
+        train.synaptic_scalling_wrap(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h)
         self.save_weights()
 
 
@@ -881,7 +881,7 @@ class net:
             #    pudb.set_trace()
 
             plist = train.train_epoch(self, r, \
-                i, indices, pmin, X, Y, min_spikes, max_spikes, \
+                i, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, \
                 method_o=method_o, method_h=method_h, scaling=scaling)
             p = sum(plist)
             index_worst = np.argmax(plist)
@@ -908,7 +908,7 @@ class net:
             p_graph = p
             print "i, r, p, pmin: ", i, r, p, pmin
         plist = train.train_epoch(self, r, \
-            i, indices, pmin, X, Y, min_spikes, max_spikes, \
+            i, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, \
             method_o=None, method_h=None, scaling=scaling)
 
         return sum(plist)

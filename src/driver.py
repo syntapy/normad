@@ -11,7 +11,7 @@ import brian2 as br
 iris = dt.data('iris')
 xor = dt.data('xor')
 X, Y = xor.X['train'], xor.Y['train']
-nn = lif.net(inputs=3, hidden=8, output=1, subc=2, delay=3, seed=(45495)%20)
+nn = lif.net(inputs=3, hidden=6, output=1, subc=10, delay=3, seed=7)
 #nn.plot_2d()
 #pudb.set_trace()
 #nn.test_topology(num=2)

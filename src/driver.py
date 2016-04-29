@@ -18,7 +18,8 @@ nn = lif.net(inputs=3, hidden=5, output=1, subc=10, delay=10, seed=(45495)%20)
 
 #nn.topology()
 #nn.fit(X, Y, method_o='resume', method_h='resume')
-nn.fit(X, Y, method_o='tempotron', method_h='resume')
+p = nn.fit(X, Y, method_o='tempotron', method_h='resume')
+print "Test Performance:", p
 #nn.predict(X[0], 3, plot=True)
 #pudb.set_trace()
 #nn.fit(X, Y, method_o='resume', method_h='resume')

@@ -156,8 +156,8 @@ class net_info:
         self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
             if self.y[i] == 1:
-                self.d_times[i] = 26.0
-            else: self.d_times[i] = 30.0
+                self.d_times[i] = 12.0
+            else: self.d_times[i] = 300.0
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
@@ -236,9 +236,10 @@ class net_info:
         self.net.store()
 
     def performance(self, continuous=True):
-        S = self.O.S.all_values()['t']
+        #S = self.O.S.all_values()['t']
         p = 0
         if continuous == True:
+            S = self.O.S
             D = self.d_times
             for i in range(len(S)):
                 p += len(S[i])*30
@@ -250,9 +251,15 @@ class net_info:
                 for i in range(len(D)):
                     p += np.abs(1000*D[i] - S[i][0]/br.ms)**2
         else:
+            S = self.O.S
+            ia, ta = S.it_
+            cout = np.zeros(self.c)
+            spike_out = np.bincount(ia)
+            cout[:len(spike_out)] += spike_out
+            #pudb.set_trace()
             d = self.y
-            for i in range(len(S)):
-                p += np.abs(d[i] - len(S[i]))
+            for i in range(len(cout)):
+                p += np.abs(d[i] - cout[i])
                 
             return p
 
@@ -335,37 +342,33 @@ class net:
 
     def __gen_neuron_group(self, N_neurons, name, reset="yes"):
         if reset == "yes":
-            reset = 'v=El'
+            reset = '''
+                        va=0
+                        vb=0
+                    '''
             refractory = 3*br.ms
         else:
-            reset = 'v=v'
+            reset = None
             refractory = 10*br.second
         #pudb.set_trace()
         neurons = br.NeuronGroup(N_neurons, \
-                   model='''dv/dt = ((-gL*(v - El)) + c) / Cm     : volts (unless refractory)
-                            dva/dt = -(va/tau1)*mV                : volts (unless refractory)
-                            dvb/dt = -(vb/tau2)*mV                : volts (unless refractory)
+                   model='''
+                            v = va - vb                           : 1
+                            dva/dt = -(va/tau1)                   : 1 (unless refractory)
+                            dvb/dt = -(vb/tau2)                   : 1 (unless refractory)
                             tau1 = 0.0050*second                  : second (shared)
                             tau2 = 0.001250*second                : second (shared)
-                            gL = 30*nsecond                       : second (shared)
-                            c = 100*(va - vb)                     : volts 
-                            El = -70*mV                           : volts (shared)
-                            vt = 20*mV                            : volts (shared)
-                            Cm = 300*pF                           : F (shared)''',
+                            vt = 20                               : 1 (shared)''',
                             method='rk2', refractory=refractory, threshold='v>=vt', 
                             reset=reset, name=name, dt=self.dta)
         return neurons
 
     def __gen_synapse_group(self, neurons_a, neurons_b, name):
         S = br.Synapses(neurons_a, neurons_b,
-                    model='''w : volts''',
+                    model='''w : 1''',
                     pre='''
                         va_post += w
                         vb_post += w
-                        ''', 
-                    post='''
-                        va_post = 0
-                        vb_post = 0
                         ''', 
                     name=name, dt=self.dta)
         return S
@@ -375,7 +378,7 @@ class net:
         output = self.__gen_neuron_group(self.N_output,'output')
         So = self.__gen_synapse_group(inputs, output, 'synapses_output')
 
-        output.v[:] = -70
+        output.v[:] = 0
         So.connect('True', n=self.N_subc)
         N = br.StateMonitor(So, 'c', record=True, name='monitor_o_c')
         M = br.StateMonitor(output, 'v', record=True, name='monitor_v')
@@ -397,8 +400,10 @@ class net:
         Sh = self.__gen_synapse_group(inputs, hidden, name='synapses_hidden')
         So = self.__gen_synapse_group(hidden, output, name='synapses_output')
 
-        hidden.v[:] = -70
-        output.v[:] = -70
+        hidden.va[:] = 0
+        hidden.vb[:] = 0
+        output.va[:] = 0
+        output.vb[:] = 0
         #pudb.set_trace()
         Sh.connect('True', n=self.N_subc)
         So.connect('True', n=self.N_subc)
@@ -661,33 +666,33 @@ class net:
                 return i
         return -1
 
-    def performance(self):
-        if self.data == 'mnist':
-            actual, desired = self.actual, self.desired
-            on = np.min(desired)
-            off = np.max(desired)
-            p = 0
-            for i in range(len(desired)):
-                if len(actual[i]) == 0:
-                    p += 20
-                else:
-                    for j in range(len(actual[i])):
-                        p += ((j+1)**2)*(actual[i][j]/br.msecond - 1000*desired[i])**2
-            return (p / float(len(desired)))**0.5
+    #def performance(self):
+    #    if self.data == 'mnist':
+    #        actual, desired = self.actual, self.desired
+    #        on = np.min(desired)
+    #        off = np.max(desired)
+    #        p = 0
+    #        for i in range(len(desired)):
+    #            if len(actual[i]) == 0:
+    #                p += 20
+    #            else:
+    #                for j in range(len(actual[i])):
+    #                    p += ((j+1)**2)*(actual[i][j]/br.msecond - 1000*desired[i])**2
+    #        return (p / float(len(desired)))**0.5
 
-        elif self.data == 'xor':
-            #pudb.set_trace()
-            actual, desired = self.actual[0] / br.ms, self.desired
-            if len(actual) != 1:
-                train.synaptic_scalling_wrap(self, 1)
-                #pudb.set_trace()
-                #return "nan"
-            #pudb.set_trace()
-            return abs(actual[0] - 1000*self.desired[0])
-            #if self.label == 0:
-            #    return abs(actual[0] - 1000*self.xl) / abs(actual[0] - 1000*self.xe)
-            #else:
-            #    return abs(actual[0] - 1000*self.xe) / abs(actual[0] - 1000*self.xl)
+    #    elif self.data == 'xor':
+    #        #pudb.set_trace()
+    #        actual, desired = self.actual[0] / br.ms, self.desired
+    #        if len(actual) != 1:
+    #            train.synaptic_scalling_wrap(self, 1)
+    #            #pudb.set_trace()
+    #            #return "nan"
+    #        #pudb.set_trace()
+    #        return abs(actual[0] - 1000*self.desired[0])
+    #        #if self.label == 0:
+    #        #    return abs(actual[0] - 1000*self.xl) / abs(actual[0] - 1000*self.xe)
+    #        #else:
+    #        #    return abs(actual[0] - 1000*self.xe) / abs(actual[0] - 1000*self.xl)
 
     def mnist_right_outputs(self, label):
         #pudb.set_trace()
@@ -867,7 +872,8 @@ class net:
         r = 10
         plist = None
         p_graph = -1
-        while True:
+        p = 4
+        while p > 0:
             i += 1
             j += 1
             pold = p
@@ -901,6 +907,11 @@ class net:
                 max_spikes = 1
             p_graph = p
             print "i, r, p, pmin: ", i, r, p, pmin
+        plist = train.train_epoch(self, r, \
+            i, indices, pmin, X, Y, min_spikes, max_spikes, \
+            method_o=None, method_h=None, scaling=scaling)
+
+        return sum(plist)
         #self.save_weights()
 
     def predict(self, xi, xt, plot=False):

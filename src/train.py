@@ -152,7 +152,7 @@ def synaptic_scalling_wrap(self, min_spikes, max_spikes):
     while mod:
         self.run()
         self.info.reread()
-        #self.info.H.print_spike_times(layer_name="hidden", tabs=2)
+        self.info.H.print_spike_times(layer_name="hidden", tabs=2)
         #pudb.set_trace()
         self.info.O.print_sd_times(tabs=2)
         mod = synaptic_scaling(self, min_spikes, max_spikes)
@@ -164,7 +164,7 @@ def train_step(self, index, min_spikes, max_spikes, method_o='tempotron', method
     if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
         pass
         #pudb.set_trace()
-        #synaptic_scalling_wrap(self, 1, 1)
+        synaptic_scalling_wrap(self, 1, 1)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes, max_spikes, method_o='tempotron', method_h=None, scaling=True):

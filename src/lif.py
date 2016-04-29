@@ -321,7 +321,7 @@ class net:
         Sh = self.net['synapses_hidden']
         So = self.net['synapses_output']
         Sh.w[:, :, :] = '800*(0.8*rand() - 0.2)*2'
-        So.w[:, :, :] = '800*(0.8*rand() - 0.2)*2'
+        So.w[:, :, :] = '800*(0.8*rand())*2'
         #Sh.w[:, :, :int(np.ceil(p/5))] *= -1
         #So.w[:, :, :int(np.ceil(p/5))] *= -1
         Sh.w[:, :, :] /= self.N_inputs*p
@@ -503,7 +503,7 @@ class net:
             folder = "../weights/"
             name_h, name_o = "synapses_hidden-", "synapses_output-"
             dname_h, dname_o = "delays_hidden-", "delays_output-"
-            param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
+            param, ext = str(self.N_hidden) + "_" + str(self.N_output) + "_" + str(self.N_subc), ".txt"
             file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
             dfile_h, dfile_o = folder + dname_h + param + ext, folder + dname_o + param + ext
         hidden, output = 'synapses_hidden', 'synapses_output'
@@ -536,7 +536,7 @@ class net:
             folder = "../weights/"
             name_h, name_o = "synapses_hidden-", "synapses_output-"
             dname_h, dname_o = "delays_hidden-", "delays_output-"
-            param, ext = str(self.N_hidden) + "_" + str(self.N_output), ".txt"
+            param, ext = str(self.N_hidden) + "_" + str(self.N_output) + "_" + str(self.N_subc), ".txt"
             file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
             dfile_h, dfile_o = folder + dname_h + param + ext, folder + dname_o + param + ext
         self.net.restore()
@@ -844,7 +844,6 @@ class net:
                     print ' ',
         #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
-        #pudb.set_trace()
         self.read_weights()
         #train.synaptic_scalling_wrap(self, 1, 1)
         #self.save_weights()
@@ -860,6 +859,7 @@ class net:
         self.set_inputs(X[i])
         self.info.set_y(Y[i])
         self.run()
+        pudb.set_trace()
         self.info.O.print_sd_times(tabs=1)
         self.info.reread()
         train.synaptic_scalling_wrap(self, 1, 1)

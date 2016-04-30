@@ -3,15 +3,17 @@ import data as dt
 #import lift
 import pudb
 #import train
+from aux import spike_count
 import lif
 import brian2 as br
 
 #linsep = dt.data('linsep')
 #X, Y = linsep.X['train'], linsep.Y['train']
-iris = dt.data('iris')
+#iris = dt.data('iris')
+#X, Y = iris.X['data'], iris.Y['data']
 xor = dt.data('xor')
 X, Y = xor.X['train'], xor.Y['train']
-nn = lif.net(inputs=3, hidden=6, output=1, subc=10, delay=3, seed=7)
+nn = lif.net(inputs=3, hidden=6, output=2, subc=10, delay=3, seed=4)
 #nn.plot_2d()
 #pudb.set_trace()
 #nn.test_topology(num=2)

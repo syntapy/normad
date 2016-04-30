@@ -1,5 +1,6 @@
 import pudb
 import numpy as np
+from aux import spike_count
 #import numba
 
 def sort(S):
@@ -254,9 +255,7 @@ def tempotron_update_output_weights(info):
     tau1, tau2 = info.O.tau1, info.O.tau2
 
     ia, ta = info.O.S.it_
-    cout = np.zeros(o)
-    spike_out = np.bincount(ia)
-    cout[:len(spike_out)] += spike_out
+    cout = spike_count(ia, o)
     if info.H != None:
         ih, th = info.H.S.it_
     else:

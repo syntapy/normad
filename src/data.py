@@ -1,6 +1,7 @@
 import scipy.io
 import numpy as np
 import pudb
+from sklearn.datasets import load_iris
 from brian2 import ms
 
 class data:
@@ -79,11 +80,16 @@ class data:
         self.X['train'][2] = np.array([0, 8, 0])*ms
         self.X['train'][3] = np.array([8, 0, 0])*ms
         #self.Y['train'] = np.array([[1, 0], [1, 0], [0, 1], [0, 1]])
-        self.Y['train'] = np.array([[0], [0], [1], [1]])
+        self.Y['train'] = np.array([0, 0, 1, 1])
         #label = self.set_xor_times(index)
 
     def load_iris(self):
-        pass
+        data = load_iris()
+        pudb.set_trace()
+        N = len(data['data'])
+        self.X, self.Y = {}, {}
+        self.X['data'] = np.max(data['data']) + np.min(data['data']) - data['data']
+        self.Y['data'] = data['targets']
     
     def load_linsep(self):
         self.X, self.Y = {}, {}

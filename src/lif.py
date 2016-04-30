@@ -6,6 +6,7 @@ import math as ma
 import scipy
 import pudb
 import sys
+from aux import spike_count
 
 import display
 import spike_correlation
@@ -153,11 +154,15 @@ class net_info:
         return self.ii[ii], self.ta[ii]
 
     def bin_to_times(self):
-        self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
-            if self.y[i] == 1:
+            self.d_times = np.zeros(len(self.y))
+            if self.y[i] == 0:
+                self.d_times[i] = 300.0
+            elif self.y[i] == 1:
                 self.d_times[i] = 8.0
-            else: self.d_times[i] = 300.0
+            else:
+                pudb.set_trace()
+
         self.d_times *= 0.001
         self.O.d_times = self.d_times
 
@@ -169,9 +174,16 @@ class net_info:
         self.d_times = np.zeros(1)
         self.d_times[0] = desired
 
+    def label_to_bin(self, label):
+        o = self.c # no. output neurons
+        y = np.zeros(o, dtype=np.int8)
+        y[label] = 1
+
+        return y
+
     def set_y(self, y):
         #pudb.set_trace()
-        self.y = y
+        self.y = self.label_to_bin(y)
         self.bin_to_times()
 
     def reread(self):
@@ -182,16 +194,9 @@ class net_info:
             self.direction()
 
     def direction(self):
-        self.d = [0] * len(self.y)
-        y = self.y
-        S = self.O.S.all_values()['t']
-        for i in range(len(y)):
-            if y[i] == 1:
-                if len(S[i]) == 0:
-                    self.d[i] = 1
-            elif y[i] == 0:
-                if len(S[i]) > 0:
-                    self.d[i] = -1
+        ia, ta = self.O.S.it_
+        cout = spike_count(ia, self.c)
+        self.d = np.clip(self.y - cout, -1, 1)
 
     def reset(self):
         if self.multilayer == True:
@@ -239,6 +244,7 @@ class net_info:
         #S = self.O.S.all_values()['t']
         p = 0
         if continuous == True:
+            """ continuous output """
             S = self.O.S
             D = self.d_times
             for i in range(len(S)):
@@ -251,16 +257,15 @@ class net_info:
                 for i in range(len(D)):
                     p += np.abs(1000*D[i] - S[i][0]/br.ms)**2
         else:
+            """ binary output """
             S = self.O.S
             ia, ta = S.it_
-            cout = np.zeros(self.c)
-            spike_out = np.bincount(ia)
-            cout[:len(spike_out)] += spike_out
+            cout = spike_count(ia, self.c)
             #pudb.set_trace()
             d = self.y
             for i in range(len(cout)):
                 p += np.abs(d[i] - cout[i])
-                
+
             return p
 
 class net:
@@ -503,7 +508,7 @@ class net:
             folder = "../weights/"
             name_h, name_o = "synapses_hidden-", "synapses_output-"
             dname_h, dname_o = "delays_hidden-", "delays_output-"
-            param, ext = str(self.N_hidden) + "_" + str(self.N_output) + "_" + str(self.N_subc), ".txt"
+            param, ext = str(self.N_inputs) + "_" + str(self.N_hidden) + "_" + str(self.N_output) + "_" + str(self.N_subc), ".txt"
             file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
             dfile_h, dfile_o = folder + dname_h + param + ext, folder + dname_o + param + ext
         hidden, output = 'synapses_hidden', 'synapses_output'
@@ -536,7 +541,7 @@ class net:
             folder = "../weights/"
             name_h, name_o = "synapses_hidden-", "synapses_output-"
             dname_h, dname_o = "delays_hidden-", "delays_output-"
-            param, ext = str(self.N_hidden) + "_" + str(self.N_output) + "_" + str(self.N_subc), ".txt"
+            param, ext = str(self.N_inputs) + "_" + str(self.N_hidden) + "_" + str(self.N_output) + "_" + str(self.N_subc), ".txt"
             file_h, file_o = folder + name_h + param + ext, folder + name_o + param + ext
             dfile_h, dfile_o = folder + dname_h + param + ext, folder + dname_o + param + ext
         self.net.restore()
@@ -860,6 +865,7 @@ class net:
         self.set_inputs(X[i])
         self.info.set_y(Y[i])
         self.run()
+        #pudb.set_trace()
         self.info.O.print_sd_times(tabs=1)
         self.info.reread()
         train.synaptic_scalling_wrap(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h)
@@ -873,6 +879,7 @@ class net:
         plist = None
         p_graph = -1
         p = 4
+        #pudb.set_trace()
         while p > 0:
             i += 1
             j += 1

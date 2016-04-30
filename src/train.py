@@ -3,6 +3,7 @@ import pudb
 import brian2 as br
 import weight_updates_numba as weight_updates
 import weight_updates_py
+from aux import spike_count
 
 class resume_params:
 
@@ -39,17 +40,17 @@ def supervised_update(self, method_o='tempotron', method_h=None):
     #self.info.update_d_weights(dw_o, d_Wh=dw_h)
 
 
-def synaptic_scaling_step(w, m, n, p, tomod, spikes, min_spikes, max_spikes):
+def synaptic_scaling_step(w, m, n, p, spikes, min_spikes, max_spikes):
     f = 0.05
     ### m neuron layer to n neuron layer
     ### w[n*i + j] acceses the synapse from neuron i to neuron j
 
     mod = False
-    for j in tomod:
-        if len(spikes[j]) > max_spikes:
+    for j in range(len(spikes)):
+        if spikes[j] > max_spikes:
             for i in range(m):
                 w[n*p*i+j*p:n*p*i+(j+1)*p] *= np.float(1 - f)**np.sign(w[n*p*i+j*p:n*p*i+(j+1)*p])
-        if len(spikes[j]) < min_spikes:
+        if spikes[j] < min_spikes:
             for i in range(m):
                 w[n*p*i+j*p:n*p*i+(j+1)*p] *= np.float(1 + f)**np.sign(w[n*p*i+j*p:n*p*i+(j+1)*p])
 
@@ -102,6 +103,8 @@ def synaptic_scaling_multilayer(self, min_spikes_o, max_spikes_o, min_spikes_h, 
     w_ih = self.net['synapses_hidden'].w
     w_ho = self.net['synapses_output'].w
 
+    a, b, c, p = self.info.a, self.info.b, self.info.c, self.info.p
+
     # KEEP FOLOWING COMMENTS !!!
     #if False: #np.min(w_ih) < 1:
     #np.clip(w_ih, -80, 10000, out=w_ih)
@@ -111,20 +114,29 @@ def synaptic_scaling_multilayer(self, min_spikes_o, max_spikes_o, min_spikes_h, 
     #if iteration == 100:
     #    pudb.set_trace()
     # KEEP PREVIOUS COMMENTS !!!
-    a = self.net['crossings_o']
-    b = self.net['crossings_h']
+    o_mon = self.net['crossings_o']
+    h_mon = self.net['crossings_h']
 
-    actual = a.all_values()['t']
-    hidden = b.all_values()['t']
+    actual = o_mon.all_values()['t']
+    hidden = h_mon.all_values()['t']
+
+    ia, _ = o_mon.it_
+    ih, _ = h_mon.it_
+
+    a_count, h_count = spike_count(ia, self.info.c), spike_count(ih, self.info.b)
     #desired = self.desired
 
-    tomod_a = [i for i in actual if len(actual[i]) < min_spikes_o or len(actual[i]) > max_spikes_o]
-    tomod_h = [i for i in hidden if len(hidden[i]) < min_spikes_h or len(hidden[i]) > max_spikes_h]
-    if tomod_a != [] or tomod_h != []:
-        self.net.restore()
+    #tomod_a = [i for i in actual if len(actual[i]) < min_spikes_o or len(actual[i]) > max_spikes_o]
+    #tomod_h = [i for i in hidden if len(hidden[i]) < min_spikes_h or len(hidden[i]) > max_spikes_h]
+
+    tomod_a = np.any(a_count > max_spikes_o) or np.any(a_count < min_spikes_o)
+    tomod_h = np.any(h_count > max_spikes_h) or np.any(h_count < min_spikes_h)
+    #pudb.set_trace()
+    self.net.restore()
+    if tomod_a or tomod_h:
         #pudb.set_trace()
-        synaptic_scaling_step(w_ih, self.N_inputs, self.N_hidden, self.N_subc, tomod_h, hidden, min_spikes_h, max_spikes_h)
-        synaptic_scaling_step(w_ho, self.N_hidden, self.N_output, self.N_subc, tomod_a, actual, min_spikes_o, max_spikes_o)
+        synaptic_scaling_step(w_ih, a, b, p, h_count, min_spikes_h, max_spikes_h)
+        synaptic_scaling_step(w_ho, b, c, p, a_count, min_spikes_o, max_spikes_o)
         #print "W_HO: ", w_ho
         #print "W_IH: ", w_ih
         self.net.store()

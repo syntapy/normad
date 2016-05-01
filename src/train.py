@@ -8,9 +8,10 @@ from aux import spike_count
 class resume_params:
 
     def __init__(self,Ap=1.2, Am=0.5, a_nh=0.05, tau=0.005):
-        self.Ap = Ap
-        self.Am = Am
-        self.a_nh = a_nh
+        f = 2
+        self.Ap = f*Ap
+        self.Am = f*Am
+        self.a_nh = f*a_nh
         self.tau = tau
 
     def get_params(self):
@@ -29,7 +30,6 @@ def supervised_update(self, method_o='tempotron', method_h=None):
     elif method_h == 'tempotron':
         update_function_h = weight_updates.tempotron_update_hidden_weights
 
-    #pudb.set_trace()
     self.info.params = resume_params()
     if self.info.multilayer == True:
         if method_h != None:
@@ -37,6 +37,7 @@ def supervised_update(self, method_o='tempotron', method_h=None):
     else: dw_h = None
     if method_o != None:
         dw_o = update_function_o(self.info)
+    #pudb.set_trace()
     #self.info.update_d_weights(dw_o, d_Wh=dw_h)
 
 

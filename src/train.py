@@ -19,7 +19,6 @@ class resume_params:
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 def supervised_update(self, method_o='tempotron', method_h=None):
-    #pudb.set_trace()
     if method_o == 'resume':
         update_function_o = weight_updates.resume_update_output_weights
     elif method_o == 'tempotron':
@@ -37,9 +36,9 @@ def supervised_update(self, method_o='tempotron', method_h=None):
     else: dw_h = None
     if method_o != None:
         dw_o = update_function_o(self.info)
+
     #pudb.set_trace()
     #self.info.update_d_weights(dw_o, d_Wh=dw_h)
-
 
 def synaptic_scaling_step(w, m, n, p, spikes, min_spikes, max_spikes):
     f = 0.05
@@ -133,9 +132,9 @@ def synaptic_scaling_multilayer(self, min_spikes_o, max_spikes_o, min_spikes_h, 
     tomod_a = np.any(a_count > max_spikes_o) or np.any(a_count < min_spikes_o)
     tomod_h = np.any(h_count > max_spikes_h) or np.any(h_count < min_spikes_h)
     #pudb.set_trace()
-    self.net.restore()
     if tomod_a or tomod_h:
         #pudb.set_trace()
+        self.net.restore()
         synaptic_scaling_step(w_ih, a, b, p, h_count, min_spikes_h, max_spikes_h)
         synaptic_scaling_step(w_ho, b, c, p, a_count, min_spikes_o, max_spikes_o)
         #print "W_HO: ", w_ho
@@ -156,7 +155,7 @@ def synaptic_scaling(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_
         return synaptic_scaling_singlelayer(self, min_spikes, max_spikes, iteration=iteration)
 
 def synaptic_scalling_wrap(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h):
-    i = 1
+    #i = 1
     mod = synaptic_scaling(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h)
     while mod:
         self.run()
@@ -165,7 +164,8 @@ def synaptic_scalling_wrap(self, min_spikes_o, max_spikes_o, min_spikes_h, max_s
         #pudb.set_trace()
         self.info.O.print_sd_times(tabs=2)
         mod = synaptic_scaling(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h)
-        i += 1
+        #pudb.set_trace()
+        #i += 1
         #if i > 5:
         #    self.save_weights()
 
@@ -173,7 +173,7 @@ def train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes
     if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
         pass
         #pudb.set_trace()
-        #synaptic_scalling_wrap(self, 1, 1)
+        #synaptic_scalling_wrap(self, 0, 1, 1, 1)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True):

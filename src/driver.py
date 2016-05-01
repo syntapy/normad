@@ -9,17 +9,18 @@ import brian2 as br
 
 #linsep = dt.data('linsep')
 #X, Y = linsep.X['train'], linsep.Y['train']
-#iris = dt.data('iris')
-#X, Y = iris.X['data'], iris.Y['data']
-xor = dt.data('xor')
-X, Y = xor.X['train'], xor.Y['train']
-nn = lif.net(inputs=3, hidden=6, output=2, subc=10, delay=30)
+iris = dt.data('iris')
+X, Y = iris.X['data'], iris.Y['data']
+#xor = dt.data('xor')
+#X, Y = xor.X['train'], xor.Y['train']
+nn = lif.net(inputs=5, hidden=6, output=2, subc=10, delay=30)
 #nn.plot_2d()
 #pudb.set_trace()
 #nn.test_topology(num=2)
 
 #nn.topology()
 #nn.fit(X, Y, method_o='resume', method_h='resume')
+#pudb.set_trace()
 p = nn.fit(X, Y, method_o='tempotron', method_h='resume')
 print "Test Performance:", p
 #nn.predict(X[0], 3, plot=True)

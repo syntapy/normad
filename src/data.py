@@ -85,11 +85,17 @@ class data:
 
     def load_iris(self):
         data = load_iris()
-        pudb.set_trace()
+        #pudb.set_trace()
         N = len(data['data'])
         self.X, self.Y = {}, {}
-        self.X['data'] = np.max(data['data']) + np.min(data['data']) - data['data']
-        self.Y['data'] = data['targets']
+        data_original = np.max(data['data']) + np.min(data['data']) - data['data']
+        m, n = np.shape(data_original)
+        data_augmented = np.zeros((m, n+1))
+        data_augmented[:, :-1] += data_original[:, :]
+        self.X['data'] = data_augmented*ms
+        self.Y['data'] = data['target']
+        del data_augmented
+        del data_original
     
     def load_linsep(self):
         self.X, self.Y = {}, {}

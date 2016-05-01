@@ -858,7 +858,7 @@ class net:
         #print "TRAINING - ",
         #print "N_input, N_output, N_hidden: ", self.N_inputs, self.N_output, self.N_hidden
         scaling = True
-        min_spikes_o, max_spikes_o = 0, 0
+        min_spikes_o, max_spikes_o = 0, 1
         min_spikes_h, max_spikes_h = 1, 1
 
         self.net.restore()

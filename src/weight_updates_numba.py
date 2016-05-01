@@ -270,7 +270,7 @@ def tempotron_update_output_weights(info):
     #pudb.set_trace()
     Wo, d_Wo = info.Wo, info.d_Wo
 
-    #pudb.set_trace()
+    pudb.set_trace()
     lam = 0.2
     for j in range(o):
         j_max = np.argmax(v[j])

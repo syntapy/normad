@@ -18,7 +18,7 @@ class resume_params:
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
 def supervised_update(self, method_o='tempotron', method_h=None):
-    #pudb.set_trace()
+    pudb.set_trace()
     if method_o == 'resume':
         update_function_o = weight_updates.resume_update_output_weights
     elif method_o == 'tempotron':
@@ -159,6 +159,7 @@ def synaptic_scalling_wrap(self, min_spikes_o, max_spikes_o, min_spikes_h, max_s
     mod = synaptic_scaling(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h)
     while mod:
         self.run()
+        #pudb.set_trace()
         self.info.reread()
         self.info.H.print_spike_times(layer_name="hidden", tabs=2)
         #pudb.set_trace()
@@ -172,7 +173,7 @@ def train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes
     if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
         pass
         #pudb.set_trace()
-        #synaptic_scalling_wrap(self, 1, 1)
+        synaptic_scalling_wrap(self, 0, 1, 1, 1)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
 def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True):

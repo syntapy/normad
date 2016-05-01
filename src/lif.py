@@ -154,8 +154,8 @@ class net_info:
         return self.ii[ii], self.ta[ii]
 
     def bin_to_times(self):
+        self.d_times = np.zeros(len(self.y))
         for i in range(len(self.y)):
-            self.d_times = np.zeros(len(self.y))
             if self.y[i] == 0:
                 self.d_times[i] = 300.0
             elif self.y[i] == 1:

@@ -74,7 +74,7 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(inputs=3, hidden=6, output=2, subc=10, delay=3, seed=4)$/;"	v
+nn	driver.py	/^nn = lif.net(inputs=3, hidden=8, output=2, subc=10, delay=3, seed=15)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 p	driver.py	/^p = nn.fit(X, Y, method_o='tempotron', method_h='resume')$/;"	v

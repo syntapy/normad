@@ -289,7 +289,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=None):
+    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=666):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
@@ -864,7 +864,7 @@ class net:
                     print ' ',
         #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
-        self.read_weights()
+        #self.read_weights()
         #train.synaptic_scalling_wrap(self, 1, 1)
         #self.save_weights()
         i, j, k = 0, 0, 0
@@ -894,9 +894,9 @@ class net:
         r = 10
         plist = None
         p_graph = -1
-        p = 4
+        p = 5000
         #pudb.set_trace()
-        while p > 0:
+        while p > 10:
             i += 1
             j += 1
             pold = p

@@ -30,6 +30,7 @@ def supervised_update(self, method_o='tempotron', method_h=None):
         update_function_h = weight_updates.tempotron_update_hidden_weights
 
     self.info.params = resume_params()
+    pudb.set_trace()
     if self.info.multilayer == True:
         if method_h != None:
             dw_h = update_function_h(self.info)
@@ -37,7 +38,6 @@ def supervised_update(self, method_o='tempotron', method_h=None):
     if method_o != None:
         dw_o = update_function_o(self.info)
 
-    #pudb.set_trace()
     #self.info.update_d_weights(dw_o, d_Wh=dw_h)
 
 def synaptic_scaling_step(w, m, n, p, spikes, min_spikes, max_spikes):

@@ -1,0 +1,21 @@
+WARNING  brian2.synapses.synapses.synapses_dt_mismatch: Note that the synaptic pathway 'synapses_hidden_pre' will run on the clock of the group 'input' using a dt of 100. us. Either the Synapses object 'synapses_hidden' or the target 'hidden' (or both) are using a different dt. This might lead to unexpected results. In particular, all delays will be rounded to multiples of 100. us. If in doubt, try to ensure that 'input', 'synapses_hidden', and 'hidden' use the same dt.
+WARNING  py.warnings: /home/sami/anaconda2/envs/poeshy/lib/python2.7/site-packages/brian2/groups/group.py:196: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+  if item is None or item == 'True':
+
+WARNING  py.warnings: /home/sami/work/thesis/normad/src/lif.py:59: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if S != None:
+
+WARNING  py.warnings: /home/sami/work/thesis/normad/src/lif.py:193: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if self.y != None:
+
+	output times output : 		[] [] []
+	desired times : 		0.008 0.3 0.3
+WARNING  py.warnings: /home/sami/work/thesis/normad/src/lif.py:236: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if self.d_Wh != None:
+
+i, r, p, pmin:  1 10 150.0 150.0
+i, r, p, pmin:  2 10 150.0 150.0
+i, r, p, pmin:  3 10 150.0 150.0
+i, r, p, pmin:  4 10 150.0 150.0
+i, r, p, pmin:  5 10 150.0 150.0
+i, r, p, pmin:  6 10 150.0 150.0

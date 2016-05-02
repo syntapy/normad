@@ -22,7 +22,7 @@ __groups	lif.py	/^    def __groups(self):$/;"	m	class:net	file:
 __init__	data.py	/^    def __init__(self, data_set, shuffle=False):$/;"	m	class:data
 __init__	lif.py	/^    def __init__(self, **keywds):$/;"	m	class:activity
 __init__	lif.py	/^    def __init__(self, **keywds):$/;"	m	class:net_info
-__init__	lif.py	/^    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=None):$/;"	m	class:net
+__init__	lif.py	/^    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=666):$/;"	m	class:net
 __init__	lift.py	/^    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):$/;"	m	class:rand_data_gen
 __init__	train.py	/^    def __init__(self,Ap=1.2, Am=0.5, a_nh=0.05, tau=0.005):$/;"	m	class:resume_params
 _equal_len_SC	spike_correlation.py	/^def _equal_len_SC(self, S1, S2):$/;"	f

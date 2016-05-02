@@ -240,7 +240,16 @@ class net_info:
         self.net['synapses_output'].delay += r*self.d_Do
         self.net.store()
 
-    def performance(self, continuous=True):
+    def get_class(self):
+        Vo = self.O.M.v
+        v_max = -100000
+        for i in range(len(Vo)):
+            v_new = np.max(Vo[i])
+            if v_new > v_max:
+                index = i
+        return index
+
+    def performance(self, continuous=True, v_max=False):
         #S = self.O.S.all_values()['t']
         p = 0
         if continuous == True:
@@ -256,7 +265,7 @@ class net_info:
                 #pudb.set_trace()
                 for i in range(len(D)):
                     p += np.abs(1000*D[i] - S[i][0]/br.ms)**2
-        else:
+        elif v_max == False:
             """ binary output """
             S = self.O.S
             ia, ta = S.it_
@@ -267,6 +276,12 @@ class net_info:
                 p += np.abs(d[i] - cout[i])
 
             return p
+
+        elif v_max == True:
+            label = self.get_class()
+            if self.y[label] != 1:
+                return 1
+            return 0
 
 class net:
 
@@ -849,7 +864,7 @@ class net:
                     print ' ',
         #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
-        #self.read_weights()
+        self.read_weights()
         #train.synaptic_scalling_wrap(self, 1, 1)
         #self.save_weights()
         i, j, k = 0, 0, 0
@@ -872,7 +887,8 @@ class net:
         self.save_weights()
 
 
-        indices = [0, 1, 2, 3]
+        #indices = [0, 1, 2, 3]
+        indices = range(len(X))
         #indices = [3, 0, 1, 2]
         #indices = [0, 1]
         r = 10
@@ -887,6 +903,7 @@ class net:
             #if i > 15:
             #    pudb.set_trace()
 
+            #break
             plist = train.train_epoch(self, r, \
                 i, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, \
                 method_o=method_o, method_h=method_h, scaling=scaling)
@@ -907,16 +924,17 @@ class net:
             if p < pmin:
                 pmin = p
                 #if i % 10 == 0:
-                #self.save_weights()
-            if pmin < 50:
-                #r = min((np.float(pmin) / 250)**2, 1) * 5.5
-                min_spikes = 1
-                max_spikes = 1
+                self.save_weights()
+            #if pmin < 50:
+            #    #r = min((np.float(pmin) / 250)**2, 1) * 5.5
+            #    min_spikes = 1
+            #    max_spikes = 1
             p_graph = p
             print "i, r, p, pmin: ", i, r, p, pmin
+        self.save_weights()
         plist = train.train_epoch(self, r, \
             i, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, \
-            method_o=None, method_h=None, scaling=scaling)
+            method_o=None, method_h=None, scaling=scaling, test=True)
 
         return sum(plist)
         #self.save_weights()

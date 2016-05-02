@@ -13,7 +13,7 @@ iris = dt.data('iris')
 X, Y = iris.X['data'], iris.Y['data']
 #xor = dt.data('xor')
 #X, Y = xor.X['train'], xor.Y['train']
-nn = lif.net(inputs=5, hidden=6, output=2, subc=10, delay=30)
+nn = lif.net(inputs=5, hidden=65, output=3, subc=10, delay=10)
 #nn.plot_2d()
 #pudb.set_trace()
 #nn.test_topology(num=2)

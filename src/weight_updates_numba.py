@@ -137,7 +137,7 @@ def resume_update_hidden_weights(info):
             for J in range(len(ta)):
                 j = ia[J]
                 index_ho = o_p*h+p*j
-                S = ta[J] - ti[I] - delay
+                S = np.sign(ta[J] - ti[I] - delay)*0.002
                 for l in range(len(S)):
                     s = S[l]
                     if s <= 0:
@@ -152,7 +152,7 @@ def resume_update_hidden_weights(info):
             for j in range(len(d)):
                 index_ho = o_p*h+p*j
                 delay = delay_ih[index_ih:index_ih+p]*0.001
-                S = d[j] - ti[I] - delay
+                S = np.sign(d[j] - ti[I] - delay)*0.002
                 for l in range(len(S)):
                     s = S[l]
                     if s <= 0:

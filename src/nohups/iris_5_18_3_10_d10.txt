@@ -1,0 +1,51 @@
+	output times output : 		[] [] []
+	desired times : 		0.008 0.3 0.3
+		hidden times hidden : 	[ 10.2] ms [ 13.4] ms [ 13.] ms [] [ 13.] ms [ 11.2] ms [ 11.] ms [] [] [ 13.6] ms [] [] [] [] [] [ 10.2] ms [ 11.4] ms []
+		output times output : 		[] [] []
+		desired times : 		0.008 0.3 0.3
+		hidden times hidden : 	[ 10.2] ms [ 13.4] ms [ 13.] ms [] [ 13.] ms [ 11.2] ms [ 11.] ms [] [] [ 13.6] ms [] [] [] [ 13.2] ms [] [ 10.2] ms [ 11.4] ms []
+		output times output : 		[ 21.] ms [ 21.] ms [ 19.2] ms
+		desired times : 		0.008 0.3 0.3
+		hidden times hidden : 	[ 10.2] ms [ 13.4] ms [ 13.] ms [] [ 13.] ms [ 11.2] ms [ 11.] ms [] [] [ 13.6] ms [] [] [] [ 13.2] ms [] [ 10.2] ms [ 11.4] ms []
+		output times output : 		[ 21.] ms [ 21.] ms [ 19.2] ms
+		desired times : 		0.008 0.3 0.3
+		hidden times hidden : 	[ 10.2] ms [ 13.4] ms [ 13.] ms [] [ 13.] ms [ 11.2] ms [ 11.] ms [ 10.2] ms [] [ 13.6] ms [] [] [] [ 13.2] ms [] [ 10.2] ms [ 11.4] ms []
+		output times output : 		[ 19.] ms [ 20.2] ms [ 18.2] ms
+		desired times : 		0.008 0.3 0.3
+		hidden times hidden : 	[ 10.2] ms [ 13.4] ms [ 13.] ms [] [ 13.] ms [ 11.2] ms [ 11.] ms [ 10.2] ms [ 9.8] ms [ 13.6] ms [ 14.8] ms [ 12.4] ms [] [ 13.2] ms [ 16.4] ms [ 10.2] ms [ 11.4] ms [ 14.] ms
+		output times output : 		[ 18.] ms [ 16.8] ms [ 17.2] ms
+		desired times : 		0.008 0.3 0.3
+		hidden times hidden : 	[ 10.2] ms [ 13.4] ms [ 13.] ms [ 13.6] ms [ 13.] ms [ 11.2] ms [ 11.] ms [ 10.2] ms [ 9.8] ms [ 13.6] ms [ 14.8] ms [ 12.4] ms [ 17.8] ms [ 13.2] ms [ 16.4] ms [ 10.2] ms [ 11.4] ms [ 14.] ms
+		output times output : 		[ 17.6] ms [ 16.4] ms [ 17.] ms
+		desired times : 		0.008 0.3 0.3
+i, r, p, pmin:  1 10 110.0 110.0
+i, r, p, pmin:  2 10 81.0 81.0
+i, r, p, pmin:  3 10 78.0 78.0
+i, r, p, pmin:  4 10 71.0 71.0
+i, r, p, pmin:  5 10 44.0 44.0
+i, r, p, pmin:  6 10 32.0 32.0
+i, r, p, pmin:  7 10 62.0 32.0
+i, r, p, pmin:  8 10 96.0 32.0
+i, r, p, pmin:  9 10 107.0 32.0
+i, r, p, pmin:  10 10 90.0 32.0
+i, r, p, pmin:  11 10 85.0 32.0
+i, r, p, pmin:  12 10 176.0 32.0
+i, r, p, pmin:  13 10 152.0 32.0
+i, r, p, pmin:  14 10 135.0 32.0
+i, r, p, pmin:  15 10 111.0 32.0
+i, r, p, pmin:  16 10 119.0 32.0
+i, r, p, pmin:  17 10 105.0 32.0
+i, r, p, pmin:  18 10 113.0 32.0
+i, r, p, pmin:  19 10 107.0 32.0
+i, r, p, pmin:  20 10 102.0 32.0
+i, r, p, pmin:  21 10 102.0 32.0
+i, r, p, pmin:  22 10 111.0 32.0
+i, r, p, pmin:  23 10 83.0 32.0
+i, r, p, pmin:  24 10 93.0 32.0
+i, r, p, pmin:  25 10 132.0 32.0
+i, r, p, pmin:  26 10 112.0 32.0
+i, r, p, pmin:  27 10 96.0 32.0
+i, r, p, pmin:  28 10 95.0 32.0
+i, r, p, pmin:  29 10 108.0 32.0
+i, r, p, pmin:  30 10 103.0 32.0
+i, r, p, pmin:  31 10 125.0 32.0

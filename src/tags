@@ -56,6 +56,7 @@ dw_ih	calc_unit.py	/^dw_ih = np.zeros(np.shape(w_ih))$/;"	v
 f	test.py	/^def f(*args, **keywds):$/;"	f
 fit	lif.py	/^    def fit(self, X, Y, method_o='tempotron', method_h=None, threshold=0.7):$/;"	m	class:net
 floats_to_times	data.py	/^    def floats_to_times(self, x, tc=1.7, n_out=10):$/;"	m	class:data
+get_class	lif.py	/^    def get_class(self):$/;"	m	class:net_info
 get_indices	lif.py	/^    def get_indices(self, plist):$/;"	m	class:net
 get_inputs	lif.py	/^    def get_inputs(self):$/;"	m	class:net_info
 get_params	train.py	/^    def get_params(self):$/;"	m	class:resume_params
@@ -75,11 +76,11 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(inputs=5, hidden=6, output=2, subc=10, delay=30)$/;"	v
+nn	driver.py	/^nn = lif.net(inputs=5, hidden=65, output=3, subc=10, delay=10)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 p	driver.py	/^p = nn.fit(X, Y, method_o='tempotron', method_h='resume')$/;"	v
-performance	lif.py	/^    def performance(self, continuous=True):$/;"	m	class:net_info
+performance	lif.py	/^    def performance(self, continuous=True, v_max=False):$/;"	m	class:net_info
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot	lif.py	/^    def plot(self, figname='test.png', save=False, sh=True, i=None):$/;"	m	class:net
 plot_2d	lif.py	/^    def plot_2d(self, p, grid, axes_times, index_a, index_b, i_time, desired):$/;"	m	class:net
@@ -158,7 +159,7 @@ tid	calc_unit.py	/^tid = ti[i] + d_ih[i*2 + h]$/;"	v
 times_format	display.py	/^def times_format(self):$/;"	f
 topology	lif.py	/^    def topology(self, it_min=0, it_max=10, num=4):$/;"	m	class:net
 topology_chart	lif.py	/^    def topology_chart(self, spikes):$/;"	m	class:net
-train_epoch	train.py	/^def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True):$/;"	f
+train_epoch	train.py	/^def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True, test=False):$/;"	f
 train_step	train.py	/^def train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f

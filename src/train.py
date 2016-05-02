@@ -160,9 +160,9 @@ def synaptic_scalling_wrap(self, min_spikes_o, max_spikes_o, min_spikes_h, max_s
     while mod:
         self.run()
         self.info.reread()
-        self.info.H.print_spike_times(layer_name="hidden", tabs=2)
+        #self.info.H.print_spike_times(layer_name="hidden", tabs=2)
         #pudb.set_trace()
-        self.info.O.print_sd_times(tabs=2)
+        #self.info.O.print_sd_times(tabs=2)
         mod = synaptic_scaling(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h)
         #pudb.set_trace()
         #i += 1
@@ -176,14 +176,14 @@ def train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes
         #synaptic_scalling_wrap(self, 0, 1, 1, 1)
     supervised_update(self, method_o=method_o, method_h=method_h)
 
-def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True):
+def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True, test=False):
     correct = 0
     p = 0
-    #indices = np.arange(len(X))
-    #np.random.shuffle(indices)
+    indices = np.arange(len(X))
+    np.random.shuffle(indices)
 
-    indices_unique = np.unique(indices)
-    plist = np.zeros(len(indices_unique))
+    #indices_unique = np.unique(indices)
+    plist = np.zeros(len(indices))
     #print 
     #print " $$$$ --- E P O C H --- $$$$"
     #print 
@@ -207,17 +207,21 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o,
         self.run()
         #pudb.set_trace()
         #self.info.H.print_spike_times(layer_name="hidden", tabs=1)
-        self.info.O.print_sd_times(tabs=1)
+        #self.info.O.print_sd_times(tabs=1)
         #print "=============="*2
         self.info.reread()
         #if index == 6:
         #    pudb.set_trace()
-        plist[i] = self.info.performance(continuous=False)
         #if p_tmp < 4.0:
         #    pudb.set_trace()
-        train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o=method_o, method_h=method_h, scaling=scaling)
-        self.info.update_weights(r)
-        self.info.reset_d_weights()
+        if test == False:
+            plist[i] = self.info.performance(continuous=False)
+            train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o=method_o, method_h=method_h, scaling=scaling)
+            self.info.update_weights(r)
+            self.info.reset_d_weights()
+        else:
+            plist[i] = self.info.performance(continuous=False, v_max=True)
+
         #print "\t", p_tmp
         
         #print self.info.d_Wh[:]

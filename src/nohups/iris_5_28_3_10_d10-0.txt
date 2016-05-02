@@ -1,0 +1,72 @@
+WARNING  brian2.synapses.synapses.synapses_dt_mismatch: Note that the synaptic pathway 'synapses_hidden_pre' will run on the clock of the group 'input' using a dt of 100. us. Either the Synapses object 'synapses_hidden' or the target 'hidden' (or both) are using a different dt. This might lead to unexpected results. In particular, all delays will be rounded to multiples of 100. us. If in doubt, try to ensure that 'input', 'synapses_hidden', and 'hidden' use the same dt.
+WARNING  py.warnings: /home/sami/anaconda2/envs/poeshy/lib/python2.7/site-packages/brian2/groups/group.py:196: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+  if item is None or item == 'True':
+
+WARNING  py.warnings: /home/sami/work/thesis/normad/src/lif.py:59: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if S != None:
+
+WARNING  py.warnings: /home/sami/work/thesis/normad/src/lif.py:193: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if self.y != None:
+
+	output times output : 		[] [] []
+	desired times : 		0.008 0.3 0.3
+WARNING  py.warnings: /home/sami/work/thesis/normad/src/lif.py:236: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if self.d_Wh != None:
+
+i, r, p, pmin:  1 10 151.0 151.0
+i, r, p, pmin:  2 10 165.0 151.0
+i, r, p, pmin:  3 10 108.0 108.0
+i, r, p, pmin:  4 10 99.0 99.0
+i, r, p, pmin:  5 10 61.0 61.0
+i, r, p, pmin:  6 10 83.0 61.0
+i, r, p, pmin:  7 10 114.0 61.0
+i, r, p, pmin:  8 10 124.0 61.0
+i, r, p, pmin:  9 10 131.0 61.0
+i, r, p, pmin:  10 10 117.0 61.0
+i, r, p, pmin:  11 10 104.0 61.0
+i, r, p, pmin:  12 10 116.0 61.0
+i, r, p, pmin:  13 10 119.0 61.0
+i, r, p, pmin:  14 10 108.0 61.0
+i, r, p, pmin:  15 10 101.0 61.0
+i, r, p, pmin:  16 10 98.0 61.0
+i, r, p, pmin:  17 10 109.0 61.0
+i, r, p, pmin:  18 10 83.0 61.0
+i, r, p, pmin:  19 10 91.0 61.0
+i, r, p, pmin:  20 10 97.0 61.0
+i, r, p, pmin:  21 10 93.0 61.0
+i, r, p, pmin:  22 10 78.0 61.0
+i, r, p, pmin:  23 10 73.0 61.0
+i, r, p, pmin:  24 10 81.0 61.0
+i, r, p, pmin:  25 10 73.0 61.0
+i, r, p, pmin:  26 10 74.0 61.0
+i, r, p, pmin:  27 10 68.0 61.0
+i, r, p, pmin:  28 10 66.0 61.0
+i, r, p, pmin:  29 10 78.0 61.0
+i, r, p, pmin:  30 10 67.0 61.0
+i, r, p, pmin:  31 10 76.0 61.0
+i, r, p, pmin:  32 10 94.0 61.0
+i, r, p, pmin:  33 10 85.0 61.0
+i, r, p, pmin:  34 10 77.0 61.0
+i, r, p, pmin:  35 10 85.0 61.0
+i, r, p, pmin:  36 10 93.0 61.0
+i, r, p, pmin:  37 10 97.0 61.0
+i, r, p, pmin:  38 10 105.0 61.0
+i, r, p, pmin:  39 10 103.0 61.0
+i, r, p, pmin:  40 10 75.0 61.0
+i, r, p, pmin:  41 10 71.0 61.0
+i, r, p, pmin:  42 10 101.0 61.0
+i, r, p, pmin:  43 10 88.0 61.0
+i, r, p, pmin:  44 10 96.0 61.0
+i, r, p, pmin:  45 10 96.0 61.0
+i, r, p, pmin:  46 10 94.0 61.0
+i, r, p, pmin:  47 10 85.0 61.0
+i, r, p, pmin:  48 10 79.0 61.0
+i, r, p, pmin:  49 10 76.0 61.0
+i, r, p, pmin:  50 10 89.0 61.0
+i, r, p, pmin:  51 10 91.0 61.0
+i, r, p, pmin:  52 10 98.0 61.0
+i, r, p, pmin:  53 10 91.0 61.0
+i, r, p, pmin:  54 10 110.0 61.0
+i, r, p, pmin:  55 10 102.0 61.0
+i, r, p, pmin:  56 10 98.0 61.0
+i, r, p, pmin:  57 10 97.0 61.0

@@ -290,7 +290,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=None):
+    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=666):
         #pudb.set_trace()
         self.changes = []
         self.trained = False

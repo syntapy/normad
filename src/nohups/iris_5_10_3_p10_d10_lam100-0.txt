@@ -13,29 +13,4 @@ WARNING  py.warnings: /home/sami/work/thesis/normad/src/lif.py:193: FutureWarnin
 WARNING  py.warnings: /home/sami/work/thesis/normad/src/lif.py:236: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
   if self.d_Wh != None:
 
-i, r, p, pmin:  1 10 177.0 177.0
-i, r, p, pmin:  2 10 171.0 171.0
-i, r, p, pmin:  3 10 139.0 139.0
-i, r, p, pmin:  4 10 144.0 139.0
-i, r, p, pmin:  5 10 97.0 97.0
-i, r, p, pmin:  6 10 124.0 97.0
-i, r, p, pmin:  7 10 114.0 97.0
-i, r, p, pmin:  8 10 93.0 93.0
-i, r, p, pmin:  9 10 91.0 91.0
-i, r, p, pmin:  10 10 110.0 91.0
-i, r, p, pmin:  11 10 111.0 91.0
-i, r, p, pmin:  12 10 83.0 83.0
-i, r, p, pmin:  13 10 83.0 83.0
-i, r, p, pmin:  14 10 93.0 83.0
-i, r, p, pmin:  15 10 80.0 80.0
-i, r, p, pmin:  16 10 93.0 80.0
-i, r, p, pmin:  17 10 86.0 80.0
-i, r, p, pmin:  18 10 96.0 80.0
-i, r, p, pmin:  19 10 86.0 80.0
-i, r, p, pmin:  20 10 106.0 80.0
-i, r, p, pmin:  21 10 93.0 80.0
-i, r, p, pmin:  22 10 84.0 80.0
-i, r, p, pmin:  23 10 96.0 80.0
-i, r, p, pmin:  24 10 109.0 80.0
-i, r, p, pmin:  25 10 109.0 80.0
-i, r, p, pmin:  26 10 111.0 80.0
+i, r, p, pmin:  1 10 118.0 118.0

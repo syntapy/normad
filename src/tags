@@ -22,7 +22,7 @@ __groups	lif.py	/^    def __groups(self):$/;"	m	class:net	file:
 __init__	data.py	/^    def __init__(self, data_set, shuffle=False):$/;"	m	class:data
 __init__	lif.py	/^    def __init__(self, **keywds):$/;"	m	class:activity
 __init__	lif.py	/^    def __init__(self, **keywds):$/;"	m	class:net_info
-__init__	lif.py	/^    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=None):$/;"	m	class:net
+__init__	lif.py	/^    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=666):$/;"	m	class:net
 __init__	lift.py	/^    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):$/;"	m	class:rand_data_gen
 __init__	train.py	/^    def __init__(self,Ap=1.2, Am=0.5, a_nh=0.05, tau=0.005):$/;"	m	class:resume_params
 _equal_len_SC	spike_correlation.py	/^def _equal_len_SC(self, S1, S2):$/;"	f
@@ -63,6 +63,7 @@ get_params	train.py	/^    def get_params(self):$/;"	m	class:resume_params
 get_spike_times	lif.py	/^    def get_spike_times(self):$/;"	m	class:activity
 get_times	lif.py	/^    def get_times(self):$/;"	m	class:activity
 indices	lif.py	/^    def indices(self, N, numbers):$/;"	m	class:net
+iris	driver.py	/^iris = dt.data('iris')$/;"	v
 label_to_bin	lif.py	/^    def label_to_bin(self, label):$/;"	m	class:net_info
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
 load_iris	data.py	/^    def load_iris(self):$/;"	m	class:data
@@ -75,7 +76,7 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(inputs=3, hidden=10, output=2, subc=10, delay=10)$/;"	v
+nn	driver.py	/^nn = lif.net(inputs=5, hidden=40, output=3, subc=10, delay=10)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
 p	driver.py	/^p = nn.fit(X, Y, method_o='tempotron', method_h='tempotron')$/;"	v
@@ -172,4 +173,3 @@ w_ho_new	calc_unit.py	/^w_ho_new = np.array([831.29887157,  831.3935979])$/;"	v
 w_ih	calc_unit.py	/^w_ih = np.array([1192.38587144,  1213.54141314,  1215.89900524,  1211.53072387,  1213.30483321, 1208.16402457])$/;"	v
 w_ih_new	calc_unit.py	/^w_ih_new = np.array([ 1218.59773157, 1253.21098736, 1257.26227549, 1250.27975471, 1254.67675206, 1247.49591808])$/;"	v
 weights	lif.py	/^    def weights(self):$/;"	m	class:net_info
-xor	driver.py	/^xor = dt.data('xor')$/;"	v

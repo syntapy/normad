@@ -180,6 +180,7 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o,
     correct = 0
     p = 0
     indices = np.arange(len(X))
+    np.random.shuffle(indices)
     #np.random.shuffle(indices)
 
     #indices_unique = np.unique(indices)
@@ -209,7 +210,7 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o,
         self.info.reread()
         #pudb.set_trace()
         #self.info.H.print_spike_times(layer_name="hidden", tabs=1)
-        self.info.O.print_sd_times(tabs=1)
+        #self.info.O.print_sd_times(tabs=1)
         #print "=============="*2
         #if index == 6:
         #    pudb.set_trace()

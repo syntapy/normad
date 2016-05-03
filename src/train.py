@@ -180,7 +180,7 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o,
     correct = 0
     p = 0
     indices = np.arange(len(X))
-    np.random.shuffle(indices)
+    #np.random.shuffle(indices)
 
     #indices_unique = np.unique(indices)
     plist = np.zeros(len(indices))

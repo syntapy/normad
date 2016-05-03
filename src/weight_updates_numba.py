@@ -395,6 +395,7 @@ def tempotron_update_hidden_weights(info):
                         if_leq_max = t_ih <= t_max
                         dw_ih[index_ih:index_ih+p] += lam*delta[j]*alpha()*np.abs(w_ho[index_ho:index_ho+p])
 
+    """
     # Non-hebbian term
     # loop over hidden neurons
     for h in range(n):
@@ -409,12 +410,13 @@ def tempotron_update_hidden_weights(info):
             for j in range(len(d)):
                 index_ho = o_p*h+p*j
                 dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])*d[j]
+    """
 
     dw_ih /= float(m_n*p*p)
     return dw_ih
 
 
-def tempotron_update_output_weights(info):
+def tempotron_update_output_weights_draft(info):
     def alpha():
         a = np.exp(-(t_max - t_ho) / tau1)
         b = np.exp(-(t_max - t_ho) / tau2)
@@ -465,6 +467,7 @@ def tempotron_update_output_weights(info):
                     t_ho = (th[H] + delay*0.001)*tau1.unit
                     if_leq_max = t_ho <= t_max
                     dw_ho[index_ho:index_ho+p] += lam*delta[j]*alpha()
+    """
     # Non-hebbian term
     # loop over hidden neurons
     for h in range(n):
@@ -477,6 +480,7 @@ def tempotron_update_output_weights(info):
         for j in range(len(d)):
             index_ho = o_p*h + p*j
             dw_ho[index_ho:index_ho+p] += a_nh*d[j]
+    """
 
     return dw_ho / float(n_p)
 
@@ -516,7 +520,7 @@ def normad_update_output_weights(self):
         dw *= 0
     #return dW
 
-"""
+
 def tempotron_update_output_weights(info):
     def alpha():
         a = np.exp(-(t_max - t_ho) / tau1)
@@ -565,4 +569,3 @@ def tempotron_update_output_weights(info):
                 d_Wo[index_ho:index_ho+p] += delta[j]*alpha()
                 #d_Wo[index_ho:index_ho+p] += delta[j]*d(t_max - t_ho)
     return d_Wo*lam / n_p
-    """

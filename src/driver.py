@@ -23,6 +23,6 @@ xor = dt.data('xor')
 X, Y = xor.X['train'], xor.Y['train']
 
 nn = lif.net(inputs=3, hidden=40, output=3, subc=10, delay=10)
-p = nn.fit(X, Y, method_o='tempotron', method_h='tempotron', goal_accuracy=1.0)
+p = nn.fit(X, Y, method_o='tempotron', method_h='tempotron', goal_accuracy=1.0, read_weights=False)
 
 print "Test Performance:", p

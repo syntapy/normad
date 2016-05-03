@@ -290,7 +290,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=666):
+    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=None):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
@@ -944,6 +944,8 @@ class net:
             print "i, p, pmin: ", i, p, pmin
             #if i == 5:
             #    pudb.set_trace()
+        if p > N_wrong:
+            pudb.set_trace()
         self.save_weights()
         #pudb.set_trace()
         plist = train.train_epoch(self, r, \

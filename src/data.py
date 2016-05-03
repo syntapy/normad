@@ -107,7 +107,7 @@ class data:
         self.X['train'][4] = np.array([2.8, 0, 0])*ms
         self.X['train'][5] = np.array([3, 3, 0])*ms
         #self.Y['train'] = np.array([[1, 0], [1, 0], [0, 1], [0, 1]])
-        self.Y['train'] = np.array([[0], [0], [0], [1], [1], [1]])
+        self.Y['train'] = np.array([0, 0, 0, 1, 1, 1])
         #label = self.set_xor_times(index)
 
     def floats_to_times(self, x, tc=1.7, n_out=10):

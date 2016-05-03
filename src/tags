@@ -54,7 +54,7 @@ direction	lif.py	/^    def direction(self):$/;"	m	class:net_info
 dw_ho	calc_unit.py	/^dw_ho = np.zeros(np.shape(w_ho))$/;"	v
 dw_ih	calc_unit.py	/^dw_ih = np.zeros(np.shape(w_ih))$/;"	v
 f	test.py	/^def f(*args, **keywds):$/;"	f
-fit	lif.py	/^    def fit(self, X, Y, method_o='tempotron', method_h=None, threshold=0.7):$/;"	m	class:net
+fit	lif.py	/^    def fit(self, X, Y, method_o='tempotron', method_h=None, goal_accuracy=0.7, read_weights=True):$/;"	m	class:net
 floats_to_times	data.py	/^    def floats_to_times(self, x, tc=1.7, n_out=10):$/;"	m	class:data
 get_class	lif.py	/^    def get_class(self):$/;"	m	class:net_info
 get_indices	lif.py	/^    def get_indices(self, plist):$/;"	m	class:net
@@ -63,9 +63,9 @@ get_params	train.py	/^    def get_params(self):$/;"	m	class:resume_params
 get_spike_times	lif.py	/^    def get_spike_times(self):$/;"	m	class:activity
 get_times	lif.py	/^    def get_times(self):$/;"	m	class:activity
 indices	lif.py	/^    def indices(self, N, numbers):$/;"	m	class:net
-iris	driver.py	/^iris = dt.data('iris')$/;"	v
 label_to_bin	lif.py	/^    def label_to_bin(self, label):$/;"	m	class:net_info
 larger_indices	weight_updates_numba.py	/^def larger_indices(a, B):$/;"	f
+linsep	driver.py	/^linsep = dt.data('linsep')$/;"	v
 load_iris	data.py	/^    def load_iris(self):$/;"	m	class:data
 load_linsep	data.py	/^    def load_linsep(self):$/;"	m	class:data
 load_mnist	data.py	/^    def load_mnist(self):$/;"	m	class:data
@@ -76,10 +76,10 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(inputs=5, hidden=40, output=3, subc=10, delay=10)$/;"	v
+nn	driver.py	/^nn = lif.net(inputs=3, hidden=40, output=3, subc=10, delay=10)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
-p	driver.py	/^p = nn.fit(X, Y, method_o='tempotron', method_h='tempotron')$/;"	v
+p	driver.py	/^p = nn.fit(X, Y, method_o='tempotron', method_h='tempotron', goal_accuracy=1.0)$/;"	v
 performance	lif.py	/^    def performance(self, continuous=True, v_max=False):$/;"	m	class:net_info
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot	lif.py	/^    def plot(self, figname='test.png', save=False, sh=True, i=None):$/;"	m	class:net

@@ -860,7 +860,7 @@ class net:
     def get_indices(self, plist):
         pass
 
-    def fit(self, X, Y, method_o='tempotron', method_h=None, threshold=0.7):
+    def fit(self, X, Y, method_o='tempotron', method_h=None, goal_accuracy=0.7, read_weights=True):
         if self.N_hidden == 0:
             method_h = None
         elif self.N_hidden > 0:
@@ -872,7 +872,8 @@ class net:
                     print ' ',
         #print "PRESETTING WEIGHTS"
         #self.preset_weights(images)
-        #self.read_weights()
+        if read_weights:
+            self.read_weights()
         #train.synaptic_scalling_wrap(self, 1, 1)
         #self.save_weights()
         i, j, k = 0, 0, 0
@@ -883,6 +884,8 @@ class net:
         scaling = True
         min_spikes_o, max_spikes_o = 0, 1
         min_spikes_h, max_spikes_h = 1, 1
+        N = len(X)
+        N_wrong = (1 - goal_accuracy)*N
 
         self.net.restore()
         self.set_inputs(X[i])
@@ -902,17 +905,16 @@ class net:
         r = 10
         plist = None
         p_graph = -1
-        p = 5000
+        p = 50000000
         #pudb.set_trace()
         stop = False
-        while p > 0:
+        while p > N_wrong:
             i += 1
             j += 1
             pold = p
             #if i == 7:
             #    #pudb.set_trace()
             #    #stop = True
-
             plist = train.train_epoch(self, r, \
                 i, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, \
                 method_o=method_o, method_h=method_h, scaling=scaling, stop=stop)
@@ -933,16 +935,16 @@ class net:
             if p < pmin:
                 pmin = p
                 #if i % 10 == 0:
-                #self.save_weights()
+                self.save_weights()
             #if pmin < 50:
             #    #r = min((np.float(pmin) / 250)**2, 1) * 5.5
             #    min_spikes = 1
             #    max_spikes = 1
             p_graph = p
-            print "i, r, p, pmin: ", i, r, p, pmin
+            print "i, p, pmin: ", i, p, pmin
             #if i == 5:
             #    pudb.set_trace()
-        #self.save_weights()
+        self.save_weights()
         #pudb.set_trace()
         plist = train.train_epoch(self, r, \
             i, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, \

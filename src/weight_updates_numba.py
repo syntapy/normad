@@ -137,6 +137,160 @@ def resume_update_hidden_weights(info):
             for J in range(len(ta)):
                 j = ia[J]
                 index_ho = o_p*h+p*j
+                S = ta[J] - ti[I] - delay
+                for l in range(len(S)):
+                    s = S[l]
+                    if s <= 0:
+                        # ti + d - s = ta
+                        # s = -ta + d + ti
+                        dw_ih[index_ih+l] += Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
+                    if s >= 0 :
+                        # ta - d - s = ti
+                        # s = ta - d - ti
+                        dw_ih[index_ih+l] -= Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
+            # loop over desired spikes
+            for j in range(len(d)):
+                index_ho = o_p*h+p*j
+                delay = delay_ih[index_ih:index_ih+p]*0.001
+                S = d[j] - ti[I] - delay
+                for l in range(len(S)):
+                    s = S[l]
+                    if s <= 0:
+                        # ti + d - s = td
+                        # s = -td + d + ti
+                        dw_ih[index_ih+l] -= Am*resume_kernel(s, tau)*np.abs(w_ho[index_ho+l])
+                    if s >= 0:
+                        # td - d - s = ti
+                        # s = td - d - ti
+                        dw_ih[index_ih+l] += Ap*resume_kernel(-s, tau)*np.abs(w_ho[index_ho+l])
+    # loop over hidden neurons
+    for h in range(n):
+        # Non-hebbian term
+        # loop over input neurons
+        for i in range(m):
+            index_ih = n_p*i+p*h
+            # loop over output spikes
+            for J in range(len(ta)):
+                index_ho = o_p*h+p*j
+                dw_ih[index_ih:index_ih+p] -= a_nh*np.abs(w_ho[index_ho:index_ho+p])
+            # loop over desired spikes
+            for j in range(len(d)):
+                index_ho = o_p*h+p*j
+                dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])
+
+    dw_ih /= float(m_n*p*p)
+    #pudb.set_trace()
+    return dw_ih
+
+def tempotron_resume_update_output_weights(info):
+    m, n, o, p = info.a, info.b, info.c, info.p
+    if n == None:
+        n = m
+    n_p, o_p = n*p, o*p
+
+    params = info.params
+    #ii, ti = info.get_inputs()
+    ia, ta = info.O.S.it_
+    cout = spike_count(ia, o)
+    #pudb.set_trace()
+    if info.H != None:
+        ih, th = info.H.S.it_
+    else:
+        ih, th = info.get_inputs()
+    Ap, Am, a_nh, tau = params.get_params()
+    d = info.d_times
+
+    dw_ih, dw_ho = info.d_weights()
+    w_ih, w_ho = info.weights()
+    delay_ih, delay_ho = info.delays()
+    ### n hidden neurons, o output neurons, p synapses per neuron/input pair
+    ### w_ho[o_p*i + p*j + k] acceses the kth synapses from hidden i to output j
+
+    # loop over hidden spikes
+    for H in range(len(ih)):
+        h = ih[H]
+        # loop over output spikes
+        for J in range(len(ia)):
+            j = ia[J]
+            index_ho = o_p*h + p*j
+            delay = delay_ho[index_ho:index_ho+p]*0.001
+            S = ta[J] - th[H] - delay
+            for l in range(len(S)):
+                s = S[l]
+                if s <= 0:
+                    # th + d - s = ta
+                    # s = -ta + d + th
+                    dw_ho[index_ho+l] += Am*resume_kernel(s, tau)
+                if s >= 0:
+                    # ta - d - s = th
+                    # s = ta - d - th
+                    dw_ho[index_ho+l] -= Ap*resume_kernel(-s, tau)
+        # loop over desired spikes
+        for j in range(len(d)):
+            index_ho = o_p*h+p*j
+            delay = delay_ho[index_ho:index_ho+p]*0.001
+            S = d[j] - th[H] - delay
+            for l in range(len(S)):
+                s = S[l]
+                if s <= 0:
+                    # th + d - s = td
+                    # s = -td + d + th
+                    dw_ho[index_ho+l] -= Am*resume_kernel(s, tau)
+                if s >= 0:
+                    # td - d - s = th
+                    # s = td - d - th
+                    dw_ho[index_ho+l] += Ap*resume_kernel(-s, tau)
+        # loop over output neurons
+        #for j in range(o):
+        #    index_ho = o_p*h + p*j
+        #    dw_ho[index_ho:index_ho+p] += a_nh
+    # Non-hebbian term
+    # loop over hidden neurons
+    for h in range(n):
+        # loop over output spikes
+        for J in range(len(ia)):
+            j = ia[J]
+            index_ho = o_p*h + p*j
+            dw_ho[index_ho:index_ho+p] -= a_nh
+        # loop over desired spikes
+        for j in range(len(d)):
+            index_ho = o_p*h + p*j
+            dw_ho[index_ho:index_ho+p] += a_nh
+
+    return dw_ho / float(n_p)
+
+def tempotron_resume_update_hidden_weights(info):
+    m, n, o, p = info.a, info.b, info.c, info.p
+    m_n, n_o, m_n_o = m*n, n*o, m*n*o
+    n_p, o_p = n*p, o*p
+
+    params = info.params
+    ii, ti = info.get_inputs()
+    Wo, d_Wo = info.Wo, info.d_Wo
+    ia, ta = info.O.S.it_
+    Ap, Am, a_nh, tau = params.get_params()
+    dw_ih, dw_ho = info.d_weights()
+    w_ih, w_ho = info.weights()
+    delay_ih, delay_ho = info.delays()
+    d = info.d_times
+    #v = info.O.v
+
+    ### m input neurons, n hidden neurons, o output neurons, p subconnections
+    ### w_ih[n_p*i + p*j + k] acceses the kth synapse from input i to hidden j
+    ### w_ho[o_p*i + p*j + k] acceses the kth synapse from hidden i to output j
+
+    #pudb.set_trace()
+    # loop over hidden neurons
+    for h in range(n):
+        # loop over input spikes
+        for I in range(len(ii)):
+            i = ii[I]
+            index_ih = n_p*i+p*h
+            delay = delay_ih[index_ih:index_ih+p]*0.001
+            # loop over output spikes
+            for J in range(len(ta)):
+                j = ia[J]
+                index_ho = o_p*h+p*j
                 S = np.sign(ta[J] - ti[I] - delay)*0.002
                 for l in range(len(S)):
                     s = S[l]
@@ -187,6 +341,145 @@ def resume_update_hidden_weights(info):
     #pudb.set_trace()
     return dw_ih
 
+def tempotron_update_hidden_weights(info):
+    def alpha():
+        a = np.exp(-(t_max - t_ih) / tau1)
+        b = np.exp(-(t_max - t_ih) / tau2)
+        return if_leq_max*(a - b)
+
+    m, n, o, p = info.a, info.b, info.c, info.p
+    m_n, n_o, m_n_o = m*n, n*o, m*n*o
+    n_p, o_p = n*p, o*p
+
+    params = info.params
+    ii, ti = info.get_inputs()
+
+    Wo, d_Wo = info.Wo, info.d_Wo
+    ia, ta = info.O.S.it_
+    Ap, Am, a_nh, tau = params.get_params()
+    dw_ih, dw_ho = info.d_weights()
+    w_ih, w_ho = info.weights()
+    delay_ih, delay_ho = info.delays()
+
+    d = info.y
+    cout = spike_count(ia, o)
+    tau1, tau2 = info.O.tau1, info.O.tau2
+    delta = info.y - np.clip(cout, 0, 1)
+    dt, v = info.O.dt, info.O.v
+
+    lam = 5.0
+
+    dt = info.O.dt
+    vo = info.O.v
+
+    ### m input neurons, n hidden neurons, o output neurons, p subconnections
+    ### w_ih[n_p*i + p*j + k] acceses the kth synapse from input i to hidden j
+    ### w_ho[o_p*i + p*j + k] acceses the kth synapse from hidden i to output j
+
+    # loop over hidden neurons
+    for h in range(n):
+        # loop over input spikes
+        for I in range(len(ii)):
+            i = ii[I]
+            index_ih = n_p*i+p*h
+            delay = delay_ih[index_ih:index_ih+p]*0.001
+            # loop over output spikes
+            for j in range(o):
+                if delta[j] != 0:
+                    index_ho = o_p*h+p*j
+                    j_max = np.argmax(v[j])
+                    t_max = j_max * dt
+                    indices = np.argwhere(ia - j).ravel()
+                    for k in indices:
+                        t_ih = (ti[I] + delay*0.001)*tau1.unit
+                        if_leq_max = t_ih <= t_max
+                        dw_ih[index_ih:index_ih+p] += lam*delta[j]*alpha()*np.abs(w_ho[index_ho:index_ho+p])
+
+    # Non-hebbian term
+    # loop over hidden neurons
+    for h in range(n):
+        # loop over input neurons
+        for i in range(m):
+            index_ih = n_p*i+p*h
+            # loop over output spikes
+            for J in range(len(ta)):
+                index_ho = o_p*h+p*j
+                dw_ih[index_ih:index_ih+p] -= a_nh*np.abs(w_ho[index_ho:index_ho+p])
+            # loop over desired spikes
+            for j in range(len(d)):
+                index_ho = o_p*h+p*j
+                dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])*d[j]
+
+    dw_ih /= float(m_n*p*p)
+    return dw_ih
+
+
+def tempotron_update_output_weights(info):
+    def alpha():
+        a = np.exp(-(t_max - t_ho) / tau1)
+        b = np.exp(-(t_max - t_ho) / tau2)
+        return if_leq_max*(a - b)
+
+    m, n, o, p = info.a, info.b, info.c, info.p
+    if n == None:
+        n = m
+    n_p, o_p = n*p, o*p
+
+    params = info.params
+    #ii, ti = info.get_inputs()
+    ia, ta = info.O.S.it_
+    #pudb.set_trace()
+    if info.H != None:
+        ih, th = info.H.S.it_
+    else:
+        ih, th = info.get_inputs()
+    Ap, Am, a_nh, tau = params.get_params()
+    d = info.d_times
+
+    d = info.y
+    tau1, tau2 = info.O.tau1, info.O.tau2
+    cout = spike_count(ia, o)
+    dt, v = info.O.dt, info.O.v
+    delta = info.y - np.clip(cout, 0, 1)
+    dw_ih, dw_ho = info.d_weights()
+
+    lam = 5.0
+
+    w_ih, w_ho = info.weights()
+    delay_ih, delay_ho = info.delays()
+    ### n hidden neurons, o output neurons, p synapses per neuron/input pair
+    ### w_ho[o_p*i + p*j + k] acceses the kth synapses from hidden i to output j
+
+    # loop over hidden spikes
+    for H in range(len(ih)):
+        h = ih[H]
+        # loop over output spikes
+        for j in range(o):
+            if delta[j] != 0:
+                index_ho = o_p*h + p*j
+                delay = delay_ho[index_ho:index_ho+p]*0.001
+                j_max = np.argmax(v[j])
+                t_max = j_max * dt
+                indices = np.argwhere(ia - j).ravel()
+                for k in indices:
+                    t_ho = (th[H] + delay*0.001)*tau1.unit
+                    if_leq_max = t_ho <= t_max
+                    dw_ho[index_ho:index_ho+p] += lam*delta[j]*alpha()
+    # Non-hebbian term
+    # loop over hidden neurons
+    for h in range(n):
+        # loop over output spikes
+        for J in range(len(ia)):
+            j = ia[J]
+            index_ho = o_p*h + p*j
+            dw_ho[index_ho:index_ho+p] -= a_nh
+        # loop over desired spikes
+        for j in range(len(d)):
+            index_ho = o_p*h + p*j
+            dw_ho[index_ho:index_ho+p] += a_nh*d[j]
+
+    return dw_ho / float(n_p)
+
 def normad_update_output_weights(self):
     """ Normad training step """
     #self.actual = self.net['crossings_o'].all_values()['t']
@@ -223,9 +516,7 @@ def normad_update_output_weights(self):
         dw *= 0
     #return dW
 
-def tempotron_update_hidden_weights(info):
-    pass
-
+"""
 def tempotron_update_output_weights(info):
     def alpha():
         a = np.exp(-(t_max - t_ho) / tau1)
@@ -234,18 +525,6 @@ def tempotron_update_output_weights(info):
         #a_b = 1 / tau2
 
         return if_leq_max*(a - b)
-
-    def d_minor(tau):
-        a = (tau1 - tauL) / (tau1*tauL)
-        b = (tau2 - tauL) / (tau2*tauL)
-        
-        A = np.exp(tau*a - (t/tauL) + (tf/tau1))
-        B = np.exp(tau*b - (t/tauL) + (tf/tau2))
-
-        return a*A - b*B
-
-    def d(t):
-        return if_leq_max*(d_minor(t) - d_minor(tf))
 
     m, n, o, p = info.a, info.b, info.c, info.p
     dt = info.O.dt
@@ -286,3 +565,4 @@ def tempotron_update_output_weights(info):
                 d_Wo[index_ho:index_ho+p] += delta[j]*alpha()
                 #d_Wo[index_ho:index_ho+p] += delta[j]*d(t_max - t_ho)
     return d_Wo*lam / n_p
+    """

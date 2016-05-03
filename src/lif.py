@@ -368,7 +368,9 @@ class net:
                     '''
             refractory = 3*br.ms
         else:
-            reset = None
+            reset = '''
+                        D = 0
+                    '''
             refractory = 10*br.second
         #pudb.set_trace()
         neurons = br.NeuronGroup(N_neurons, \
@@ -378,6 +380,7 @@ class net:
                             dvb/dt = -(vb/tau2)                   : 1 (unless refractory)
                             tau1 = 0.0050*second                  : second (shared)
                             tau2 = 0.001250*second                : second (shared)
+                            r                                     : 1
                             vt = 100                              : 1 (shared)''',
                             method='rk2', refractory=refractory, threshold='v>=vt', 
                             reset=reset, name=name, dt=self.dta)
@@ -387,8 +390,8 @@ class net:
         S = br.Synapses(neurons_a, neurons_b,
                     model='''w : 1''',
                     pre='''
-                        va_post += w
-                        vb_post += w
+                        va_post += w*r_post
+                        vb_post += w*r_post
                         ''', 
                     name=name, dt=self.dta)
         return S
@@ -441,6 +444,8 @@ class net:
         self.rand_weights_multilayer()
         hidden.va = '0'
         hidden.vb = '0'
+        hidden.r = 1
+        output.r = 1
         self.net.store()
         output_a = activity(S=To, M=Vo, tau1=output.tau1, tau2=output.tau2, dt=self.dta)
         hidden_a = activity(S=Th, M=Vh, dt=self.dta)
@@ -896,14 +901,11 @@ class net:
         p_graph = -1
         p = 5000
         #pudb.set_trace()
-        while p > 10:
+        while p > 0:
             i += 1
             j += 1
             pold = p
-            #if i > 15:
-            #    pudb.set_trace()
 
-            #break
             plist = train.train_epoch(self, r, \
                 i, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, \
                 method_o=method_o, method_h=method_h, scaling=scaling)

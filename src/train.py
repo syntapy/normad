@@ -30,7 +30,7 @@ def supervised_update(self, method_o='tempotron', method_h=None):
         update_function_h = weight_updates.tempotron_update_hidden_weights
 
     self.info.params = resume_params()
-    pudb.set_trace()
+    #pudb.set_trace()
     if self.info.multilayer == True:
         if method_h != None:
             dw_h = update_function_h(self.info)
@@ -207,7 +207,7 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o,
         self.run()
         #pudb.set_trace()
         #self.info.H.print_spike_times(layer_name="hidden", tabs=1)
-        #self.info.O.print_sd_times(tabs=1)
+        self.info.O.print_sd_times(tabs=1)
         #print "=============="*2
         self.info.reread()
         #if index == 6:

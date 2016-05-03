@@ -204,6 +204,7 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o,
         #self.plot_2d(p_old, grid, times, index, i, i_times*1000, desired)
         #self.set_inputs(X[i])
         #self.info.set_y(Y[i])
+        #pudb.set_trace()
         self.run()
         self.info.reread()
         #pudb.set_trace()

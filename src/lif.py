@@ -290,7 +290,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=667):
+    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=None):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
@@ -370,7 +370,7 @@ class net:
             refractory = 3*br.ms
         else:
             reset = '''
-                        D=0
+                        r=0
                         va=0
                         vb=0
                     '''
@@ -437,8 +437,8 @@ class net:
         #Vc = br.StateMonitor(output, 'v', record=True, name='values_vo')
 
         #pudb.set_trace()
-        Vo = br.StateMonitor(output, 'v', record=True, name='values_vo')
-        Vh = br.StateMonitor(hidden, 'v', record=True, name='values_vh')
+        Vo = br.StateMonitor(output, 'v', record=True, name='values_vo', when='synapses', order='10')
+        Vh = br.StateMonitor(hidden, 'v', record=True, name='values_vh', when='synapses', order='10')
         #Co = br.StateMonitor(So, 'c', record=True, name='values_co')
         #Ch = br.StateMonitor(Sh, 'c', record=True, name='values_ch')
         Th = br.SpikeMonitor(hidden, variables='v', name='crossings_h')

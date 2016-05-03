@@ -341,7 +341,7 @@ def tempotron_resume_update_hidden_weights(info):
     #pudb.set_trace()
     return dw_ih
 
-def tempotron_update_hidden_weights(info):
+def tempotron_update_hidden_weights(info, stop):
     def alpha():
         a = np.exp(-(t_max - t_ih) / tau1)
         b = np.exp(-(t_max - t_ih) / tau2)
@@ -367,7 +367,7 @@ def tempotron_update_hidden_weights(info):
     delta = info.y - np.clip(cout, 0, 1)
     dt, v = info.O.dt, info.O.v
 
-    lam = 5.0
+    lam = 100
 
     dt = info.O.dt
     vo = info.O.v
@@ -376,6 +376,8 @@ def tempotron_update_hidden_weights(info):
     ### w_ih[n_p*i + p*j + k] acceses the kth synapse from input i to hidden j
     ### w_ho[o_p*i + p*j + k] acceses the kth synapse from hidden i to output j
 
+    if stop==True:
+        pudb.set_trace()
     # loop over hidden neurons
     for h in range(n):
         # loop over input spikes
@@ -389,13 +391,12 @@ def tempotron_update_hidden_weights(info):
                     index_ho = o_p*h+p*j
                     j_max = np.argmax(v[j])
                     t_max = j_max * dt
-                    indices = np.argwhere(ia - j).ravel()
-                    for k in indices:
-                        t_ih = (ti[I] + delay*0.001)*tau1.unit
-                        if_leq_max = t_ih <= t_max
-                        dw_ih[index_ih:index_ih+p] += lam*delta[j]*alpha()*np.abs(w_ho[index_ho:index_ho+p])
+                    #indices = np.argwhere(ia - j).ravel()
+                    #for k in indices:
+                    t_ih = ti[I] + delay
+                    if_leq_max = t_ih <= t_max
+                    dw_ih[index_ih:index_ih+p] += delta[j]*lam*alpha()*np.abs(w_ho[index_ho:index_ho+p])
 
-    """
     # Non-hebbian term
     # loop over hidden neurons
     for h in range(n):
@@ -405,18 +406,18 @@ def tempotron_update_hidden_weights(info):
             # loop over output spikes
             for J in range(len(ta)):
                 index_ho = o_p*h+p*j
-                dw_ih[index_ih:index_ih+p] -= a_nh*np.abs(w_ho[index_ho:index_ho+p])
+                dw_ih[index_ih:index_ih+p] -= lam*a_nh*np.abs(w_ho[index_ho:index_ho+p])
             # loop over desired spikes
             for j in range(len(d)):
                 index_ho = o_p*h+p*j
-                dw_ih[index_ih:index_ih+p] += a_nh*np.abs(w_ho[index_ho:index_ho+p])*d[j]
-    """
+                dw_ih[index_ih:index_ih+p] += lam*a_nh*np.abs(w_ho[index_ho:index_ho+p])*d[j]
 
     dw_ih /= float(m_n*p*p)
+
     return dw_ih
 
 
-def tempotron_update_output_weights_draft(info):
+def tempotron_update_output_weights(info, stop):
     def alpha():
         a = np.exp(-(t_max - t_ho) / tau1)
         b = np.exp(-(t_max - t_ho) / tau2)
@@ -445,13 +446,15 @@ def tempotron_update_output_weights_draft(info):
     delta = info.y - np.clip(cout, 0, 1)
     dw_ih, dw_ho = info.d_weights()
 
-    lam = 5.0
+    lam = 100
 
     w_ih, w_ho = info.weights()
     delay_ih, delay_ho = info.delays()
     ### n hidden neurons, o output neurons, p synapses per neuron/input pair
     ### w_ho[o_p*i + p*j + k] acceses the kth synapses from hidden i to output j
 
+    if stop==True:
+        pudb.set_trace()
     # loop over hidden spikes
     for H in range(len(ih)):
         h = ih[H]
@@ -462,12 +465,12 @@ def tempotron_update_output_weights_draft(info):
                 delay = delay_ho[index_ho:index_ho+p]*0.001
                 j_max = np.argmax(v[j])
                 t_max = j_max * dt
-                indices = np.argwhere(ia - j).ravel()
-                for k in indices:
-                    t_ho = (th[H] + delay*0.001)*tau1.unit
-                    if_leq_max = t_ho <= t_max
-                    dw_ho[index_ho:index_ho+p] += lam*delta[j]*alpha()
-    """
+                #indices = np.argwhere(ia - j).ravel()
+                #for k in indices:
+                t_ho = th[H] + delay
+                if_leq_max = t_ho <= t_max
+                dw_ho[index_ho:index_ho+p] += delta[j]*lam*alpha()
+
     # Non-hebbian term
     # loop over hidden neurons
     for h in range(n):
@@ -475,14 +478,14 @@ def tempotron_update_output_weights_draft(info):
         for J in range(len(ia)):
             j = ia[J]
             index_ho = o_p*h + p*j
-            dw_ho[index_ho:index_ho+p] -= a_nh
+            dw_ho[index_ho:index_ho+p] -= lam*a_nh
         # loop over desired spikes
         for j in range(len(d)):
             index_ho = o_p*h + p*j
-            dw_ho[index_ho:index_ho+p] += a_nh*d[j]
-    """
+            dw_ho[index_ho:index_ho+p] += lam*a_nh*d[j]
 
-    return dw_ho / float(n_p)
+    dw_ho /= float(n_p)
+    return dw_ho
 
 def normad_update_output_weights(self):
     """ Normad training step """
@@ -521,7 +524,7 @@ def normad_update_output_weights(self):
     #return dW
 
 
-def tempotron_update_output_weights(info):
+def tempotron_update_output_weights_original(info):
     def alpha():
         a = np.exp(-(t_max - t_ho) / tau1)
         b = np.exp(-(t_max - t_ho) / tau2)

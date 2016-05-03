@@ -22,7 +22,7 @@ __groups	lif.py	/^    def __groups(self):$/;"	m	class:net	file:
 __init__	data.py	/^    def __init__(self, data_set, shuffle=False):$/;"	m	class:data
 __init__	lif.py	/^    def __init__(self, **keywds):$/;"	m	class:activity
 __init__	lif.py	/^    def __init__(self, **keywds):$/;"	m	class:net_info
-__init__	lif.py	/^    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=666):$/;"	m	class:net
+__init__	lif.py	/^    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=667):$/;"	m	class:net
 __init__	lift.py	/^    def __init__(self, neuron=None, seed=5, Na=None, Nb=None):$/;"	m	class:rand_data_gen
 __init__	train.py	/^    def __init__(self,Ap=1.2, Am=0.5, a_nh=0.05, tau=0.005):$/;"	m	class:resume_params
 _equal_len_SC	spike_correlation.py	/^def _equal_len_SC(self, S1, S2):$/;"	f
@@ -36,7 +36,7 @@ accuracy	lif.py	/^    def accuracy(self, a=0, b=50000, data='train'):$/;"	m	clas
 activity	lif.py	/^class activity:$/;"	c
 alpha	weight_updates_numba.py	/^    def alpha():$/;"	f	function:tempotron_update_hidden_weights
 alpha	weight_updates_numba.py	/^    def alpha():$/;"	f	function:tempotron_update_output_weights
-alpha	weight_updates_numba.py	/^    def alpha():$/;"	f	function:tempotron_update_output_weights_draft
+alpha	weight_updates_numba.py	/^    def alpha():$/;"	f	function:tempotron_update_output_weights_original
 bin_to_none	lif.py	/^    def bin_to_none(self):$/;"	m	class:net_info
 bin_to_times	lif.py	/^    def bin_to_times(self):$/;"	m	class:net_info
 compute	lif.py	/^    def compute(self, images):$/;"	m	class:net
@@ -75,10 +75,10 @@ mnist_right_outputs	lif.py	/^    def mnist_right_outputs(self, label):$/;"	m	cla
 net	lif.py	/^class net:$/;"	c
 net_info	lif.py	/^class net_info:$/;"	c
 neuron_right_outputs	lif.py	/^    def neuron_right_outputs(self, label):$/;"	m	class:net
-nn	driver.py	/^nn = lif.net(inputs=3, hidden=5, output=2, subc=10, delay=10)$/;"	v
+nn	driver.py	/^nn = lif.net(inputs=3, hidden=10, output=2, subc=10, delay=10)$/;"	v
 normad_update_output_weights	weight_updates_numba.py	/^def normad_update_output_weights(self):$/;"	f
 output_class	lif.py	/^    def output_class(self):$/;"	m	class:net
-p	driver.py	/^p = nn.fit(X, Y, method_o='tempotron', method_h='resume')$/;"	v
+p	driver.py	/^p = nn.fit(X, Y, method_o='tempotron', method_h='tempotron')$/;"	v
 performance	lif.py	/^    def performance(self, continuous=True, v_max=False):$/;"	m	class:net_info
 plot	display.py	/^def plot(self, save=False, show=True, i=None):$/;"	f
 plot	lif.py	/^    def plot(self, figname='test.png', save=False, sh=True, i=None):$/;"	m	class:net
@@ -135,7 +135,7 @@ smaller_indices	weight_updates_numba.py	/^def smaller_indices(a, B):$/;"	f
 sort	weight_updates_numba.py	/^def sort(S):$/;"	f
 spike_count	aux.py	/^def spike_count(indices, n):$/;"	f
 spikes	lif.py	/^    def spikes(self, name='hidden', t='dict'):$/;"	m	class:net
-supervised_update	train.py	/^def supervised_update(self, method_o='tempotron', method_h=None):$/;"	f
+supervised_update	train.py	/^def supervised_update(self, method_o='tempotron', method_h=None, stop=False):$/;"	f
 synaptic_scaling	train.py	/^def synaptic_scaling(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, iteration=0):$/;"	f
 synaptic_scaling_multilayer	train.py	/^def synaptic_scaling_multilayer(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, iteration=0):$/;"	f
 synaptic_scaling_singlelayer	train.py	/^def synaptic_scaling_singlelayer(self, min_spikes, max_spikes, iteration=0):$/;"	f
@@ -146,9 +146,9 @@ td	calc_unit.py	/^td = 0.028$/;"	v
 tdiff_rms	lif.py	/^    def tdiff_rms(self):$/;"	m	class:net
 tempotron_resume_update_hidden_weights	weight_updates_numba.py	/^def tempotron_resume_update_hidden_weights(info):$/;"	f
 tempotron_resume_update_output_weights	weight_updates_numba.py	/^def tempotron_resume_update_output_weights(info):$/;"	f
-tempotron_update_hidden_weights	weight_updates_numba.py	/^def tempotron_update_hidden_weights(info):$/;"	f
-tempotron_update_output_weights	weight_updates_numba.py	/^def tempotron_update_output_weights(info):$/;"	f
-tempotron_update_output_weights_draft	weight_updates_numba.py	/^def tempotron_update_output_weights_draft(info):$/;"	f
+tempotron_update_hidden_weights	weight_updates_numba.py	/^def tempotron_update_hidden_weights(info, stop):$/;"	f
+tempotron_update_output_weights	weight_updates_numba.py	/^def tempotron_update_output_weights(info, stop):$/;"	f
+tempotron_update_output_weights_original	weight_updates_numba.py	/^def tempotron_update_output_weights_original(info):$/;"	f
 test	lift.py	/^    def test(self, classes=1):$/;"	m	class:rand_data_gen
 test_spike_consistency	lift.py	/^    def test_spike_consistency(self, classes=1, spacing=5):$/;"	m	class:rand_data_gen
 test_topology	lif.py	/^    def test_topology(self, n=15, it_min=0, it_max=10, num=20):$/;"	m	class:net
@@ -161,8 +161,8 @@ tid	calc_unit.py	/^tid = ti[i] + d_ih[i*2 + h]$/;"	v
 times_format	display.py	/^def times_format(self):$/;"	f
 topology	lif.py	/^    def topology(self, it_min=0, it_max=10, num=4):$/;"	m	class:net
 topology_chart	lif.py	/^    def topology_chart(self, spikes):$/;"	m	class:net
-train_epoch	train.py	/^def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True, test=False):$/;"	f
-train_step	train.py	/^def train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True):$/;"	f
+train_epoch	train.py	/^def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True, test=False, stop=False):$/;"	f
+train_step	train.py	/^def train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True, stop=False):$/;"	f
 uniform_input	lif.py	/^    def uniform_input(self):$/;"	m	class:net
 untrained	spike_correlation.py	/^def untrained(self):$/;"	f
 update_d_weights	lif.py	/^    def update_d_weights(self, d_Wo, d_Wh=None):$/;"	m	class:net_info

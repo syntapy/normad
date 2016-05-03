@@ -8,7 +8,7 @@ from aux import spike_count
 class resume_params:
 
     def __init__(self,Ap=1.2, Am=0.5, a_nh=0.05, tau=0.005):
-        f = 2
+        f = 1
         self.Ap = f*Ap
         self.Am = f*Am
         self.a_nh = f*a_nh
@@ -18,7 +18,7 @@ class resume_params:
         return self.Ap, self.Am, self.a_nh, self.tau
 
 br.prefs.codegen.target = 'weave'  # use the Python fallback
-def supervised_update(self, method_o='tempotron', method_h=None):
+def supervised_update(self, method_o='tempotron', method_h=None, stop=False):
     if method_o == 'resume':
         update_function_o = weight_updates.resume_update_output_weights
     elif method_o == 'tempotron':
@@ -33,10 +33,10 @@ def supervised_update(self, method_o='tempotron', method_h=None):
     #pudb.set_trace()
     if self.info.multilayer == True:
         if method_h != None:
-            dw_h = update_function_h(self.info)
+            dw_h = update_function_h(self.info, stop)
     else: dw_h = None
     if method_o != None:
-        dw_o = update_function_o(self.info)
+        dw_o = update_function_o(self.info, stop)
 
     #self.info.update_d_weights(dw_o, d_Wh=dw_h)
 
@@ -169,14 +169,14 @@ def synaptic_scalling_wrap(self, min_spikes_o, max_spikes_o, min_spikes_h, max_s
         #if i > 5:
         #    self.save_weights()
 
-def train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True):
+def train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True, stop=False):
     if (method_o != 'tempotron' or method_h != 'tempotron') and scaling == True:
         pass
         #pudb.set_trace()
         #synaptic_scalling_wrap(self, 0, 1, 1, 1)
-    supervised_update(self, method_o=method_o, method_h=method_h)
+    supervised_update(self, method_o=method_o, method_h=method_h, stop=stop)
 
-def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True, test=False):
+def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o='tempotron', method_h=None, scaling=True, test=False, stop=False):
     correct = 0
     p = 0
     indices = np.arange(len(X))
@@ -205,18 +205,18 @@ def train_epoch(self, r, index, indices, pmin, X, Y, min_spikes_o, max_spikes_o,
         #self.set_inputs(X[i])
         #self.info.set_y(Y[i])
         self.run()
+        self.info.reread()
         #pudb.set_trace()
         #self.info.H.print_spike_times(layer_name="hidden", tabs=1)
         self.info.O.print_sd_times(tabs=1)
         #print "=============="*2
-        self.info.reread()
         #if index == 6:
         #    pudb.set_trace()
         #if p_tmp < 4.0:
         #    pudb.set_trace()
         if test == False:
             plist[i] = self.info.performance(continuous=False)
-            train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o=method_o, method_h=method_h, scaling=scaling)
+            train_step(self, index, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, method_o=method_o, method_h=method_h, scaling=scaling, stop=stop)
             self.info.update_weights(r)
             self.info.reset_d_weights()
         else:

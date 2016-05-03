@@ -34,11 +34,11 @@ class activity:
             self.M = keywds['M']
         else: self.M = None
         if keywds.has_key('tau1'):
-            self.tau1 = keywds['tau1']
+            self.tau1 = keywds['tau1'] / br.second
         if keywds.has_key('tau2'):
-            self.tau2 = keywds['tau2']
+            self.tau2 = keywds['tau2'] / br.second
         if keywds.has_key('dt'):
-            self.dt = keywds['dt']
+            self.dt = keywds['dt'] / br.second
 
     def reread(self):
         self.i, self.t = self.S.it_
@@ -246,6 +246,7 @@ class net_info:
         for i in range(len(Vo)):
             v_new = np.max(Vo[i])
             if v_new > v_max:
+                v_max = v_new
                 index = i
         return index
 
@@ -289,7 +290,7 @@ class net:
     ### MODEL SETUP ###
     ###################
 
-    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=666):
+    def __init__(self, hidden=5, output=2, inputs=3, subc=3, delay=11, seed=667):
         #pudb.set_trace()
         self.changes = []
         self.trained = False
@@ -369,7 +370,9 @@ class net:
             refractory = 3*br.ms
         else:
             reset = '''
-                        D = 0
+                        D=0
+                        va=0
+                        vb=0
                     '''
             refractory = 10*br.second
         #pudb.set_trace()
@@ -889,7 +892,7 @@ class net:
         self.info.O.print_sd_times(tabs=1)
         self.info.reread()
         train.synaptic_scalling_wrap(self, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h)
-        self.save_weights()
+        #self.save_weights()
 
 
         #indices = [0, 1, 2, 3]
@@ -901,14 +904,18 @@ class net:
         p_graph = -1
         p = 5000
         #pudb.set_trace()
+        stop = False
         while p > 0:
             i += 1
             j += 1
             pold = p
+            #if i == 7:
+            #    #pudb.set_trace()
+            #    #stop = True
 
             plist = train.train_epoch(self, r, \
                 i, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, \
-                method_o=method_o, method_h=method_h, scaling=scaling)
+                method_o=method_o, method_h=method_h, scaling=scaling, stop=stop)
             p = sum(plist)
             index_worst = np.argmax(plist)
             #indices = range(len(X))
@@ -926,14 +933,17 @@ class net:
             if p < pmin:
                 pmin = p
                 #if i % 10 == 0:
-                self.save_weights()
+                #self.save_weights()
             #if pmin < 50:
             #    #r = min((np.float(pmin) / 250)**2, 1) * 5.5
             #    min_spikes = 1
             #    max_spikes = 1
             p_graph = p
             print "i, r, p, pmin: ", i, r, p, pmin
-        self.save_weights()
+            #if i == 5:
+            #    pudb.set_trace()
+        #self.save_weights()
+        #pudb.set_trace()
         plist = train.train_epoch(self, r, \
             i, indices, pmin, X, Y, min_spikes_o, max_spikes_o, min_spikes_h, max_spikes_h, \
             method_o=None, method_h=None, scaling=scaling, test=True)

@@ -38,7 +38,7 @@ pytest==2.9.1
 python-dateutil==2.4.2
 pytools==2016.1
 pytz==2015.7
-PyYAML==3.11
+PyYAML==5.1
 requests==2.9.1
 scikit-image==0.11.3
 scikit-learn==0.17

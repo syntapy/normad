@@ -31,7 +31,7 @@ ptyprocess==0.5.1
 pudb==2015.4.1
 py==1.4.31
 pycairo==1.10.0
-Pygments==2.1.1
+Pygments==2.7.4
 pylearn2==0.1.dev0
 pyparsing==2.0.3
 pytest==2.9.1

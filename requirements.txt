@@ -29,7 +29,7 @@ pickleshare==0.6
 Pillow==3.1.1
 ptyprocess==0.5.1
 pudb==2015.4.1
-py==1.4.31
+py==1.10.0
 pycairo==1.10.0
 Pygments==2.1.1
 pylearn2==0.1.dev0

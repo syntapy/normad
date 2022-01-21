@@ -10,7 +10,7 @@ dtcwt==0.10.1
 enum34==1.1.2
 funcsigs==0.4
 greenlet==0.4.9
-ipython==4.1.2
+ipython==7.16.3
 ipython-genutils==0.1.0
 Jinja2==2.8
 llvmlite==0.10.0
